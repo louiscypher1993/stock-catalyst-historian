@@ -22,8 +22,8 @@ import { exportAndUploadToDrive, exportToLocalStream } from "./CSVExportService"
 
 dotenv.config();
 
-console.log("DEBUG GEMINI KEY LAST 8:", process.env.GEMINI_API_KEY?.slice(-8));
-console.log("DEBUG GEMINI KEY FIRST 8:", process.env.GEMINI_API_KEY?.slice(0, 8));
+//console.log("DEBUG GEMINI KEY LAST 8:", process.env.GEMINI_API_KEY?.slice(-8));
+//console.log("DEBUG GEMINI KEY FIRST 8:", process.env.GEMINI_API_KEY?.slice(0, 8));
 
 const SYMBOL_PATTERN = /^[A-Z0-9.\-]{1,15}$/;
 
