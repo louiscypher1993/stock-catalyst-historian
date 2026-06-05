@@ -67,6 +67,12 @@ import { SignalNormalizer } from "./src/SignalNormalizer";
 import { runGatingEngine, GatingVerdict } from "./QuantamentalGatingEngine";
 import { buildGatingInput } from "./GatingAdapter";
 
+const normaliseSuspectedCatalyst = (val: any): string | undefined => {
+  if (Array.isArray(val)) return val.join(', ');
+  if (typeof val === 'string') return val;
+  return undefined;
+};
+
 /**
  * A highly robust, promise-based sleep helper function. 
  * We must artificially cripple our V8 JavaScript engine's raw processing speed 
@@ -534,12 +540,8 @@ export class HistoricalEngine {
       }
       HistoricalEngine.globalAiClient = new GoogleGenAI({
         apiKey,
-        httpOptions: {
-          headers: {
-            "User-Agent": "aistudio-build",
-          },
-        },
       });
+      console.log("[AI] Gemini client initialised with API key ending in", apiKey.slice(-4));
     }
     return HistoricalEngine.globalAiClient;
   }
@@ -603,7 +605,7 @@ export class HistoricalEngine {
     try {
       const ai = this.getAIClient();
       const embeddingRes = await ai.models.embedContent({
-        model: "text-embedding-004",
+        model: "text-embedding-005",
         contents: text,
       });
       if (embeddingRes.embeddings && embeddingRes.embeddings.length > 0) {
@@ -612,7 +614,7 @@ export class HistoricalEngine {
       }
       return null;
     } catch (err) {
-      console.warn("Embedding generation failed, writing null:", err);
+      console.log("[Embedding] Model unavailable — historical similarity will be skipped.");
       return null;
     }
   }
@@ -769,6 +771,11 @@ Reply with JSON containing only a single property "score" (a number between 1 an
           }
         } catch (err) {
           console.warn(`Error fetching ${vixTicker} data:`, err);
+        }
+        // If the fetch yielded no data, evict from cache so the next scan can retry
+        // rather than permanently serving a stale empty map for the session lifetime.
+        if (series.size === 0) {
+          HistoricalEngine.vixSeriesPromises.delete(cacheKey);
         }
         return series;
       })();
@@ -2140,7 +2147,7 @@ Macroeconomic Environment on ${item.date}:
                     ? "+"
                     : "";
                 releaseContext = `
-Scheduled Economic Release on ${item.date} (${release.releaseType.toUpperCase()}):
+Scheduled Economic Release on ${item.date} (${release.releaseType?.toUpperCase()}):
 - Actual vs Prior Value: ${release.actualValue} vs ${release.priorValue}
 - Surprise: ${surpriseSign}${release.surprise} (${release.surpriseDirection} direction)
 - Statistical Significance: ${release.isSignificant ? "HIGH significance (exceeds 0.2 standard deviations)" : "Standard/In-line deviation"}`;
@@ -2479,28 +2486,47 @@ Scheduled Economic Release on ${item.date} (${release.releaseType.toUpperCase()}
                 ? " [CRITICAL INSTRUCTION - NULL SAMPLE DATA]: This specific date had a flat price response despite elevated trading volume or news disclosures. Ground your search on what occurred, but explicitly explain why the market completely ignored this news or had already fully priced it in. Do not invent a narrative for a price breakout."
                 : "";
 
-              return `- Date: ${item.date}, Day Change: ${Number(item.dailyReturn).toFixed(2)}%, Day Z-Score: ${Number(item.zScore).toFixed(2)} Sigma, Rolling Mean: ${Number(item.rollingMean).toFixed(2)}%, Rolling Std: ${Number(item.rollingStd).toFixed(4)}${isNullModifier}${swingContext}${govContext}${ivCrushContext}${sectorContagionContext}${pcrContext}${hiddenLiquidityContext}${systemPhysicsContext}${econophysicsContext}${orbitalStabilityContext}${systemGeometryContext}${systemKinematicsContext}${volContext}${vixContext}${regimeContext}${sequenceContext}${edgarContext}${insiderContext}${frictionContext}${fmpContextBlock}${earningsContextStr}${macroContext}${releaseContext}${newsContext}${socialContext}${shortInterestContext}${trendsContext}${wikiContext}${gdeltContext}${ytContext}`;
+              // CHANGE 1 / 3 / 4 — per-item search grounding, evidence summary, gating verdict
+              const [_p1Year, _p1MonthNum] = item.date.split('-');
+              const _p1MonthName = ["January","February","March","April","May","June","July","August","September","October","November","December"][parseInt(_p1MonthNum, 10) - 1] ?? _p1MonthNum;
+              const _p1EdgarStatus = (item.analysis?.edgarFilings && item.analysis.edgarFilings.length > 0)
+                ? `${item.analysis.edgarFilings.length} filing(s) found`
+                : 'none found';
+              const _p1GdeltCount = gdeltEvents ? gdeltEvents.length : 0;
+              const _p1MacroLine = snap
+                ? `Fed=${snap.federalFundsRate ?? 'N/A'}% CPI=${snap.cpiYoY ?? 'N/A'}% Unemp=${snap.unemploymentRate ?? 'N/A'}%`
+                : 'unavailable';
+              const _p1Gv = (item as any).gatingVerdict as GatingVerdict | undefined;
+
+              const _p1Search = `\n[SEARCH GROUNDING]: You are analysing a historical price event for ${uppercaseSymbol} on ${item.date}. Use Google Search to find what specific news, announcements, earnings results, regulatory decisions, executive statements, or market events occurred for ${uppercaseSymbol} or its sector on or immediately before ${item.date}. Search specifically for '${uppercaseSymbol} news ${item.date}', '${uppercaseSymbol} ${_p1MonthName} ${_p1Year}', and any earnings or regulatory context for that period. Today's date for your search context is ${item.date} — do not retrieve information published after this date.`;
+              const _p1Evidence = `\n[EVIDENCE]: Z=${Number(item.zScore).toFixed(2)}σ | Return=${Number(item.dailyReturn).toFixed(2)}% | VolRatio=${item.volumeRatio !== undefined ? Number(item.volumeRatio).toFixed(1) + 'x' : 'N/A'} | VIX=${vixVal !== undefined ? Number(vixVal).toFixed(2) : 'N/A'} (${regime ?? 'N/A'}) | EDGAR: ${_p1EdgarStatus} | GDELT: ${_p1GdeltCount} event(s) | Macro: ${_p1MacroLine}. Reason from this evidence. Where data is unavailable, acknowledge the gap rather than fabricating signal.`;
+              const _p1Gating = `\n[GATING VERDICT]: The deterministic gating engine classified this event as ${_p1Gv?.event_classification ?? 'UNKNOWN'} (dominant regime: ${_p1Gv?.dominant_physics_regime ?? 'UNKNOWN'}). Your role is to find the specific real-world event that caused this classification — not to rephrase the label.`;
+
+              return `- Date: ${item.date}, Day Change: ${Number(item.dailyReturn).toFixed(2)}%, Day Z-Score: ${Number(item.zScore).toFixed(2)} Sigma, Rolling Mean: ${Number(item.rollingMean).toFixed(2)}%, Rolling Std: ${Number(item.rollingStd).toFixed(4)}${_p1Search}${_p1Evidence}${_p1Gating}${isNullModifier}${swingContext}${govContext}${ivCrushContext}${sectorContagionContext}${pcrContext}${hiddenLiquidityContext}${systemPhysicsContext}${econophysicsContext}${orbitalStabilityContext}${systemGeometryContext}${systemKinematicsContext}${volContext}${vixContext}${regimeContext}${sequenceContext}${edgarContext}${insiderContext}${frictionContext}${fmpContextBlock}${earningsContextStr}${macroContext}${releaseContext}${newsContext}${socialContext}${shortInterestContext}${trendsContext}${wikiContext}${gdeltContext}${ytContext}`;
             })
             .join("\n");
 
           const prompt = `You are a Lead Financial Forensic & Market Attribution Analyst.
 For stock "${uppercaseSymbol}", investigate what precise corporate news, CEO tweets/scandals, board decisions, direct competitor announcements (e.g. NVIDIA vs AMD), policies, macroeconomic context, lockups, or regulations (e.g., Covid, Brexit, Fed rate decisions, political transitions) caused or drove the stock anomalies on these calendar dates.
 
-You MUST use the Google Search Grounding tool to find real historical news of "${uppercaseSymbol}" on and around each precise calendar date to formulate your findings.
+Each event entry below includes a [SEARCH GROUNDING] block with specific search queries to run for that date. Execute those searches before writing any narrative for that event.
 
 MANDATORY CONSTRAINT: You must NOT mention forward-looking price action, future returns, or AI effect scores in your summary (including in coincidence_vs_correlation/Causal Attribution Review and suspected_catalyst descriptions).
 
+CATALYST COMMITMENT: For each event you MUST name a specific, falsifiable catalyst — a named executive, a named filing, a named regulatory body, a named competitor action, or a named macro release. Generic phrases such as "market conditions", "investor sentiment", "historical trends", or "social sentiment index" are not acceptable as catalysts. If your search returns no specific result, state explicitly: "No specific catalyst identified despite search; possible macro beta or data gap."
+
 For each listed date, compute:
-1. "suspected_catalyst" details (specifically board comments, competitor actions, or regulations on this date).
+1. "suspected_catalyst" details — name the specific event, person, filing, or announcement found via search. Include the date it was published, the source, and one sentence explaining the direct mechanism by which it caused the observed price move.
 2. Impact scores (effect_score_1d, effect_score_1w, effect_score_1m, effect_score_6m, effect_score_1y) which are numeric rankings from -100 (most negative impact on long-term value) to +100 (most positive impact).
 3. Coincidence vs correlation analysis: review the news and determine whether the event on this date was genuinely causal or merely a coincident correlation of wider systematic market noise/beta trends.
 4. "correlation_confidence" score from 0 to 100 representing how confident you are that this event actually drove the price changes rather than being an accidental coincidence.
-5. Classify the event using the hierarchical taxonomy described below. Return primaryCategory, primarySubType, and up to two additional secondaryCategories. You may also provide freeform eventTags.
-6. Synthesize the provided context regarding Alternative Data (Trends, Wikipedia, YouTube, GDELT) and generate "alternative_data_observations" and an "alternative_data_score" (0-100) reflecting their combined abnormality.
-7. Synthesize the provided Corporate Governance context (EDGAR filings, Insider Trading, Friction Score) and generate "corporate_governance_observations" and a "corporate_governance_score" (0-100) reflecting structural/institutional activity severity.
-8. Synthesize the provided Macroeconomic data (Fed Funds Rate, CPI, Unemployment, Spreads, USD Index, VIX) and generate "macroeconomic_observations" and a "macroeconomic_score" (0-100) reflecting the stress or impact of macro conditions.
-9. Synthesize the provided Market Structure and Regime context (Volatility, Volume Ratios, Trend Regimes, Daily Z-Scores) into "market_structure_observations" and a "market_structure_score" (0-100) evaluating the structural liquidity or technical severity.
-10. Synthesize the provided Company Fundamentals, Earnings Calls, and Press Releases into "fundamental_and_earnings_observations" and a "fundamental_and_earnings_score" (0-100) evaluating the fundamental impact or forward guidance intensity.
+5. Synthesize the provided context regarding Alternative Data (Trends, Wikipedia, YouTube, GDELT) and generate "alternative_data_observations" and an "alternative_data_score" (0-100) reflecting their combined abnormality.
+6. Synthesize the provided Corporate Governance context (EDGAR filings, Insider Trading, Friction Score) and generate "corporate_governance_observations" and a "corporate_governance_score" (0-100) reflecting structural/institutional activity severity.
+7. Synthesize the provided Macroeconomic data (Fed Funds Rate, CPI, Unemployment, Spreads, USD Index, VIX) and generate "macroeconomic_observations" and a "macroeconomic_score" (0-100) reflecting the stress or impact of macro conditions.
+8. Synthesize the provided Market Structure and Regime context (Volatility, Volume Ratios, Trend Regimes, Daily Z-Scores) into "market_structure_observations" and a "market_structure_score" (0-100) evaluating the structural liquidity or technical severity.
+9. Synthesize the provided Company Fundamentals, Earnings Calls, and Press Releases into "fundamental_and_earnings_observations" and a "fundamental_and_earnings_score" (0-100) evaluating the fundamental impact or forward guidance intensity.
+
+Each event includes a [GATING VERDICT] from the deterministic quantitative engine. Classify the event using the taxonomy ONLY AFTER you have identified the specific catalyst via search — do not rephrase the gating label as the catalyst. Return primaryCategory, primarySubType, and up to two additional secondaryCategories. You may also provide freeform eventTags.
 
 Taxonomy:
 ${JSON.stringify(EVENT_TAXONOMY, null, 2)}
@@ -2514,188 +2540,32 @@ Provide a JSON array containing the results mapping perfectly back using the sta
             model: "gemini-3.5-flash",
             contents: prompt,
             config: {
-              responseMimeType: "application/json",
               tools: [{ googleSearch: {} }],
-              responseSchema: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    date: {
-                      type: Type.STRING,
-                      description:
-                        "The calendar date in YYYY-MM-DD format associated with the anomaly event.",
-                    },
-                    primary_catalyst_tag: {
-                      type: Type.STRING,
-                      description:
-                        "Short code tag summarizing event type, e.g. Earnings, Product Announcement, Regulatory, Macroeconomic, CEO Statement, Restructuring, Merger/Acquisition, Short Report, Geopolitics.",
-                    },
-                    primaryCategory: {
-                      type: Type.STRING,
-                      description:
-                        "Top-level taxonomy category from EVENT_TAXONOMY.",
-                    },
-                    primarySubType: {
-                      type: Type.STRING,
-                      description: "Sub-type within the primaryCategory.",
-                    },
-                    secondaryCategories: {
-                      type: Type.ARRAY,
-                      items: { type: Type.STRING },
-                      description:
-                        "Up to two additional taxonomy categories if relevant.",
-                    },
-                    eventTags: {
-                      type: Type.ARRAY,
-                      items: { type: Type.STRING },
-                      description: "Freeform string tags describing the event.",
-                    },
-                    suspected_catalyst: {
-                      type: Type.STRING,
-                      description:
-                        "Detailed description of what exact event/press-release, macroeconomic report, or CEO decision caused this price move on this date.",
-                    },
-                    key_risk: {
-                      type: Type.STRING,
-                      description:
-                        "The primary structural investment risk highlighted or generated as a key outlook takeaway.",
-                    },
-                    confidence_score: {
-                      type: Type.INTEGER,
-                      description:
-                        "Attribution historical confidence from 1 to 100.",
-                    },
-                    severity_score: {
-                      type: Type.INTEGER,
-                      description:
-                        "Degree of impact caused to structural value, from 1 to 100.",
-                    },
-                    effect_score_1d: {
-                      type: Type.INTEGER,
-                      description:
-                        "Impact rating from -100 to 100 over a 1 day timeline.",
-                    },
-                    effect_score_1w: {
-                      type: Type.INTEGER,
-                      description:
-                        "Impact rating from -100 to 100 over a 1 week timeline.",
-                    },
-                    effect_score_1m: {
-                      type: Type.INTEGER,
-                      description:
-                        "Impact rating from -100 to 100 over a 1 month timeline.",
-                    },
-                    effect_score_6m: {
-                      type: Type.INTEGER,
-                      description:
-                        "Impact rating from -100 to 100 over a 6 month timeline.",
-                    },
-                    effect_score_1y: {
-                      type: Type.INTEGER,
-                      description:
-                        "Impact rating from -100 to 100 over a 1 year timeline.",
-                    },
-                    internet_findings: {
-                      type: Type.STRING,
-                      description:
-                        "Grounded Google search discoveries surrounding board member Tweets, competitor changes, regulatory interventions, or Covid/Macro shifts around this date.",
-                    },
-                    alternative_data_observations: {
-                      type: Type.STRING,
-                      description:
-                        "Insights derived from alternative data observations such as Google Trends spikes, Wikipedia traffic, YouTube transcripts, and GDELT geopolitical events.",
-                    },
-                    alternative_data_score: {
-                      type: Type.INTEGER,
-                      description:
-                        "Score from 0 to 100 capturing the intensity/abnormality of the alternative data signals combined.",
-                    },
-                    corporate_governance_observations: {
-                      type: Type.STRING,
-                      description:
-                        "Insights derived from corporate footprint indicators such as SEC EDGAR 8-K filings, Management Friction Score, and Insider Trading Density.",
-                    },
-                    corporate_governance_score: {
-                      type: Type.INTEGER,
-                      description:
-                        "Score from 0 to 100 capturing the severity or intensity of corporate governance activities and friction.",
-                    },
-                    macroeconomic_observations: {
-                      type: Type.STRING,
-                      description: "Insights derived from Macroeconomic data (Fed Funds Rate, CPI, Unemployment, Spreads, USD Index, VIX).",
-                    },
-                    macroeconomic_score: {
-                      type: Type.INTEGER,
-                      description: "Score from 0 to 100 capturing the stress or abnormality of macro conditions.",
-                    },
-                    market_structure_observations: {
-                      type: Type.STRING,
-                      description: "Insights derived from Market Structure and Regime context (Volatility, Volume Ratios, Trend Regimes).",
-                    },
-                    market_structure_score: {
-                      type: Type.INTEGER,
-                      description: "Score from 0 to 100 evaluating the structural liquidity or technical severity.",
-                    },
-                    fundamental_and_earnings_observations: {
-                      type: Type.STRING,
-                      description: "Insights derived from Company Fundamentals, Earnings Calls, and Press Releases.",
-                    },
-                    fundamental_and_earnings_score: {
-                      type: Type.INTEGER,
-                      description: "Score from 0 to 100 evaluating the fundamental impact or forward guidance intensity.",
-                    },
-                    coincidence_vs_correlation: {
-                      type: Type.STRING,
-                      description:
-                        "Detailed explanation arguing whether the actual 1d to 1y return trajectory denotes a causal correlation or mere statistical coincidence.",
-                    },
-                    correlation_confidence: {
-                      type: Type.INTEGER,
-                      description:
-                        "Score from 0 to 100 of how closely correlated/causal this event was to subsequent market movement.",
-                    },
-                  },
-                  required: [
-                    "date",
-                    "primary_catalyst_tag",
-                    "suspected_catalyst",
-                    "key_risk",
-                    "confidence_score",
-                    "severity_score",
-                    "effect_score_1d",
-                    "effect_score_1w",
-                    "effect_score_1m",
-                    "effect_score_6m",
-                    "effect_score_1y",
-                    "internet_findings",
-                    "alternative_data_observations",
-                    "alternative_data_score",
-                    "corporate_governance_observations",
-                    "corporate_governance_score",
-                    "macroeconomic_observations",
-                    "macroeconomic_score",
-                    "market_structure_observations",
-                    "market_structure_score",
-                    "fundamental_and_earnings_observations",
-                    "fundamental_and_earnings_score",
-                    "coincidence_vs_correlation",
-                    "correlation_confidence",
-                  ],
-                },
-              },
+              maxOutputTokens: 4000,
             },
           });
 
           const text = response.text;
           if (text) {
-            const aiDataList = extractAndParseJson(text);
+            const cleanedText = text
+              .replace(/\[\d+\]/g, '')
+              .replace(/```json\s*/gi, '')
+              .replace(/```\s*/g, '')
+              .trim();
+            if (!cleanedText.includes('{')) {
+              console.log('[AI] Gemini returned plain text instead of JSON for this batch — using fallback analysis.');
+            } else {
+            const aiDataList = extractAndParseJson(cleanedText);
             if (Array.isArray(aiDataList)) {
               for (const item of aiDataList) {
                 if (item && item.date) {
                   const cacheKey = `${uppercaseSymbol}_${item.date}`;
                   const { date, ...parsedAnalysis } = item;
                   const analysisOnly: any = { ...parsedAnalysis };
+                  analysisOnly.suspected_catalyst = normaliseSuspectedCatalyst(analysisOnly.suspected_catalyst);
+                  analysisOnly.event_type = normaliseSuspectedCatalyst(analysisOnly.event_type);
+                  analysisOnly.primary_catalyst = normaliseSuspectedCatalyst(analysisOnly.primary_catalyst);
+                  analysisOnly.catalyst_category = normaliseSuspectedCatalyst(analysisOnly.catalyst_category);
 
                   if (analysisOnly.suspected_catalyst) {
                     const catEmbed = await this.fetchEmbedding(
@@ -2820,9 +2690,11 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                 }
               }
             }
+            }
           }
           lastSuccessfullyProcessedDate = topToFetch[0].date;
         } catch (aiInitErr: any) {
+          console.error("[AI ERROR] Gemini call failed:", aiInitErr?.status, aiInitErr?.message, aiInitErr?.code, aiInitErr?.toString());
           // Immediately intercept 429 rate limit and quota exhaustion errors to prevent silent fallback
           if (aiInitErr?.status === 429 || aiInitErr?.code === 429 || (aiInitErr.message && (aiInitErr.message.includes("429") || aiInitErr.message.includes("quota")))) {
              throw aiInitErr;
@@ -2832,14 +2704,15 @@ Provide a JSON array containing the results mapping perfectly back using the sta
           for (const item of topToFetch) {
             try {
               const cacheKey = `${uppercaseSymbol}_${item.date}`;
+              const matchPoint = points.find((p) => p.date === item.date);
               const fallbackAnalysis = generateLocalFallbackAnalysis(
                 uppercaseSymbol,
                 item.date,
                 item.dailyReturn,
                 item.zScore,
                 item.analysis,
+                (matchPoint as any)?._tempVixAtEvent ?? (item as any)._tempVixAtEvent,
               );
-              const matchPoint = points.find((p) => p.date === item.date);
               if (matchPoint) {
                 if ((matchPoint as any)._tempVixAtEvent !== undefined) {
                   fallbackAnalysis.vixAtEvent = (
@@ -2916,6 +2789,7 @@ Provide a JSON array containing the results mapping perfectly back using the sta
             item.dailyReturn,
             item.zScore,
             item.analysis,
+            (item as any)._tempVixAtEvent,
           );
 
           if ((item as any)._tempVixAtEvent !== undefined) {
@@ -3028,7 +2902,7 @@ Provide a JSON array containing the results mapping perfectly back using the sta
           const cacheKey = `${uppercaseSymbol}_${p.date}`;
           const isFallback =
             p.analysis?.isFallback === true ||
-            p.analysis?.suspected_catalyst?.includes("[SYNTHETIC ESTIMATE");
+            normaliseSuspectedCatalyst(p.analysis?.suspected_catalyst)?.includes("[SYNTHETIC ESTIMATE");
           setCachedAnalysis(
             cacheKey,
             uppercaseSymbol,
@@ -3220,20 +3094,29 @@ Provide a JSON array containing the results mapping perfectly back using the sta
       }
     }
 
-    // Collect all uncached anomalies across all successfully scanned results
+    // Collect all uncached anomalies across all successfully scanned results.
+    // results may store the same scan under two keys when a symbol was canonicalized
+    // (e.g. "BAT.L" input → "BATS.L" canonical). We track (canonicalSymbol, date) pairs
+    // so each anomaly is only added once and always carries the canonical symbol — the
+    // same form recorded in enrichedAnomalyKeys during the first enrichment pass —
+    // so the dedup guard in enrichAnomaliesContext can match it correctly.
     const uncachedAnomaliesList: (StockPoint & { symbol: string })[] = [];
+    const seenInUncachedList = new Set<string>();
 
-    for (const uppercaseSymbol of Object.keys(results)) {
-      const res = results[uppercaseSymbol];
-      if (res.points && res.points.length > 0) {
-        const anomalies = res.points.filter((p) => p.isAnomaly);
-        const uncached = anomalies.filter((a) => !a.hasAnalysis);
-        for (const a of uncached) {
-          uncachedAnomaliesList.push({
-            ...a,
-            symbol: uppercaseSymbol,
-          });
-        }
+    for (const iterKey of Object.keys(results)) {
+      const res = results[iterKey];
+      if (!res.points || res.points.length === 0) continue;
+      const canonicalSym = res.symbol || iterKey;
+      const anomalies = res.points.filter((p) => p.isAnomaly);
+      const uncached = anomalies.filter((a) => !a.hasAnalysis);
+      for (const a of uncached) {
+        const listKey = `${canonicalSym}_${a.date}`;
+        if (seenInUncachedList.has(listKey)) continue;
+        seenInUncachedList.add(listKey);
+        uncachedAnomaliesList.push({
+          ...a,
+          symbol: canonicalSym,
+        });
       }
     }
 
@@ -3262,7 +3145,7 @@ Provide a JSON array containing the results mapping perfectly back using the sta
           // Group topToFetchUnified items by stock symbol so we can enrich them
           const itemsBySymbol: Record<string, any[]> = {};
           for (const item of topToFetchUnified) {
-            const sym = item.symbol.toUpperCase().trim();
+            const sym = item.symbol?.toUpperCase()?.trim();
             if (!itemsBySymbol[sym]) {
               itemsBySymbol[sym] = [];
             }
@@ -3345,7 +3228,7 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                       release.surprise !== undefined && release.surprise > 0
                         ? "+"
                         : "";
-                    releaseContext = ` Scheduled Economic Release on this date was ${release.releaseType.toUpperCase()} with actual vs prior values of ${release.actualValue} vs ${release.priorValue}, surprise of ${surpriseSign}${release.surprise} (${release.surpriseDirection} direction), statistical significance is ${release.isSignificant ? "high" : "normal"}.`;
+                    releaseContext = ` Scheduled Economic Release on this date was ${release.releaseType?.toUpperCase()} with actual vs prior values of ${release.actualValue} vs ${release.priorValue}, surprise of ${surpriseSign}${release.surprise} (${release.surpriseDirection} direction), statistical significance is ${release.isSignificant ? "high" : "normal"}.`;
                   }
 
                   let edgarContext = "";
@@ -3501,20 +3384,45 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                     ? " [CRITICAL INSTRUCTION - NULL SAMPLE DATA]: This specific date had a flat price response despite elevated trading volume or news disclosures. Ground your search on what occurred, but explicitly explain why the market completely ignored this news or had already fully priced it in. Do not invent a narrative for a price breakout."
                     : "";
 
-                  return `- Symbol: ${item.symbol}, Date: ${item.date}, Day Change: ${Number(item.dailyReturn).toFixed(2)}%, Day Z-Score: ${Number(item.zScore).toFixed(2)} Sigma, Rolling Mean: ${Number(item.rollingMean).toFixed(2)}%, Rolling Std: ${Number(item.rollingStd).toFixed(4)}${isNullModifier}${volContext}${vixContext}${regimeContext}${sequenceContext}${macroContext}${releaseContext}${edgarContext}${insiderContext}${frictionContext}${gdeltContext}${wikiContext}${youtubeContext}${newsContext}${socialContext}${shortInterestContext}${trendsContext}`;
+                  // CHANGE 1 / 3 / 4 — per-item search grounding, evidence summary, gating verdict
+                  const [_p2Year, _p2MonthNum] = item.date.split('-');
+                  const _p2MonthName = ["January","February","March","April","May","June","July","August","September","October","November","December"][parseInt(_p2MonthNum, 10) - 1] ?? _p2MonthNum;
+                  const _p2EdgarCount = edgar ? edgar.length : 0;
+                  const _p2GdeltCount = gdelt ? gdelt.length : 0;
+                  const _p2MacroLine = snap
+                    ? `Fed=${snap.federalFundsRate ?? 'N/A'}% CPI=${snap.cpiYoY ?? 'N/A'}% Unemp=${snap.unemploymentRate ?? 'N/A'}%`
+                    : 'unavailable';
+                  const _p2Gv = (item as any).gatingVerdict as GatingVerdict | undefined;
+
+                  const _p2Search = `\n[SEARCH GROUNDING]: You are analysing a historical price event for ${item.symbol} on ${item.date}. Use Google Search to find what specific news, announcements, earnings results, regulatory decisions, executive statements, or market events occurred for ${item.symbol} or its sector on or immediately before ${item.date}. Search specifically for '${item.symbol} news ${item.date}', '${item.symbol} ${_p2MonthName} ${_p2Year}', and any earnings or regulatory context for that period. Today's date for your search context is ${item.date} — do not retrieve information published after this date.`;
+                  const _p2Evidence = `\n[EVIDENCE]: Z=${Number(item.zScore).toFixed(2)}σ | Return=${Number(item.dailyReturn).toFixed(2)}% | VolRatio=${item.volumeRatio !== undefined ? Number(item.volumeRatio).toFixed(1) + 'x' : 'N/A'} | VIX=${vixVal !== undefined ? Number(vixVal).toFixed(2) : 'N/A'} (${regime ?? 'N/A'}) | EDGAR: ${_p2EdgarCount > 0 ? _p2EdgarCount + ' filing(s) found' : 'none found'} | GDELT: ${_p2GdeltCount} event(s) | Macro: ${_p2MacroLine}. Reason from this evidence. Where data is unavailable, acknowledge the gap rather than fabricating signal.`;
+                  const _p2Gating = `\n[GATING VERDICT]: The deterministic gating engine classified this event as ${_p2Gv?.event_classification ?? 'UNKNOWN'} (dominant regime: ${_p2Gv?.dominant_physics_regime ?? 'UNKNOWN'}). Your role is to find the specific real-world event that caused this classification — not to rephrase the label.`;
+
+                  return `- Symbol: ${item.symbol}, Date: ${item.date}, Day Change: ${Number(item.dailyReturn).toFixed(2)}%, Day Z-Score: ${Number(item.zScore).toFixed(2)} Sigma, Rolling Mean: ${Number(item.rollingMean).toFixed(2)}%, Rolling Std: ${Number(item.rollingStd).toFixed(4)}${_p2Search}${_p2Evidence}${_p2Gating}${isNullModifier}${volContext}${vixContext}${regimeContext}${sequenceContext}${macroContext}${releaseContext}${edgarContext}${insiderContext}${frictionContext}${gdeltContext}${wikiContext}${youtubeContext}${newsContext}${socialContext}${shortInterestContext}${trendsContext}`;
                 })
                 .join("\n");
 
               const prompt = `You are a Lead Financial Forensic & Market Attribution Analyst.
 For the following stock anomalies across different symbols, investigate what corporate news, CEO tweets/scandals, board decisions, direct competitor announcements (e.g. NVIDIA vs AMD), macroeconomic policies, or regulations caused or drove the stock anomalies on these calendar dates.
 
-You MUST use the Google Search Grounding tool to search news of the specified Symbol and Date to find real historical information.
+Each event entry below includes a [SEARCH GROUNDING] block with specific search queries to run for that symbol and date. Execute those searches before writing any narrative for that event.
 
 MANDATORY CONSTRAINT: You must NOT mention forward-looking price action, future returns, or AI effect scores in your summary (including in coincidence_vs_correlation/Causal Attribution Review and suspected_catalyst descriptions).
 
-Classify each event using the following hierarchical taxonomy. Return primaryCategory, primarySubType, and up to two additional secondaryCategories. You may also provide freeform eventTags.
+CATALYST COMMITMENT: For each event you MUST name a specific, falsifiable catalyst — a named executive, a named filing, a named regulatory body, a named competitor action, or a named macro release. Generic phrases such as "market conditions", "investor sentiment", "historical trends", or "social sentiment index" are not acceptable as catalysts. If your search returns no specific result, state explicitly: "No specific catalyst identified despite search; possible macro beta or data gap."
 
-For each event, also synthesize the provided context strings regarding Alternative Data (Trends, Wikipedia, YouTube, GDELT) into "alternative_data_observations" and generate an "alternative_data_score" (0-100) reflecting its intensity/abnormality. Similarly synthesize the Corporate Governance context (EDGAR, Insider Trading, Friction Score) into "corporate_governance_observations" and a "corporate_governance_score" (0-100) reflecting governance severity. Also synthesize Macroeconomic data into "macroeconomic_observations" and "macroeconomic_score" (0-100), Market Structure context into "market_structure_observations" and "market_structure_score" (0-100), and Company Fundamentals into "fundamental_and_earnings_observations" and "fundamental_and_earnings_score" (0-100).
+For each event, compute:
+1. "suspected_catalyst" details — name the specific event, person, filing, or announcement found via search. Include the date it was published, the source, and one sentence explaining the direct mechanism by which it caused the observed price move.
+2. Impact scores (effect_score_1d, effect_score_1w, effect_score_1m, effect_score_6m, effect_score_1y) which are numeric rankings from -100 (most negative impact on long-term value) to +100 (most positive impact).
+3. Coincidence vs correlation analysis: review the news and determine whether the event on this date was genuinely causal or merely a coincident correlation of wider systematic market noise/beta trends.
+4. "correlation_confidence" score from 0 to 100 representing how confident you are that this event actually drove the price changes rather than being an accidental coincidence.
+5. Synthesize the provided context regarding Alternative Data (Trends, Wikipedia, YouTube, GDELT) into "alternative_data_observations" and an "alternative_data_score" (0-100) reflecting its intensity/abnormality.
+6. Synthesize the Corporate Governance context (EDGAR, Insider Trading, Friction Score) into "corporate_governance_observations" and a "corporate_governance_score" (0-100) reflecting governance severity.
+7. Synthesize Macroeconomic data into "macroeconomic_observations" and "macroeconomic_score" (0-100) reflecting macro stress or impact.
+8. Synthesize Market Structure context into "market_structure_observations" and "market_structure_score" (0-100) evaluating structural liquidity or technical severity.
+9. Synthesize Company Fundamentals into "fundamental_and_earnings_observations" and "fundamental_and_earnings_score" (0-100) evaluating the fundamental impact or forward guidance intensity.
+
+Each event includes a [GATING VERDICT] from the deterministic quantitative engine. Classify the event using the taxonomy ONLY AFTER you have identified the specific catalyst via search — do not rephrase the gating label as the catalyst. Return primaryCategory, primarySubType, and up to two additional secondaryCategories. You may also provide freeform eventTags.
 
 Taxonomy:
 ${JSON.stringify(EVENT_TAXONOMY, null, 2)}
@@ -3528,189 +3436,24 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                 model: "gemini-3.5-flash",
                 contents: prompt,
                 config: {
-                  responseMimeType: "application/json",
                   tools: [{ googleSearch: {} }],
-                  responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                      type: Type.OBJECT,
-                      properties: {
-                        symbol: {
-                          type: Type.STRING,
-                          description: "The uppercase stock symbol.",
-                        },
-                        date: {
-                          type: Type.STRING,
-                          description:
-                            "The calendar date in YYYY-MM-DD format.",
-                        },
-                        primary_catalyst_tag: {
-                          type: Type.STRING,
-                          description:
-                            "Short category tag, e.g. Earnings, Product Announcement, Regulatory, Macroeconomic, CEO Statement, Restructuring, Merger/Acquisition, Short Report, Competitor Action, Inflation Data.",
-                        },
-                        primaryCategory: {
-                          type: Type.STRING,
-                          description:
-                            "Top-level taxonomy category from EVENT_TAXONOMY.",
-                        },
-                        primarySubType: {
-                          type: Type.STRING,
-                          description: "Sub-type within the primaryCategory.",
-                        },
-                        secondaryCategories: {
-                          type: Type.ARRAY,
-                          items: { type: Type.STRING },
-                          description:
-                            "Up to two additional taxonomy categories if relevant.",
-                        },
-                        eventTags: {
-                          type: Type.ARRAY,
-                          items: { type: Type.STRING },
-                          description:
-                            "Freeform string tags describing the event.",
-                        },
-                        suspected_catalyst: {
-                          type: Type.STRING,
-                          description:
-                            "Specific details about what actual historic files, filings, policy changes, or announcements triggered the swing.",
-                        },
-                        key_risk: {
-                          type: Type.STRING,
-                          description:
-                            "Primary key risk or valuation implication created or highlighted for prospective shareholders.",
-                        },
-                        confidence_score: {
-                          type: Type.INTEGER,
-                          description:
-                            "Confidence rating of event alignment between 1 and 100.",
-                        },
-                        severity_score: {
-                          type: Type.INTEGER,
-                          description:
-                            "Economic severity/impact indicator on the stock scale between 1 and 100.",
-                        },
-                        effect_score_1d: {
-                          type: Type.INTEGER,
-                          description:
-                            "Impact rating from -100 to 100 over a 1 day timeline.",
-                        },
-                        effect_score_1w: {
-                          type: Type.INTEGER,
-                          description:
-                            "Impact rating from -100 to 100 over a 1 week timeline.",
-                        },
-                        effect_score_1m: {
-                          type: Type.INTEGER,
-                          description:
-                            "Impact rating from -100 to 100 over a 1 month timeline.",
-                        },
-                        effect_score_6m: {
-                          type: Type.INTEGER,
-                          description:
-                            "Impact rating from -100 to 100 over a 6 month timeline.",
-                        },
-                        effect_score_1y: {
-                          type: Type.INTEGER,
-                          description:
-                            "Impact rating from -100 to 100 over a 1 year timeline.",
-                        },
-                        internet_findings: {
-                          type: Type.STRING,
-                          description:
-                            "Grounded Google search discoveries surrounding board member Tweets, competitor changes, regulatory interventions, or Covid/Macro shifts around this date.",
-                        },
-                        alternative_data_observations: {
-                          type: Type.STRING,
-                          description:
-                            "Insights derived from alternative data observations such as Google Trends spikes, Wikipedia traffic, YouTube transcripts, and GDELT geopolitical events.",
-                        },
-                        alternative_data_score: {
-                          type: Type.INTEGER,
-                          description:
-                            "Score from 0 to 100 capturing the intensity/abnormality of the alternative data signals combined.",
-                        },
-                        corporate_governance_observations: {
-                          type: Type.STRING,
-                          description:
-                            "Insights derived from corporate footprint indicators such as SEC EDGAR 8-K filings, Management Friction Score, and Insider Trading Density.",
-                        },
-                        corporate_governance_score: {
-                          type: Type.INTEGER,
-                          description:
-                            "Score from 0 to 100 capturing the severity or intensity of corporate governance activities and friction.",
-                        },
-                        macroeconomic_observations: {
-                          type: Type.STRING,
-                          description: "Insights derived from Macroeconomic data (Fed Funds Rate, CPI, Unemployment, Spreads, USD Index, VIX).",
-                        },
-                        macroeconomic_score: {
-                          type: Type.INTEGER,
-                          description: "Score from 0 to 100 capturing the stress or abnormality of macro conditions.",
-                        },
-                        market_structure_observations: {
-                          type: Type.STRING,
-                          description: "Insights derived from Market Structure and Regime context (Volatility, Volume Ratios, Trend Regimes).",
-                        },
-                        market_structure_score: {
-                          type: Type.INTEGER,
-                          description: "Score from 0 to 100 evaluating the structural liquidity or technical severity.",
-                        },
-                        fundamental_and_earnings_observations: {
-                          type: Type.STRING,
-                          description: "Insights derived from Company Fundamentals, Earnings Calls, and Press Releases.",
-                        },
-                        fundamental_and_earnings_score: {
-                          type: Type.INTEGER,
-                          description: "Score from 0 to 100 evaluating the fundamental impact or forward guidance intensity.",
-                        },
-                        coincidence_vs_correlation: {
-                          type: Type.STRING,
-                          description:
-                            "Detailed explanation arguing whether the actual trailing return trajectory denotes a causal correlation or mere statistical coincidence.",
-                        },
-                        correlation_confidence: {
-                          type: Type.INTEGER,
-                          description:
-                            "Score from 0 to 100 of how closely correlated/causal this event was to subsequent market movement.",
-                        },
-                      },
-                      required: [
-                        "symbol",
-                        "date",
-                        "primary_catalyst_tag",
-                        "suspected_catalyst",
-                        "key_risk",
-                        "confidence_score",
-                        "severity_score",
-                        "effect_score_1d",
-                        "effect_score_1w",
-                        "effect_score_1m",
-                        "effect_score_6m",
-                        "effect_score_1y",
-                        "internet_findings",
-                        "alternative_data_observations",
-                        "alternative_data_score",
-                        "corporate_governance_observations",
-                        "corporate_governance_score",
-                        "macroeconomic_observations",
-                        "macroeconomic_score",
-                        "market_structure_observations",
-                        "market_structure_score",
-                        "fundamental_and_earnings_observations",
-                        "fundamental_and_earnings_score",
-                        "coincidence_vs_correlation",
-                        "correlation_confidence",
-                      ],
-                    },
-                  },
+                  maxOutputTokens: 4000,
                 },
               });
 
               const text = response.text;
               if (text) {
-                const parsed = extractAndParseJson(text);
-                if (Array.isArray(parsed)) return parsed;
+                const cleanedText = text
+                  .replace(/\[\d+\]/g, '')
+                  .replace(/```json\s*/gi, '')
+                  .replace(/```\s*/g, '')
+                  .trim();
+                if (!cleanedText.includes('{')) {
+                  console.log('[AI] Gemini returned plain text instead of JSON for this batch — using fallback analysis.');
+                } else {
+                  const parsed = extractAndParseJson(cleanedText);
+                  if (Array.isArray(parsed)) return parsed;
+                }
               }
             } catch (err) {
               console.error("Gemini chunk scanning error:", err);
@@ -3737,6 +3480,10 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                   const cacheKey = `${symUpper}_${item.date}`;
                   const { symbol, date, ...parsedAnalysis } = item;
                   const analysisOnly: any = { ...parsedAnalysis };
+                  analysisOnly.suspected_catalyst = normaliseSuspectedCatalyst(analysisOnly.suspected_catalyst);
+                  analysisOnly.event_type = normaliseSuspectedCatalyst(analysisOnly.event_type);
+                  analysisOnly.primary_catalyst = normaliseSuspectedCatalyst(analysisOnly.primary_catalyst);
+                  analysisOnly.catalyst_category = normaliseSuspectedCatalyst(analysisOnly.catalyst_category);
 
                   if (analysisOnly.suspected_catalyst) {
                     const catEmbed = await this.fetchEmbedding(
@@ -3824,7 +3571,7 @@ Provide a JSON array containing the results mapping perfectly back using the sta
 
       // Fill in fallback/adaptive rules for all topToFetchUnified items that did not get filled yet
       for (const item of topToFetchUnified) {
-        const symUpper = item.symbol.toUpperCase().trim();
+        const symUpper = item.symbol?.toUpperCase()?.trim();
         const matchResult = results[symUpper];
         if (matchResult && matchResult.points) {
           const matchPoint = matchResult.points.find(
@@ -3839,6 +3586,7 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                 item.dailyReturn,
                 item.zScore,
                 item.analysis,
+                (matchPoint as any)._tempVixAtEvent ?? (item as any)._tempVixAtEvent,
               );
               if ((matchPoint as any)._tempVixAtEvent !== undefined) {
                 fallbackAnalysis.vixAtEvent = (
@@ -3906,7 +3654,7 @@ Provide a JSON array containing the results mapping perfectly back using the sta
 
       // Fill in fallback/adaptive rules for restToFallback
       for (const item of restToFallback) {
-        const symUpper = item.symbol.toUpperCase().trim();
+        const symUpper = item.symbol?.toUpperCase()?.trim();
         const matchResult = results[symUpper];
         if (matchResult && matchResult.points) {
           const matchPoint = matchResult.points.find(
@@ -3921,6 +3669,7 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                 item.dailyReturn,
                 item.zScore,
                 item.analysis,
+                (matchPoint as any)._tempVixAtEvent ?? (item as any)._tempVixAtEvent,
               );
               if ((matchPoint as any)._tempVixAtEvent !== undefined) {
                 fallbackAnalysis.vixAtEvent = (
@@ -4137,12 +3886,12 @@ Provide a JSON array containing the results mapping perfectly back using the sta
       const executives = await getExecutiveRoster(uppercaseSymbol, companyName);
       if (executives) {
         const ceo = executives.find(
-          (e) => e.roleWeight >= 1.0 || e.role.toLowerCase().includes("ceo"),
+          (e) => e.roleWeight >= 1.0 || e.role?.toLowerCase().includes("ceo"),
         );
         const cfo = executives.find(
           (e) =>
             (!ceo || e.name !== ceo.name) &&
-            (e.roleWeight === 0.9 || e.role.toLowerCase().includes("cfo")),
+            (e.roleWeight === 0.9 || e.role?.toLowerCase().includes("cfo")),
         );
 
         wikiQueries.push(companyName);
@@ -5007,6 +4756,7 @@ export function generateLocalFallbackAnalysis(
   dailyReturn: number,
   zScore: number,
   existingAnalysis?: Partial<StockAnalysis>,
+  realVix?: number | null,
 ): StockAnalysis {
   const uppercaseSymbol = symbol.toUpperCase().trim();
   const absRet = Math.abs(dailyReturn);
@@ -5084,8 +4834,8 @@ export function generateLocalFallbackAnalysis(
   const clampScore = (v: number) =>
     Math.min(100, Math.max(-100, Math.round(v)));
 
-  const fallbackVix = existingAnalysis?.vixAtEvent ?? (existingAnalysis as any)?.vixAtEvent ?? 15.0;
-  const fallbackVixRegime = existingAnalysis?.vixRegime ?? (existingAnalysis as any)?.vixRegime ?? "low";
+  const fallbackVix = realVix ?? existingAnalysis?.vixAtEvent ?? 15.0;
+  const fallbackVixRegime = (realVix != null ? (realVix < 15 ? "low" : realVix <= 25 ? "moderate" : realVix <= 35 ? "elevated" : "extreme") : null) ?? existingAnalysis?.vixRegime ?? "low";
 
   const alternative_data_score = Math.min(100, Math.max(10, Math.round(absRet * 2.5)));
   const alternative_data_observations = `Historical social sentinel check detected elevated internet indexing anomaly triggers for ticker ${uppercaseSymbol} surrounding ${date}. Outliers suggest a surge in public query rates and forum mentions tracking the ${dailyReturn.toFixed(2)}% outlier price return.`;

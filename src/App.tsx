@@ -865,7 +865,9 @@ export default function App() {
         setSelectedAnomalyDate(savedRes.anomalies[0].date);
       }
     } else {
-      handleScan("TSLA", 5, 2.15);
+      if (new URLSearchParams(window.location.search).get("autorun") === "true") {
+        handleScan("TSLA", 5, 2.15);
+      }
     }
   }, []);
 

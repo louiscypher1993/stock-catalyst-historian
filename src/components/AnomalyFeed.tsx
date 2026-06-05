@@ -382,8 +382,8 @@ Internet Findings: ${analysisObj.internet_findings || "N/A"}`;
     return 0;
   });
 
-  const getTagColor = (tag: string) => {
-    const t = tag.toLowerCase();
+  const getTagColor = (tag: string | undefined) => {
+    const t = (tag || "").toLowerCase();
     if (t.includes("earnings") || t.includes("report"))
       return "bg-blue-500/10 text-blue-300 border-blue-500/30";
     if (t.includes("product") || t.includes("launch"))
