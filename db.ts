@@ -2330,6 +2330,68 @@ export function setCachedEstimateRevisions(symbol: string, yearMonth: string, da
   }
 }
 
+// ---------------------------------------------------------------------------
+// Batch Scanner Progress
+// ---------------------------------------------------------------------------
+
+try {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS batch_scanner_progress (
+      symbol TEXT PRIMARY KEY,
+      status TEXT NOT NULL DEFAULT 'pending',
+      events_found INTEGER NOT NULL DEFAULT 0,
+      scanned_at TEXT,
+      error_message TEXT
+    );
+  `);
+} catch (e: any) {
+  console.error("Failed to create batch_scanner_progress table", e);
+}
+
+export interface BatchScanProgressRow {
+  symbol: string;
+  status: 'pending' | 'complete' | 'error';
+  events_found: number;
+  scanned_at: string | null;
+  error_message: string | null;
+}
+
+export function initBatchScanProgress(symbols: string[]): void {
+  const stmt = db.prepare(`INSERT OR IGNORE INTO batch_scanner_progress (symbol, status, events_found) VALUES (?, 'pending', 0)`);
+  const tx = db.transaction((syms: string[]) => {
+    for (const sym of syms) stmt.run(sym.toUpperCase());
+  });
+  tx(symbols);
+}
+
+export function markBatchScanComplete(symbol: string, eventsFound: number): void {
+  db.prepare(`
+    UPDATE batch_scanner_progress
+    SET status = 'complete', events_found = ?, scanned_at = ?, error_message = NULL
+    WHERE symbol = ?
+  `).run(eventsFound, new Date().toISOString(), symbol.toUpperCase());
+}
+
+export function markBatchScanError(symbol: string, errorMessage: string): void {
+  db.prepare(`
+    UPDATE batch_scanner_progress
+    SET status = 'error', scanned_at = ?, error_message = ?
+    WHERE symbol = ?
+  `).run(new Date().toISOString(), errorMessage.slice(0, 500), symbol.toUpperCase());
+}
+
+export function getBatchScanProgress(): BatchScanProgressRow[] {
+  return db.prepare(
+    'SELECT symbol, status, events_found, scanned_at, error_message FROM batch_scanner_progress'
+  ).all() as BatchScanProgressRow[];
+}
+
+export function resetBatchScanProgress(): void {
+  db.prepare(`UPDATE batch_scanner_progress SET status = 'pending', scanned_at = NULL, error_message = NULL`).run();
+}
+
+// ---------------------------------------------------------------------------
+
 export function getEventsWithSignals(filter?: {
   minDate?: string;
   maxDate?: string;

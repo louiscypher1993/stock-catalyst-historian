@@ -20,6 +20,7 @@ import { extractAndParseJson } from "./src/JsonParser";
 import { EVENT_TAXONOMY } from "./EventTaxonomy";
 import { exportAndUploadToDrive, exportToLocalStream } from "./CSVExportService";
 import { runSignalValidation } from "./SignalValidationService";
+import { BatchScanner } from "./BatchScannerService";
 
 dotenv.config();
 
@@ -45,14 +46,7 @@ function getAIClient(): GoogleGenAI {
     if (!apiKey) {
       throw new Error("GEMINI_API_KEY is missing. Configure it in the Settings > Secrets panel.");
     }
-    aiClient = new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          "User-Agent": "aistudio-build",
-        },
-      },
-    });
+    aiClient = new GoogleGenAI({ apiKey });
   }
   return aiClient;
 }
@@ -1148,6 +1142,33 @@ app.get("/api/signal-validation", async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+// ---------------------------------------------------------------------------
+// Batch Scanner — full-universe background training data collector
+// ---------------------------------------------------------------------------
+
+const SCANNER_UNIVERSE = GLOBAL_MARKETS
+  .flatMap(m => m.stocks.map(s => s.symbol))
+  .filter(sym => !sym.startsWith('SPSX'));
+
+const batchScanner = new BatchScanner(SCANNER_UNIVERSE, 5);
+
+app.get("/api/batch-scanner/status", (_req, res) => {
+  return res.json(batchScanner.getStatus());
+});
+
+app.post("/api/batch-scanner/start", (_req, res) => {
+  // Fire-and-forget — start() runs the loop in the background
+  batchScanner.start().catch(err => {
+    console.error("[BatchScanner] Unhandled error during universe scan:", err);
+  });
+  return res.json({ started: true, status: batchScanner.getStatus() });
+});
+
+app.post("/api/batch-scanner/stop", (_req, res) => {
+  batchScanner.stop();
+  return res.json({ stopped: true, status: batchScanner.getStatus() });
 });
 
 // Configure Vite middleware or production build output serving
