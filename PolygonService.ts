@@ -1,9 +1,24 @@
+/*
+ * DATA TIMING LIMITATION — OPTIONS METRICS
+ *
+ * All options data returned by this module (put/call ratio, implied volatility)
+ * is sourced from END-OF-DAY snapshots via the Polygon.io v3 snapshot endpoint.
+ *
+ * This means:
+ *   - Values reflect the state of the options market at market close, not intraday.
+ *   - They confirm that unusual options activity OCCURRED on a given date,
+ *     but CANNOT establish whether that activity preceded the price move within
+ *     the same trading day.
+ *   - They must be treated as confirmatory context, not leading-timing signals.
+ *
+ * All returned options metric objects carry  data_timing: "end_of_day"  to make
+ * this limitation explicit in code and in downstream consumers.
+ */
+
 import { PriceDataPoint, PolygonNewsItem, PolygonTickerDetails } from "./src/types";
 import { logFetch, markSourceRateLimited, isSourceRateLimited } from "./DataSourceRegistry";
 import { fetchInternationalPriceHistory } from "./EODHDService";
 import { db, getCachedPCR, setCachedPCR } from "./db";
-
-// ... existing code ...
 
 const nonUsSuffixes = ['.L', '.TO', '.NS', '.BO', '.DE', '.HK', '.AX', '.SW', '.ST', '.SI', '.PA', '.AS', '.MC'];
 
@@ -441,7 +456,7 @@ export async function fetchNewsForSymbol(
 export async function getDailyPutCallRatio(
   symbol: string,
   date: string
-): Promise<number | null> {
+): Promise<{ value: number; data_timing: "end_of_day" } | null> {
   const start = Date.now();
   const uppercaseSymbol = symbol.toUpperCase().trim();
   
@@ -449,7 +464,7 @@ export async function getDailyPutCallRatio(
     const cachedPcr = getCachedPCR(uppercaseSymbol, date);
     if (cachedPcr !== null) {
       console.log(`[Polygon] PCR cache hit for ${uppercaseSymbol} on ${date}`);
-      return cachedPcr;
+      return { value: cachedPcr, data_timing: "end_of_day" };
     }
 
     if (!process.env.POLYGON_OPTIONS_ENABLED || isSourceRateLimited('polygon')) {
@@ -504,7 +519,7 @@ export async function getDailyPutCallRatio(
     pcr = Math.round(pcr * 1000) / 1000;
 
     setCachedPCR(uppercaseSymbol, date, pcr);
-    
+
     logFetch({
       sourceId: 'polygon',
       sourceName: 'Polygon.io',
@@ -516,7 +531,7 @@ export async function getDailyPutCallRatio(
       isFallback: false
     });
 
-    return pcr;
+    return { value: pcr, data_timing: "end_of_day" };
   } catch (error: any) {
     console.warn(`[Polygon] Failed to calculate PCR for ${symbol} on ${date}:`, error.message);
     return null;

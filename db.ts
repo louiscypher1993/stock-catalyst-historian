@@ -415,6 +415,14 @@ try {
 }
 
 try {
+  db.exec("ALTER TABLE event_features ADD COLUMN signal_snapshot_json TEXT;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add signal_snapshot_json to event_features", e);
+  }
+}
+
+try {
   db.exec(`
     CREATE TABLE IF NOT EXISTS fmp_dark_pool_cache (
       symbol TEXT,
@@ -679,9 +687,9 @@ export function setEventFeatures(cacheKey: string, features: EventFeatureVector)
       cache_key, symbol, date, primaryCategory, features_json, created_at,
       max_favorable_excursion_1m, max_adverse_excursion_1m, sector_excess_return,
       short_interest_ratio, options_put_call_ratio, is_null_sample, is_human_verified,
-      gating_verdict_json
+      gating_verdict_json, signal_snapshot_json
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(cache_key) DO UPDATE SET
       symbol = excluded.symbol,
       date = excluded.date,
@@ -695,7 +703,8 @@ export function setEventFeatures(cacheKey: string, features: EventFeatureVector)
       options_put_call_ratio = excluded.options_put_call_ratio,
       is_null_sample = excluded.is_null_sample,
       is_human_verified = excluded.is_human_verified,
-      gating_verdict_json = excluded.gating_verdict_json
+      gating_verdict_json = excluded.gating_verdict_json,
+      signal_snapshot_json = excluded.signal_snapshot_json
   `);
   stmt.run(
     cacheKey,
@@ -711,29 +720,36 @@ export function setEventFeatures(cacheKey: string, features: EventFeatureVector)
     features.options_put_call_ratio ?? null,
     features.is_null_sample ? 1 : 0,
     features.is_human_verified ? 1 : 0,
-    features.gatingVerdict ? JSON.stringify(features.gatingVerdict) : null
+    features.gatingVerdict ? JSON.stringify(features.gatingVerdict) : null,
+    features.signal_snapshot ? JSON.stringify(features.signal_snapshot) : null
   );
 }
 
 export function getAllEventFeatures(): EventFeatureVector[] {
-  const stmt = db.prepare('SELECT features_json, gating_verdict_json FROM event_features');
-  const rows = stmt.all() as { features_json: string; gating_verdict_json: string | null }[];
+  const stmt = db.prepare('SELECT features_json, gating_verdict_json, signal_snapshot_json FROM event_features');
+  const rows = stmt.all() as { features_json: string; gating_verdict_json: string | null; signal_snapshot_json: string | null }[];
   return rows.map((row) => {
     const feat = JSON.parse(row.features_json) as EventFeatureVector;
     if (row.gating_verdict_json) {
       feat.gatingVerdict = JSON.parse(row.gating_verdict_json);
+    }
+    if (row.signal_snapshot_json) {
+      feat.signal_snapshot = JSON.parse(row.signal_snapshot_json);
     }
     return feat;
   });
 }
 
 export function getEventFeature(symbol: string, date: string): EventFeatureVector | null {
-  const stmt = db.prepare('SELECT features_json, gating_verdict_json FROM event_features WHERE symbol = ? AND date = ?');
-  const row = stmt.get(symbol, date) as { features_json: string; gating_verdict_json: string | null } | undefined;
+  const stmt = db.prepare('SELECT features_json, gating_verdict_json, signal_snapshot_json FROM event_features WHERE symbol = ? AND date = ?');
+  const row = stmt.get(symbol, date) as { features_json: string; gating_verdict_json: string | null; signal_snapshot_json: string | null } | undefined;
   if (row) {
     const feat = JSON.parse(row.features_json) as EventFeatureVector;
     if (row.gating_verdict_json) {
       feat.gatingVerdict = JSON.parse(row.gating_verdict_json);
+    }
+    if (row.signal_snapshot_json) {
+      feat.signal_snapshot = JSON.parse(row.signal_snapshot_json);
     }
     return feat;
   }
@@ -2247,6 +2263,114 @@ export function getIbkrShortCache(cacheKey: string): any {
 export function setIbkrShortCache(cacheKey: string, data: any): void {
   db.prepare('INSERT INTO ibkr_short_cache (cache_key, data_json, cached_at) VALUES (?, ?, ?) ON CONFLICT(cache_key) DO UPDATE SET data_json=excluded.data_json, cached_at=excluded.cached_at')
     .run(cacheKey, JSON.stringify(data), new Date().toISOString());
+}
+
+try {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS youtube_transcripts (
+      video_id TEXT PRIMARY KEY,
+      transcript TEXT NOT NULL,
+      cached_at TEXT NOT NULL
+    );
+  `);
+} catch (e: any) {
+  console.error("Failed to create youtube_transcripts table", e);
+}
+
+export function getCachedYouTubeTranscript(videoId: string): string | null {
+  try {
+    const row = db.prepare('SELECT transcript FROM youtube_transcripts WHERE video_id = ?').get(videoId) as { transcript: string } | undefined;
+    return row ? row.transcript : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+export function setCachedYouTubeTranscript(videoId: string, transcript: string): void {
+  try {
+    db.prepare(`
+      INSERT OR REPLACE INTO youtube_transcripts (video_id, transcript, cached_at)
+      VALUES (?, ?, ?)
+    `).run(videoId, transcript, new Date().toISOString());
+  } catch (error) {
+    console.error(`[DB] Error caching YouTube transcript for ${videoId}:`, error);
+  }
+}
+
+try {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS estimate_revisions_cache (
+      cache_key TEXT PRIMARY KEY,
+      data_json TEXT NOT NULL,
+      cached_at TEXT NOT NULL
+    );
+  `);
+} catch (e: any) {
+  console.error("Failed to create estimate_revisions_cache table", e);
+}
+
+export function getCachedEstimateRevisions(symbol: string, yearMonth: string): { revisionDirection: "up" | "down" | "flat"; revisionMagnitudePct: number; analystCount: number } | null {
+  try {
+    const row = db.prepare('SELECT data_json, cached_at FROM estimate_revisions_cache WHERE cache_key = ?')
+      .get(`${symbol}_${yearMonth}`) as { data_json: string; cached_at: string } | undefined;
+    if (!row) return null;
+    if (Date.now() - new Date(row.cached_at).getTime() > 30 * 24 * 60 * 60 * 1000) return null;
+    return JSON.parse(row.data_json);
+  } catch {
+    return null;
+  }
+}
+
+export function setCachedEstimateRevisions(symbol: string, yearMonth: string, data: { revisionDirection: "up" | "down" | "flat"; revisionMagnitudePct: number; analystCount: number }): void {
+  try {
+    db.prepare('INSERT OR REPLACE INTO estimate_revisions_cache (cache_key, data_json, cached_at) VALUES (?, ?, ?)')
+      .run(`${symbol}_${yearMonth}`, JSON.stringify(data), new Date().toISOString());
+  } catch (err) {
+    console.error('[DB] Failed to cache estimate revisions:', err);
+  }
+}
+
+export function getEventsWithSignals(filter?: {
+  minDate?: string;
+  maxDate?: string;
+  category?: string;
+}): EventFeatureVector[] {
+  let query = `
+    SELECT features_json, gating_verdict_json, signal_snapshot_json
+    FROM event_features
+    WHERE signal_snapshot_json IS NOT NULL
+  `;
+  const params: any[] = [];
+  if (filter?.minDate) {
+    query += ' AND date >= ?';
+    params.push(filter.minDate);
+  }
+  if (filter?.maxDate) {
+    query += ' AND date <= ?';
+    params.push(filter.maxDate);
+  }
+  if (filter?.category) {
+    query += ' AND primaryCategory = ?';
+    params.push(filter.category);
+  }
+  query += ' ORDER BY date ASC';
+
+  const rows = db.prepare(query).all(...params) as {
+    features_json: string;
+    gating_verdict_json: string | null;
+    signal_snapshot_json: string | null;
+  }[];
+
+  return rows.map((row) => {
+    const feat = JSON.parse(row.features_json) as EventFeatureVector;
+    if (row.gating_verdict_json) {
+      feat.gatingVerdict = JSON.parse(row.gating_verdict_json);
+    }
+    if (row.signal_snapshot_json) {
+      feat.signal_snapshot = JSON.parse(row.signal_snapshot_json);
+    }
+    return feat;
+  });
 }
 
 

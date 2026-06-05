@@ -501,6 +501,46 @@ export interface EventFeatureVector {
   fractal_efficiency_ratio_10d?: number;
   market_jerk?: number;
   seismic_magnitude_mw?: number;
+
+  signal_snapshot?: {
+    // statistical
+    excess_return: number | null;
+    z_score: number | null;
+    atr_shock_score: number | null;
+    volume_ratio: number | null;
+    shannon_entropy: number | null;
+    amihud_illiquidity: number | null;
+    fractal_efficiency: number | null;
+    // market structure
+    short_interest_pct_float: number | null;
+    short_interest_velocity: number | null;
+    put_call_ratio: number | null;
+    iv_rank: number | null;
+    dark_pool_index: number | null;
+    // macro/regime
+    vix: number | null;
+    vix_regime: string | null;
+    trend_regime: string | null;
+    yield_curve_spread: number | null;
+    credit_spread: number | null;
+    macro_release_surprise: number | null;
+    // alternative/social (normalised z-scores: gdelt/10, virality centred on 50, trends shock-1, etc.)
+    gdelt_tone_z: number | null;
+    stocktwits_virality_z: number | null;
+    google_trends_z: number | null;
+    wikipedia_spike_z: number | null;
+    news_relevance_z: number | null;
+    congressional_net_flow: number | null;
+    // gating verdict summary
+    event_classification: string | null;
+    dominant_physics_regime: string | null;
+    divergence_detected: boolean | null;
+    // estimate revision momentum (period-over-period change in analyst EPS consensus)
+    estimate_revision_direction: "up" | "down" | "flat" | null;
+    estimate_revision_magnitude: number | null;
+    // company-level credit proxy derived from D/E ratio (NOT a real spread; flagged as proxy)
+    company_credit_proxy: number | null;
+  };
 }
 
 /**
@@ -1018,4 +1058,43 @@ export interface TrendsSummary {
   percentAboveBaseline: number;
   google_trends_shock_ratio?: number;
   source: string;
+}
+
+export interface SignalValidationEntry {
+  name: string;
+  sampleSize: number;
+  /** Pearson linear correlation with forward return (null if insufficient data) */
+  pearson: number | null;
+  /** Spearman rank correlation = information coefficient (null if insufficient data) */
+  spearman: number | null;
+  /** Alias of spearman — the standard quant IC metric */
+  informationCoefficient: number | null;
+  /** Mean forward return when signal is in top quartile */
+  meanReturnWhenHigh: number | null;
+  /** Mean forward return when signal is in bottom quartile */
+  meanReturnWhenLow: number | null;
+  /** Plain-English summary of predictive strength */
+  interpretation: string;
+  /** Set when sampleSize < minEvents */
+  insufficientData?: boolean;
+  /** Per-category stats for categorical signals */
+  categoryBreakdown?: {
+    category: string;
+    count: number;
+    meanReturn: number;
+    medianReturn: number;
+  }[];
+}
+
+export interface SignalValidationReport {
+  generatedAt: string;
+  totalEventsAnalysed: number;
+  horizon: "1d" | "1w" | "1m";
+  signals: SignalValidationEntry[];
+  /** Present when the dataset is too small for meaningful validation */
+  datasetTooSmall?: {
+    message: string;
+    currentCount: number;
+    suggestedTarget: number;
+  };
 }

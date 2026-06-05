@@ -19,6 +19,7 @@ import { SOURCE_REGISTRY, getSourceReliability, getRateLimitedSources } from "./
 import { extractAndParseJson } from "./src/JsonParser";
 import { EVENT_TAXONOMY } from "./EventTaxonomy";
 import { exportAndUploadToDrive, exportToLocalStream } from "./CSVExportService";
+import { runSignalValidation } from "./SignalValidationService";
 
 dotenv.config();
 
@@ -1132,6 +1133,21 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     code: status,
     timestamp: new Date().toISOString()
   });
+});
+
+// REST Endpoint: Signal validation — measures which signals predict forward returns
+app.get("/api/signal-validation", async (req, res, next) => {
+  try {
+    const rawHorizon = req.query.horizon as string | undefined;
+    const horizon =
+      rawHorizon === "1d" || rawHorizon === "1w" || rawHorizon === "1m"
+        ? rawHorizon
+        : "1w";
+    const report = await runSignalValidation({ horizon });
+    return res.json(report);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Configure Vite middleware or production build output serving

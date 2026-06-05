@@ -278,6 +278,47 @@ export async function getMacroSnapshot(date: string, symbol: string = ""): Promi
   return snapshot;
 }
 
+/**
+ * Derives a company-level credit context proxy from the debt-to-equity (D/E) ratio
+ * already available via FMP fundamentals.
+ *
+ * No free CDS or company credit rating source exists; this function produces a
+ * rough spread estimate using industry-average leverage bands. The result is
+ * clearly flagged as a proxy — it is NOT a real market spread.
+ *
+ * Spread bands (basis points):
+ *   D/E < 0 (negative equity):  ~1200 bps — distressed proxy
+ *   D/E 0 – 0.30:               ~120  bps — investment-grade proxy
+ *   D/E 0.30 – 1.00:            ~200  bps — investment-grade proxy
+ *   D/E 1.00 – 2.00:            ~350  bps — sub-investment-grade proxy
+ *   D/E 2.00 – 5.00:            ~600  bps — high-yield proxy
+ *   D/E > 5.00:                  ~900  bps — distressed-HY proxy
+ */
+export function getCompanyCreditContext(
+  symbol: string,
+  debtToEquityRatio: number | null | undefined
+): { creditSpreadProxy: number; isProxy: true; derivedFrom: "debt_to_equity_ratio" } | null {
+  if (debtToEquityRatio == null || !isFinite(debtToEquityRatio)) return null;
+
+  let spreadBps: number;
+  if (debtToEquityRatio < 0) {
+    spreadBps = 1200;
+  } else if (debtToEquityRatio < 0.3) {
+    spreadBps = 120;
+  } else if (debtToEquityRatio < 1.0) {
+    spreadBps = 200;
+  } else if (debtToEquityRatio < 2.0) {
+    spreadBps = 350;
+  } else if (debtToEquityRatio < 5.0) {
+    spreadBps = 600;
+  } else {
+    spreadBps = 900;
+  }
+
+  console.log(`[FREDService] Company credit proxy for ${symbol}: D/E=${debtToEquityRatio.toFixed(2)} → ~${spreadBps} bps (proxy, not a real spread)`);
+  return { creditSpreadProxy: spreadBps, isProxy: true, derivedFrom: "debt_to_equity_ratio" };
+}
+
 function findNearest(points: MacroDataPoint[], targetDateStr: string): MacroDataPoint | null {
   if (points.length === 0) return null;
   const targetTime = new Date(targetDateStr).getTime();

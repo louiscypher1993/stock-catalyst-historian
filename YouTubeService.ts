@@ -1,6 +1,81 @@
+/*
+ * SYSTEM REQUIREMENTS for Whisper fallback transcription:
+ *   1. yt-dlp  (downloads audio from YouTube):
+ *        Windows : winget install yt-dlp.yt-dlp   OR   pip install yt-dlp
+ *        macOS   : brew install yt-dlp             OR   pip install yt-dlp
+ *        Linux   : apt install yt-dlp              OR   pip install yt-dlp
+ *      yt-dlp must be on PATH so spawn('yt-dlp', ...) can find it.
+ *   2. whisper.cpp model (used by nodejs-whisper, already in package.json):
+ *        nodejs-whisper auto-downloads the 'base.en' model (~75 MB) on first use.
+ *        It also requires a C++ build toolchain; run  npx nodejs-whisper download
+ *        after npm install to pre-compile whisper.cpp and pre-fetch the model.
+ */
+
 import { YoutubeTranscript } from 'youtube-transcript';
 import { YouTubeVideo } from './src/types';
 import { logFetch, isSourceRateLimited, markSourceRateLimited } from './DataSourceRegistry';
+import { getCachedYouTubeTranscript, setCachedYouTubeTranscript } from './db';
+import { nodewhisper } from 'nodejs-whisper';
+import { spawn } from 'child_process';
+import path from 'path';
+import os from 'os';
+import fs from 'fs';
+
+async function getTranscriptViaWhisper(videoId: string): Promise<string | null> {
+  // Always check permanent SQLite cache first — transcripts never change
+  const cached = getCachedYouTubeTranscript(videoId);
+  if (cached !== null) {
+    console.log(`[YouTube/Whisper] Serving cached transcript for ${videoId}`);
+    return cached;
+  }
+
+  const tmpDir = os.tmpdir();
+  // yt-dlp replaces %(ext)s with the final extension after conversion (wav)
+  const audioTemplate = path.join(tmpDir, `yt-whisper-${videoId}.%(ext)s`);
+  const audioPath = path.join(tmpDir, `yt-whisper-${videoId}.wav`);
+
+  try {
+    // Download audio-only as WAV using the yt-dlp system binary
+    console.log(`[YouTube/Whisper] Downloading audio for ${videoId} via yt-dlp...`);
+    await new Promise<void>((resolve, reject) => {
+      const proc = spawn('yt-dlp', [
+        '-x', '--audio-format', 'wav', '--audio-quality', '0',
+        '--no-playlist',
+        '-o', audioTemplate,
+        '--', `https://www.youtube.com/watch?v=${videoId}`,
+      ]);
+      proc.on('close', (code) =>
+        code === 0 ? resolve() : reject(new Error(`yt-dlp exited with code ${code}`))
+      );
+      proc.on('error', reject);
+    });
+
+    // Transcribe locally with Whisper base.en (no API key, works offline)
+    console.log(`[YouTube/Whisper] Transcribing ${videoId} with Whisper base.en...`);
+    const text = await nodewhisper(audioPath, {
+      modelName: 'base.en',
+      autoDownloadModelName: 'base.en',
+      removeWavFileAfterTranscription: true,
+      whisperOptions: { outputInText: true },
+    });
+
+    const trimmed = (text || '').trim();
+    if (trimmed) {
+      // Cache permanently — a video's transcript never changes
+      setCachedYouTubeTranscript(videoId, trimmed);
+      console.log(`[YouTube/Whisper] Transcript cached permanently for ${videoId}`);
+    }
+    return trimmed || null;
+  } catch (err: any) {
+    console.warn(`[YouTube/Whisper] Failed for ${videoId}: ${err.message}`);
+    return null;
+  } finally {
+    // Belt-and-suspenders: remove temp audio if removeWavFileAfterTranscription didn't fire
+    try {
+      if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath);
+    } catch (_) {}
+  }
+}
 
 export async function fetchYouTubeTranscripts(
   query: string,
@@ -20,11 +95,10 @@ export async function fetchYouTubeTranscripts(
   }
 
   const start = Date.now();
-  
-  // Format dates to RFC 3339 string (e.g. 1970-01-01T00:00:00Z)
+
   const startDate = new Date(startDateStr);
   const publishedAfter = startDate.toISOString();
-  
+
   const endDate = new Date(endDateStr);
   const publishedBefore = endDate.toISOString();
 
@@ -35,10 +109,10 @@ export async function fetchYouTubeTranscripts(
     if (!res.ok) {
       if (res.status === 403) {
         console.warn(`[YouTube] Quota exceeded, forbidden, or invalid credentials. Marking rate-limited.`);
-        markSourceRateLimited('youtube', 600000); // 10 minutes
+        markSourceRateLimited('youtube', 600000);
       } else {
         console.warn(`[YouTube] Fetch returned HTTP ${res.status}. Marking rate-limited.`);
-        markSourceRateLimited('youtube', 60000); // 1 minute
+        markSourceRateLimited('youtube', 60000);
       }
       logFetch({
         sourceId: "youtube",
@@ -58,39 +132,44 @@ export async function fetchYouTubeTranscripts(
 
     const data = await res.json();
     const items = data.items || [];
-    
+
     const videos: YouTubeVideo[] = [];
 
     for (const item of items) {
       const videoId = item.id?.videoId;
       if (!videoId) continue;
-      
+
       const snippet = item.snippet || {};
       const title = snippet.title || "";
       const publishedAt = snippet.publishedAt || "";
       const channelTitle = snippet.channelTitle || "";
 
       let transcriptText = "";
+
       try {
+        // Fast path: YouTube auto-captions (instant when available)
         const transcriptLines = await YoutubeTranscript.fetchTranscript(videoId);
         transcriptText = transcriptLines.map((t) => t.text).join(' ');
-        // Optionally chunk the transcript if it's too huge, but usually Gemini flash can chunk it
-        // Or limit to first 15,000 characters to prevent prompt blowups
         if (transcriptText.length > 20000) {
-            transcriptText = transcriptText.substring(0, 20000) + '... [TRUNCATED]';
+          transcriptText = transcriptText.substring(0, 20000) + '... [TRUNCATED]';
         }
-      } catch (transcriptErr: any) {
-        console.warn(`[YouTube] Could not fetch transcript for ${videoId}: ${transcriptErr.message}`);
-        transcriptText = "[No auto-generated transcript available]";
+        console.log(`[YouTube] Caption transcript fetched for ${videoId}`);
+      } catch (_captionErr) {
+        // Captions disabled — fall back to local Whisper transcription
+        console.log(`[YouTube] Captions unavailable for ${videoId}, falling back to Whisper...`);
+        const whisperText = await getTranscriptViaWhisper(videoId);
+        if (whisperText) {
+          transcriptText = whisperText.length > 20000
+            ? whisperText.substring(0, 20000) + '... [TRUNCATED]'
+            : whisperText;
+          console.log(`[YouTube] Whisper transcript obtained for ${videoId}`);
+        } else {
+          transcriptText = "[No transcript available]";
+          console.warn(`[YouTube] Both caption and Whisper paths failed for ${videoId}`);
+        }
       }
 
-      videos.push({
-        videoId,
-        title,
-        publishedAt,
-        channelTitle,
-        transcript: transcriptText
-      });
+      videos.push({ videoId, title, publishedAt, channelTitle, transcript: transcriptText });
     }
 
     logFetch({

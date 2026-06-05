@@ -501,12 +501,13 @@ export async function getEarningsCalendar(
   }
 }
 
-import { 
-  getCachedPeers, setCachedPeers, 
-  getCachedEarningsTranscript, setCachedEarningsTranscript, 
-  getCachedDarkPool, setCachedDarkPool, 
+import {
+  getCachedPeers, setCachedPeers,
+  getCachedEarningsTranscript, setCachedEarningsTranscript,
+  getCachedDarkPool, setCachedDarkPool,
   getCachedBorrowRate, setCachedBorrowRate,
-  getCachedSocialSentiment, setCachedSocialSentiment
+  getCachedSocialSentiment, setCachedSocialSentiment,
+  getCachedEstimateRevisions, setCachedEstimateRevisions
 } from "./db";
 
 export async function getHistoricalDarkPoolVolume(symbol: string, date: string): Promise<number | null> {
@@ -722,6 +723,98 @@ export async function getMarketStructure(symbol: string, date: string): Promise<
     });
     console.error(`[FMP] Market Structure fetch error for ${symbol}:`, err);
     return { short_interest_ratio: null, options_put_call_ratio: null };
+  }
+}
+
+// Set once when the analyst-estimates endpoint proves unavailable on the free tier, to avoid log spam.
+let _estimateRevisionsEndpointUnavailable = false;
+
+/**
+ * Derives EPS estimate revision momentum in the ~8 weeks before the event date.
+ * Uses FMP /stable/analyst-estimates to compare consecutive consensus periods.
+ * Returns null (without an API call) if the endpoint is known to be off the free tier.
+ * Results are cached for 30 days.
+ */
+export async function getEstimateRevisions(
+  symbol: string,
+  date: string
+): Promise<{ revisionDirection: "up" | "down" | "flat"; revisionMagnitudePct: number; analystCount: number } | null> {
+  if (_estimateRevisionsEndpointUnavailable) return null;
+  if (!checkAndIncrementFmpBudget()) return null;
+  if (isSourceRateLimited('fmp')) return null;
+
+  const uppercaseSymbol = symbol.toUpperCase().trim();
+  const yearMonth = date.slice(0, 7); // "YYYY-MM" — cache key granularity
+
+  const cached = getCachedEstimateRevisions(uppercaseSymbol, yearMonth);
+  if (cached !== null) {
+    console.log(`[FMP] Estimate revisions cache hit for ${uppercaseSymbol} / ${yearMonth}`);
+    return cached;
+  }
+
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey) {
+    console.warn('[FMP] Missing FMP_API_KEY — skipping estimate revisions.');
+    return null;
+  }
+
+  try {
+    const url = `https://financialmodelingprep.com/stable/analyst-estimates?symbol=${uppercaseSymbol}&limit=5&apikey=${apiKey}`;
+    const res = await fetchWithTimeout(url);
+
+    if (!res.ok) {
+      let body = '';
+      try { body = await res.text(); } catch (_) {}
+      if (res.status === 403 && (body.includes('Exclusive Endpoint') || body.includes('Legacy Endpoint') || body.includes('Professional plan'))) {
+        if (!_estimateRevisionsEndpointUnavailable) {
+          console.warn('[FMP] analyst-estimates endpoint is not on the free tier — disabling for this session.');
+          _estimateRevisionsEndpointUnavailable = true;
+        }
+        return null;
+      }
+      console.warn(`[FMP] getEstimateRevisions HTTP ${res.status} for ${uppercaseSymbol}`);
+      return null;
+    }
+
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length < 2) {
+      // < 2 periods → cannot compute a revision delta
+      return null;
+    }
+
+    // Sort ascending by date so index 0 is the oldest available period
+    const sorted = [...data]
+      .filter((r: any) => r.estimatedEpsAvg != null)
+      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    if (sorted.length < 2) return null;
+
+    // Compare the two most recent consecutive periods
+    const older = sorted[sorted.length - 2];
+    const newer = sorted[sorted.length - 1];
+
+    const oldEps = Number(older.estimatedEpsAvg);
+    const newEps = Number(newer.estimatedEpsAvg);
+
+    if (!isFinite(oldEps) || !isFinite(newEps) || oldEps === 0) return null;
+
+    const magnitudePct = ((newEps - oldEps) / Math.abs(oldEps)) * 100;
+    const direction: "up" | "down" | "flat" =
+      magnitudePct > 1 ? "up" : magnitudePct < -1 ? "down" : "flat";
+    const analystCount = Number(newer.numberAnalystEstimated ?? older.numberAnalystEstimated ?? 0);
+
+    const result = {
+      revisionDirection: direction,
+      revisionMagnitudePct: Math.round(magnitudePct * 100) / 100,
+      analystCount,
+    };
+
+    setCachedEstimateRevisions(uppercaseSymbol, yearMonth, result);
+    console.log(`[FMP] Estimate revisions for ${uppercaseSymbol}: ${direction} ${result.revisionMagnitudePct}% (${analystCount} analysts)`);
+    return result;
+  } catch (err: any) {
+    console.warn(`[FMP] getEstimateRevisions failed for ${uppercaseSymbol}: ${err.message}`);
+    return null;
   }
 }
 

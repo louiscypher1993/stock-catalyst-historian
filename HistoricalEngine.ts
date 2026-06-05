@@ -41,7 +41,7 @@ import {
   getDailyPutCallRatio,
 } from "./PolygonService";
 import { getRecentFilings } from "./EdgarService";
-import { getFullCompanyContext, getEarningsTranscript, getSocialSentiment } from "./FMPService";
+import { getFullCompanyContext, getEarningsTranscript, getSocialSentiment, getEstimateRevisions } from "./FMPService";
 import { getTopPeers } from "./PeerDataService";
 import { getDarkPoolActivity, getBorrowRate } from "./ShortDataService";
 import { fetchGDELTEventsForDate } from "./GDELTService";
@@ -49,7 +49,7 @@ import {
   fetchInternationalPriceHistory,
   getExchangeStatus,
 } from "./EODHDService";
-import { getMacroSnapshot, fetchFREDSeries } from "./FREDService";
+import { getMacroSnapshot, fetchFREDSeries, getCompanyCreditContext } from "./FREDService";
 import { getActualMacroRelease } from "./EconomicCalendar";
 import { searchNewsForStock, rankArticlesByRelevance } from "./NewsAPIService";
 import { getStockTwitsSentimentSummary } from "./StockTwitsService";
@@ -462,6 +462,58 @@ function buildAndSaveFeatureVector(
       max_favorable_excursion_1m: div100(p.analysis?.max_favorable_excursion_1m),
       max_adverse_excursion_1m: div100(p.analysis?.max_adverse_excursion_1m),
       gatingVerdict: p.gatingVerdict ?? undefined,
+      signal_snapshot: (() => {
+        const si = (p as any)._tempShortInterest ?? p.analysis?.shortInterest ?? null;
+        const siVelocity = (p as any)._tempShortInterestVelocity ?? p.analysis?.shortInterestVelocity ?? null;
+        const gdeltEvts: any[] | null | undefined = (p as any)._tempGdeltEvents ?? p.analysis?.gdeltEvents;
+        const wikiSpikes: any[] | null | undefined = (p as any)._tempWikipediaSpikes ?? p.analysis?.wikipediaSpikes;
+        const social = (p as any)._tempSocialSentiment ?? p.analysis?.socialSentiment ?? null;
+        const trends = (p as any)._tempTrendsSummary ?? p.analysis?.trendsSummary ?? null;
+        const articles: any[] | null | undefined = (p as any)._tempPrefetchedArticles ?? p.analysis?.newsList;
+        const macroSnap = (p as any)._tempMacroSnapshot ?? p.analysis?.macroSnapshot ?? null;
+        const macroRel = (p as any)._tempMacroRelease ?? p.analysis?.macroRelease ?? null;
+
+        return {
+          excess_return: p.excessReturn !== undefined ? p.excessReturn / 100 : p.dailyReturn / 100,
+          z_score: p.zScore,
+          atr_shock_score: atrShock / 100,
+          volume_ratio: p.volumeRatio ?? 1,
+          shannon_entropy: (p as any)._tempShannonEntropy ?? p.analysis?.shannon_entropy_30d ?? null,
+          amihud_illiquidity: (p as any)._tempAmihud ?? p.analysis?.amihud_illiquidity_30d ?? null,
+          fractal_efficiency: (p as any)._tempFER ?? p.analysis?.fractal_efficiency_ratio_10d ?? null,
+          short_interest_pct_float: si ? (si.pctOfFloat ?? null) : null,
+          short_interest_velocity: typeof siVelocity === 'number' ? siVelocity : null,
+          put_call_ratio: (p as any)._tempPutCallRatio ?? p.analysis?.put_call_ratio_t_minus_1 ?? null,
+          iv_rank: (p as any)._tempIvCrush ?? p.analysis?.iv_crush_pct ?? null,
+          dark_pool_index: (p as any)._tempDarkPoolIndex ?? p.analysis?.dark_pool_index ?? null,
+          vix: vixRaw,
+          vix_regime: (p as any)._tempVixRegime ?? p.analysis?.vixRegime ?? null,
+          trend_regime: (p as any)._tempMarketRegime?.trendRegime ?? p.analysis?.marketRegime?.trendRegime ?? null,
+          yield_curve_spread: macroSnap?.yieldCurvSpread ?? null,
+          credit_spread: macroSnap?.creditSpread ?? null,
+          macro_release_surprise: macroRel?.surprise ?? null,
+          gdelt_tone_z: (gdeltEvts && gdeltEvts.length > 0)
+            ? gdeltEvts.reduce((s: number, e: any) => s + (e.avgTone ?? 0), 0) / gdeltEvts.length / 10
+            : null,
+          stocktwits_virality_z: social !== null && typeof social.viralityScore === 'number'
+            ? (social.viralityScore - 50) / 25
+            : null,
+          google_trends_z: trends !== null && typeof trends.google_trends_shock_ratio === 'number'
+            ? trends.google_trends_shock_ratio - 1
+            : null,
+          wikipedia_spike_z: (wikiSpikes && wikiSpikes.length > 0)
+            ? Math.max(...wikiSpikes.map((s: any) => s.spikeRatio ?? 0))
+            : null,
+          news_relevance_z: (articles && articles.length > 0) ? articles.length / 5 : null,
+          congressional_net_flow: (p as any)._tempCongressionalNetFlow ?? null,
+          event_classification: p.gatingVerdict?.event_classification ?? null,
+          dominant_physics_regime: p.gatingVerdict?.dominant_physics_regime ?? null,
+          divergence_detected: p.gatingVerdict?.divergence_detected ?? null,
+          estimate_revision_direction: (p as any)._tempEstimateRevisions?.revisionDirection ?? null,
+          estimate_revision_magnitude: (p as any)._tempEstimateRevisions?.revisionMagnitudePct ?? null,
+          company_credit_proxy: (p as any)._tempCompanyCreditProxy ?? null,
+        };
+      })(),
     };
 
     const cacheKey = `${symbol}_${p.date}`;
@@ -2422,7 +2474,7 @@ Scheduled Economic Release on ${item.date} (${release.releaseType?.toUpperCase()
               let ivCrushContext = "";
               const ivCrush = (item as any)._tempIvCrush;
               if (ivCrush !== undefined) {
-                ivCrushContext = `\n[OPTIONS MARKET]: The Implied Volatility (IV) crush on this date was ${ivCrush}%. A massive crush indicates the market was heavily anticipating binary news, whereas zero crush implies a completely surprise catalyst.`;
+                ivCrushContext = `\n[OPTIONS MARKET]: The Implied Volatility (IV) crush on this date was ${ivCrush}%. A massive crush indicates the market was heavily anticipating binary news, whereas zero crush implies a completely surprise catalyst. NOTE: options metrics are end-of-day, not intraday. They confirm that unusual options activity occurred on this date but CANNOT establish whether it preceded the price move within the day. Treat as confirmatory context, not a leading-timing signal.`;
               }
 
               let sectorContagionContext = "";
@@ -2435,7 +2487,7 @@ Scheduled Economic Release on ${item.date} (${release.releaseType?.toUpperCase()
               let pcrContext = "";
               const pcr = (item as any)._tempPutCallRatio;
               if (pcr !== undefined && pcr !== null) {
-                pcrContext = `\n[OPTIONS POSITIONING]: The Put/Call Ratio on the day before this event was ${pcr}. A PCR > 1.0 indicates the street was heavily positioned for a crash, acting as potential short-squeeze fuel if the news is positive.`;
+                pcrContext = `\n[OPTIONS POSITIONING]: The Put/Call Ratio on the day before this event was ${pcr}. A PCR > 1.0 indicates the street was heavily positioned for a crash, acting as potential short-squeeze fuel if the news is positive. NOTE: options metrics are end-of-day, not intraday. They confirm that unusual options activity occurred on this date but CANNOT establish whether it preceded the price move within the day. Treat as confirmatory context, not a leading-timing signal.`;
               }
 
               let hiddenLiquidityContext = "";
@@ -2502,7 +2554,19 @@ Scheduled Economic Release on ${item.date} (${release.releaseType?.toUpperCase()
               const _p1Evidence = `\n[EVIDENCE]: Z=${Number(item.zScore).toFixed(2)}σ | Return=${Number(item.dailyReturn).toFixed(2)}% | VolRatio=${item.volumeRatio !== undefined ? Number(item.volumeRatio).toFixed(1) + 'x' : 'N/A'} | VIX=${vixVal !== undefined ? Number(vixVal).toFixed(2) : 'N/A'} (${regime ?? 'N/A'}) | EDGAR: ${_p1EdgarStatus} | GDELT: ${_p1GdeltCount} event(s) | Macro: ${_p1MacroLine}. Reason from this evidence. Where data is unavailable, acknowledge the gap rather than fabricating signal.`;
               const _p1Gating = `\n[GATING VERDICT]: The deterministic gating engine classified this event as ${_p1Gv?.event_classification ?? 'UNKNOWN'} (dominant regime: ${_p1Gv?.dominant_physics_regime ?? 'UNKNOWN'}). Your role is to find the specific real-world event that caused this classification — not to rephrase the label.`;
 
-              return `- Date: ${item.date}, Day Change: ${Number(item.dailyReturn).toFixed(2)}%, Day Z-Score: ${Number(item.zScore).toFixed(2)} Sigma, Rolling Mean: ${Number(item.rollingMean).toFixed(2)}%, Rolling Std: ${Number(item.rollingStd).toFixed(4)}${_p1Search}${_p1Evidence}${_p1Gating}${isNullModifier}${swingContext}${govContext}${ivCrushContext}${sectorContagionContext}${pcrContext}${hiddenLiquidityContext}${systemPhysicsContext}${econophysicsContext}${orbitalStabilityContext}${systemGeometryContext}${systemKinematicsContext}${volContext}${vixContext}${regimeContext}${sequenceContext}${edgarContext}${insiderContext}${frictionContext}${fmpContextBlock}${earningsContextStr}${macroContext}${releaseContext}${newsContext}${socialContext}${shortInterestContext}${trendsContext}${wikiContext}${gdeltContext}${ytContext}`;
+              let estimateRevisionContext = "";
+              const erData = (item as any)._tempEstimateRevisions;
+              if (erData && erData.revisionDirection) {
+                estimateRevisionContext = `\n[ANALYST REVISION MOMENTUM]: EPS estimates revised ${erData.revisionDirection} ${Math.abs(erData.revisionMagnitudePct)}% over the prior period across ${erData.analystCount} analysts. Rising revisions before an event often precede positive surprises; falling revisions often signal deteriorating fundamentals ahead of the print.`;
+              }
+
+              let companyCreditContext = "";
+              const creditProxy = (item as any)._tempCompanyCreditProxy;
+              if (creditProxy !== null && creditProxy !== undefined) {
+                companyCreditContext = `\n[COMPANY CREDIT PROXY]: Estimated company-level credit spread ~${creditProxy} bps (derived from D/E ratio — proxy, not a real market spread). Higher spreads indicate elevated refinancing risk and greater sensitivity to interest-rate or liquidity catalysts.`;
+              }
+
+              return `- Date: ${item.date}, Day Change: ${Number(item.dailyReturn).toFixed(2)}%, Day Z-Score: ${Number(item.zScore).toFixed(2)} Sigma, Rolling Mean: ${Number(item.rollingMean).toFixed(2)}%, Rolling Std: ${Number(item.rollingStd).toFixed(4)}${_p1Search}${_p1Evidence}${_p1Gating}${isNullModifier}${swingContext}${govContext}${ivCrushContext}${sectorContagionContext}${pcrContext}${hiddenLiquidityContext}${systemPhysicsContext}${econophysicsContext}${orbitalStabilityContext}${systemGeometryContext}${systemKinematicsContext}${volContext}${vixContext}${regimeContext}${sequenceContext}${edgarContext}${insiderContext}${frictionContext}${fmpContextBlock}${earningsContextStr}${macroContext}${releaseContext}${newsContext}${socialContext}${shortInterestContext}${trendsContext}${wikiContext}${gdeltContext}${ytContext}${estimateRevisionContext}${companyCreditContext}`;
             })
             .join("\n");
 
@@ -3398,7 +3462,19 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                   const _p2Evidence = `\n[EVIDENCE]: Z=${Number(item.zScore).toFixed(2)}σ | Return=${Number(item.dailyReturn).toFixed(2)}% | VolRatio=${item.volumeRatio !== undefined ? Number(item.volumeRatio).toFixed(1) + 'x' : 'N/A'} | VIX=${vixVal !== undefined ? Number(vixVal).toFixed(2) : 'N/A'} (${regime ?? 'N/A'}) | EDGAR: ${_p2EdgarCount > 0 ? _p2EdgarCount + ' filing(s) found' : 'none found'} | GDELT: ${_p2GdeltCount} event(s) | Macro: ${_p2MacroLine}. Reason from this evidence. Where data is unavailable, acknowledge the gap rather than fabricating signal.`;
                   const _p2Gating = `\n[GATING VERDICT]: The deterministic gating engine classified this event as ${_p2Gv?.event_classification ?? 'UNKNOWN'} (dominant regime: ${_p2Gv?.dominant_physics_regime ?? 'UNKNOWN'}). Your role is to find the specific real-world event that caused this classification — not to rephrase the label.`;
 
-                  return `- Symbol: ${item.symbol}, Date: ${item.date}, Day Change: ${Number(item.dailyReturn).toFixed(2)}%, Day Z-Score: ${Number(item.zScore).toFixed(2)} Sigma, Rolling Mean: ${Number(item.rollingMean).toFixed(2)}%, Rolling Std: ${Number(item.rollingStd).toFixed(4)}${_p2Search}${_p2Evidence}${_p2Gating}${isNullModifier}${volContext}${vixContext}${regimeContext}${sequenceContext}${macroContext}${releaseContext}${edgarContext}${insiderContext}${frictionContext}${gdeltContext}${wikiContext}${youtubeContext}${newsContext}${socialContext}${shortInterestContext}${trendsContext}`;
+                  let estimateRevisionContext2 = "";
+                  const erData2 = (item as any)._tempEstimateRevisions;
+                  if (erData2 && erData2.revisionDirection) {
+                    estimateRevisionContext2 = `\n[ANALYST REVISION MOMENTUM]: EPS estimates revised ${erData2.revisionDirection} ${Math.abs(erData2.revisionMagnitudePct)}% over the prior period across ${erData2.analystCount} analysts. Rising revisions before an event often precede positive surprises; falling revisions often signal deteriorating fundamentals ahead of the print.`;
+                  }
+
+                  let companyCreditContext2 = "";
+                  const creditProxy2 = (item as any)._tempCompanyCreditProxy;
+                  if (creditProxy2 !== null && creditProxy2 !== undefined) {
+                    companyCreditContext2 = `\n[COMPANY CREDIT PROXY]: Estimated company-level credit spread ~${creditProxy2} bps (derived from D/E ratio — proxy, not a real market spread). Higher spreads indicate elevated refinancing risk and greater sensitivity to interest-rate or liquidity catalysts.`;
+                  }
+
+                  return `- Symbol: ${item.symbol}, Date: ${item.date}, Day Change: ${Number(item.dailyReturn).toFixed(2)}%, Day Z-Score: ${Number(item.zScore).toFixed(2)} Sigma, Rolling Mean: ${Number(item.rollingMean).toFixed(2)}%, Rolling Std: ${Number(item.rollingStd).toFixed(4)}${_p2Search}${_p2Evidence}${_p2Gating}${isNullModifier}${volContext}${vixContext}${regimeContext}${sequenceContext}${macroContext}${releaseContext}${edgarContext}${insiderContext}${frictionContext}${gdeltContext}${wikiContext}${youtubeContext}${newsContext}${socialContext}${shortInterestContext}${trendsContext}${estimateRevisionContext2}${companyCreditContext2}`;
                 })
                 .join("\n");
 
@@ -4539,9 +4615,9 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                 dateObj.setUTCDate(dateObj.getUTCDate() - (dayOfWeek === 1 ? 3 : dayOfWeek === 0 ? 2 : 1));
                 const tMinus1Date = dateObj.toISOString().split('T')[0];
 
-                const pcr = await getDailyPutCallRatio(uppercaseSymbol, tMinus1Date);
-                if (pcr !== null) {
-                  (a as any)._tempPutCallRatio = pcr;
+                const pcrResult = await getDailyPutCallRatio(uppercaseSymbol, tMinus1Date);
+                if (pcrResult !== null) {
+                  (a as any)._tempPutCallRatio = pcrResult.value;
                   enrichStatuses.polygon = 'hit';
                 } else {
                   (a as any)._tempPutCallRatio = null;
@@ -4591,6 +4667,28 @@ Provide a JSON array containing the results mapping perfectly back using the sta
               }
             })()
           );
+
+          // 14. Earnings Estimate Revision Momentum
+          if (isUsListed) {
+            promises.push(
+              (async () => {
+                try {
+                  const revisions = await getEstimateRevisions(uppercaseSymbol, a.date);
+                  (a as any)._tempEstimateRevisions = revisions ?? null;
+                } catch (err) {
+                  console.error(`[HistoricalEngine] Failed to get estimate revisions for ${uppercaseSymbol} on ${a.date}:`, err);
+                  (a as any)._tempEstimateRevisions = null;
+                }
+              })()
+            );
+          } else {
+            (a as any)._tempEstimateRevisions = null;
+          }
+
+          // 15. Company-Level Credit Proxy (synchronous — derived from D/E already in fmpContext)
+          const deRatio = fmpContext?.ratios?.debtToEquityRatio ?? null;
+          const creditCtx = getCompanyCreditContext(uppercaseSymbol, deRatio);
+          (a as any)._tempCompanyCreditProxy = creditCtx ? creditCtx.creditSpreadProxy : null;
 
           await Promise.all(promises);
           console.log(`[Enrichment] ${uppercaseSymbol} / ${a.date}: polygon=${enrichStatuses.polygon}, fmp_dark_pool=${enrichStatuses.fmp_dark_pool}, fmp_borrow=${enrichStatuses.fmp_borrow}, fmp_social=${enrichStatuses.fmp_social}, gdelt=${enrichStatuses.gdelt}, reddit=${enrichStatuses.reddit}, trends=${enrichStatuses.trends}, wiki=${enrichStatuses.wiki}, newsapi=${enrichStatuses.newsapi}, youtube=${enrichStatuses.youtube}, edgar=${enrichStatuses.edgar}, congressional=${enrichStatuses.congressional}`);
@@ -4741,10 +4839,18 @@ Provide a JSON array containing the results mapping perfectly back using the sta
       "macro_release_surprise",
       "youtube_mgmt_confidence",
       "short_interest_pct_float",
-      "short_interest_velocity"
+      "short_interest_velocity",
+      "estimate_revision_magnitude"
     ];
 
     keysToTry.forEach(tryNormalize);
+
+    // Estimate revision magnitude: inject directly from _temp if available (raw %)
+    const erMag = (point as any)._tempEstimateRevisions?.revisionMagnitudePct;
+    if (typeof erMag === 'number' && isFinite(erMag)) {
+      // Normalise: divide by 20 so a ±20% revision ≈ ±1 z-score unit
+      results['estimate_revision_magnitude'] = erMag / 20;
+    }
 
     return results;
   }
