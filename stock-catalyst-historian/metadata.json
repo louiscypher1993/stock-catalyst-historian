@@ -1,0 +1,6 @@
+{
+  "name": "Stock Catalyst Historian",
+  "description": "Scans stock returns for statistical anomalies (Z-Score > 2.5) and leverages Gemini AI as an AI Historian to identify, categorize, and analyze the historical catalysts and risks behind those market moves.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
