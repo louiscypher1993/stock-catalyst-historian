@@ -5,6 +5,7 @@ import StockChart from "./components/StockChart";
 import AnomalyFeed from "./components/AnomalyFeed";
 import StockChatAssistant from "./components/StockChatAssistant";
 import CompetitorsPanel from "./components/CompetitorsPanel";
+import BatchScannerPanel from "./components/BatchScannerPanel";
 import {
   initAuth,
   googleSignIn,
@@ -296,6 +297,8 @@ export default function App() {
       clearTimeout(timeout);
     };
   }, [savedScans, isAutoSaveEnabled, autoSaveDbId, driveToken]);
+
+  const [showBatchScanner, setShowBatchScanner] = useState(false);
 
   // Main UI Tabs Navigation States
   const [activeMainTab, setActiveMainTab] = useState<"volatility" | "market" | "stock" | "advisor" | "settings">("volatility");
@@ -3934,6 +3937,32 @@ export default function App() {
                    </div>
                 )}
               </div>
+            </section>
+
+            {/* Batch Universe Scanner */}
+            <section className="bg-zinc-900 border border-zinc-805 rounded-xl shadow-sm overflow-hidden text-left">
+              <div
+                className="p-4 bg-zinc-950/60 border-b border-zinc-850 flex items-center justify-between cursor-pointer select-none"
+                onClick={() => setShowBatchScanner(!showBatchScanner)}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-cyan-500" />
+                  <h3 className="text-xs font-bold text-zinc-100 uppercase tracking-widest font-mono">
+                    Batch Universe Scanner
+                  </h3>
+                  <span className="text-[10px] bg-cyan-950 text-cyan-300 font-mono px-1.5 py-0.5 rounded border border-cyan-900">
+                    Background Training
+                  </span>
+                </div>
+                <button type="button" className="text-xs text-zinc-400 hover:text-zinc-200 transition-all font-mono font-bold">
+                  {showBatchScanner ? "[ Collapse ]" : "[ Expand ]"}
+                </button>
+              </div>
+              {showBatchScanner && (
+                <div className="p-5">
+                  <BatchScannerPanel />
+                </div>
+              )}
             </section>
           </div>
         )}
