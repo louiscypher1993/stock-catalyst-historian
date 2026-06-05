@@ -31,7 +31,7 @@ export class BatchScanner {
   private stopRequested = false;
   private currentSymbol: string | null = null;
 
-  private static readonly VALID_YEARS = [0.5, 1, 2, 5] as const;
+  private static readonly VALID_YEARS = [0.5, 1, 2, 5, 30] as const;
 
   constructor(symbols: string[], yearsBack: number = 5) {
     this.yearsBack = (BatchScanner.VALID_YEARS as readonly number[]).includes(yearsBack) ? yearsBack : 5;

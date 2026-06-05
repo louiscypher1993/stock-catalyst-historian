@@ -298,7 +298,7 @@ export default function App() {
     };
   }, [savedScans, isAutoSaveEnabled, autoSaveDbId, driveToken]);
 
-  const [showBatchScanner, setShowBatchScanner] = useState(false);
+  const [showBatchScanner, setShowBatchScanner] = useState(true);
 
   // Main UI Tabs Navigation States
   const [activeMainTab, setActiveMainTab] = useState<"volatility" | "market" | "stock" | "advisor" | "settings">("volatility");

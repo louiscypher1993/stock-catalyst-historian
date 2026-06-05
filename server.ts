@@ -259,8 +259,8 @@ app.post("/api/stock-scan", async (req, res, next) => {
 
   if (req.body.years !== undefined) {
     const yearsNum = Number(years);
-    if (![0.5, 1, 2, 5].includes(yearsNum)) {
-      return res.status(400).json({ error: "years must be one of [0.5, 1, 2, 5] if provided." });
+    if (![0.5, 1, 2, 5, 30].includes(yearsNum)) {
+      return res.status(400).json({ error: "years must be one of [0.5, 1, 2, 5, 30] if provided." });
     }
   }
 

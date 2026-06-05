@@ -43,7 +43,11 @@ export default function BatchScannerPanel() {
   const handleStart = async () => {
     setActionLoading(true);
     try {
-      await fetch("/api/batch-scanner/start", { method: "POST" });
+      await fetch("/api/batch-scanner/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ years: 30 }),
+      });
       await fetchStatus();
     } finally {
       setActionLoading(false);
