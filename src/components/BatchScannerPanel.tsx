@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Loader2, Play, Square, Activity } from "lucide-react";
 
-const FMP_DAILY_BUDGET = 200;
+const FMP_DAILY_BUDGET = 10000;
 
 interface BatchScanStatus {
   isRunning: boolean;
