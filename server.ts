@@ -6,7 +6,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import Database from "better-sqlite3";
 import { HistoricalEngine, generateLocalFallbackAnalysis, enrichConfidences } from "./HistoricalEngine";
-import { getCachedAnalysis, setCachedAnalysis, getLatestIntelligenceReport, saveIntelligenceReport, getHighMaterialityEvents, getExecutiveEventsBySymbol, saveExecutiveEvents, getCachedProfile, setCachedProfile, getDataSourceLogs, getEventFeature, setEventFeatures, getDatabaseCacheStats, verifyCachedAnalysis, getEventsForCompetitor, clearScannerState, clearAllCompletedCheckpoints } from "./db";
+import { getCachedAnalysis, setCachedAnalysis, getLatestIntelligenceReport, saveIntelligenceReport, getHighMaterialityEvents, getExecutiveEventsBySymbol, saveExecutiveEvents, getCachedProfile, setCachedProfile, getDataSourceLogs, getEventFeature, setEventFeatures, getDatabaseCacheStats, verifyCachedAnalysis, getEventsForCompetitor, clearScannerState, clearAllCompletedCheckpoints, getTrainingDataset } from "./db";
 import { findSimilarEvents, computeAnalogueOutcomes } from "./HistoricalSimilarityService";
 import { generateIntelligenceReport, getCompetitorMap } from "./ExecutiveIntelligence";
 import { generateStockProfile } from "./StockProfileService";
@@ -1145,6 +1145,81 @@ app.get("/api/signal-validation", async (req, res, next) => {
 });
 
 // ---------------------------------------------------------------------------
+// Training dataset export — reads all persisted events + null samples
+// ---------------------------------------------------------------------------
+
+app.get("/api/export-training-data", (req, res, next) => {
+  try {
+    const symbolFilter = req.query.symbol as string | undefined;
+    const format = req.query.format === "json" ? "json" : "csv";
+
+    const rows = getTrainingDataset({ symbolFilter });
+
+    if (format === "json") {
+      return res.json(rows);
+    }
+
+    // CSV — collect all snap keys from the first row that has a snapshot
+    const snapKeys: string[] = [];
+    for (const row of rows) {
+      if (row.signal_snapshot && typeof row.signal_snapshot === "object") {
+        for (const k of Object.keys(row.signal_snapshot)) {
+          if (!snapKeys.includes(k)) snapKeys.push(k);
+        }
+        break;
+      }
+    }
+
+    const escCsv = (val: any): string => {
+      if (val === null || val === undefined) return "";
+      const str = String(val);
+      if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const baseHeaders = [
+      "symbol", "date", "label", "non_event_reason",
+      "z_score", "price_change_pct",
+      "forward_return_1d", "forward_return_1w", "forward_return_1m",
+      ...snapKeys.map(k => `snap_${k}`),
+    ];
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", 'attachment; filename="training_data.csv"');
+    res.write(baseHeaders.join(",") + "\n");
+
+    for (const row of rows) {
+      const snap = row.signal_snapshot ?? {};
+      const cells = [
+        escCsv(row.symbol),
+        escCsv(row.date),
+        escCsv(row.label),
+        escCsv(row.non_event_reason ?? ""),
+        row.z_score != null ? row.z_score.toFixed(4) : "",
+        row.price_change_pct != null ? row.price_change_pct.toFixed(4) : "",
+        row.forward_return_1d != null ? row.forward_return_1d.toFixed(4) : "",
+        row.forward_return_1w != null ? row.forward_return_1w.toFixed(4) : "",
+        row.forward_return_1m != null ? row.forward_return_1m.toFixed(4) : "",
+        ...snapKeys.map(k => {
+          const v = (snap as any)[k];
+          if (v === null || v === undefined) return "";
+          if (typeof v === "boolean") return String(v);
+          if (typeof v === "number") return isFinite(v) ? v.toFixed(4) : "";
+          return escCsv(v);
+        }),
+      ];
+      res.write(cells.join(",") + "\n");
+    }
+
+    res.end();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Batch Scanner — full-universe background training data collector
 // ---------------------------------------------------------------------------
 
@@ -1155,7 +1230,15 @@ const SCANNER_UNIVERSE = GLOBAL_MARKETS
 const batchScanner = new BatchScanner(SCANNER_UNIVERSE, 5);
 
 app.get("/api/batch-scanner/status", (_req, res) => {
-  return res.json(batchScanner.getStatus());
+  const trainingRows = getTrainingDataset();
+  const eventRows = trainingRows.filter(r => r.label === 1).length;
+  const nonEventRows = trainingRows.filter(r => r.label === 0).length;
+  return res.json({
+    ...batchScanner.getStatus(),
+    trainingRows: trainingRows.length,
+    eventRows,
+    nonEventRows,
+  });
 });
 
 app.post("/api/batch-scanner/start", (_req, res) => {

@@ -29,7 +29,8 @@ const headers = [
   "Ticker", "Company Name", "Exchange", "Currency", "Scan Range Limit",
   "Period Net Return (%)", "Period Daily Volatility (%)", "Total Trading Days Scanned",
   "Total Anomalous Spikes", "Date", "Closing Stock Price", "Daily Return (%)", "Z-Score value",
-  "Is Anomaly Event?", "Excess Return (%)", "ATR (14)", "ATR Normalized Move", "ATR Shock Score",
+  "Is Anomaly Event?", "Is Null Sample (Non-Event)", "Non-Event Signals That Fired",
+  "Excess Return (%)", "ATR (14)", "ATR Normalized Move", "ATR Shock Score",
   "Volume Ratio", "Volume Shock Category", "Primary Catalyst Tag", "Reason (Suspected Catalyst)",
   "Key Outlook Risk Factor", "Severity Score (0-10)", "Confidence Score (0-10)", "News Grounded Findings",
   "Alternative Data Observations", "Alternative Data Score", "Corporate Governance Observations",
@@ -56,7 +57,20 @@ const headers = [
   "1-Day Price Return (%)", "1-Day AI Effect Score", "1-Week Price Return (%)",
   "1-Week AI Effect Score", "1-Month Price Return (%)", "1-Month AI Effect Score",
   "6-Month Price Return (%)", "6-Month AI Effect Score", "1-Year Price Return (%)",
-  "1-Year AI Effect Score"
+  "1-Year AI Effect Score",
+  "snap_excess_return", "snap_z_score", "snap_atr_shock_score",
+  "snap_volume_ratio", "snap_shannon_entropy", "snap_amihud_illiquidity",
+  "snap_fractal_efficiency", "snap_short_interest_pct_float",
+  "snap_short_interest_velocity", "snap_put_call_ratio", "snap_iv_rank",
+  "snap_dark_pool_index", "snap_vix", "snap_vix_regime",
+  "snap_trend_regime", "snap_yield_curve_spread", "snap_credit_spread",
+  "snap_macro_release_surprise", "snap_gdelt_tone_z",
+  "snap_stocktwits_virality_z", "snap_google_trends_z",
+  "snap_wikipedia_spike_z", "snap_news_relevance_z",
+  "snap_congressional_net_flow", "snap_event_classification",
+  "snap_dominant_physics_regime", "snap_divergence_detected",
+  "snap_estimate_revision_direction", "snap_estimate_revision_magnitude",
+  "snap_company_credit_proxy"
 ];
 
 export async function exportAndUploadToDrive(
@@ -163,6 +177,7 @@ export async function exportToLocalStream(
       for (const pt of sortedPoints) {
         const isAnomaly = pt.isAnomaly || false;
         const analysis: any = pt.analysis || {};
+        const snap = analysis.signal_snapshot ?? (pt as any).signal_snapshot ?? null;
 
         const row = [
           esc(ticker), esc(company), esc(exchange), esc(currency), esc(range),
@@ -170,6 +185,8 @@ export async function exportToLocalStream(
           esc(anomaliesCount), esc(pt.date), esc(pt.close.toFixed(2)),
           esc((pt.dailyReturn * 100).toFixed(2)), esc(pt.zScore.toFixed(3)),
           esc(isAnomaly ? "YES" : "NO"),
+          esc((pt as any).is_null_sample ? "TRUE" : "FALSE"),
+          esc(analysis.nonEventReason ?? analysis.gatingVerdict?.suppressed_non_event_reason ?? ""),
           esc(pt.excessReturn !== undefined ? (pt.excessReturn * 100).toFixed(2) : ""),
           esc(pt.atr14 !== undefined ? pt.atr14.toFixed(4) : ""),
           esc(pt.atrNormalizedMove !== undefined ? pt.atrNormalizedMove.toFixed(4) : ""),
@@ -257,7 +274,38 @@ export async function exportToLocalStream(
           esc(analysis.return_6m !== undefined ? (analysis.return_6m * 100).toFixed(2) : ""),
           esc(analysis.effect_score_6m !== undefined ? analysis.effect_score_6m : ""),
           esc(analysis.return_1y !== undefined ? (analysis.return_1y * 100).toFixed(2) : ""),
-          esc(analysis.effect_score_1y !== undefined ? analysis.effect_score_1y : "")
+          esc(analysis.effect_score_1y !== undefined ? analysis.effect_score_1y : ""),
+          // signal_snapshot columns
+          snap?.excess_return != null ? snap.excess_return.toFixed(4) : "",
+          snap?.z_score != null ? snap.z_score.toFixed(4) : "",
+          snap?.atr_shock_score != null ? snap.atr_shock_score.toFixed(4) : "",
+          snap?.volume_ratio != null ? snap.volume_ratio.toFixed(4) : "",
+          snap?.shannon_entropy != null ? snap.shannon_entropy.toFixed(4) : "",
+          snap?.amihud_illiquidity != null ? snap.amihud_illiquidity.toFixed(4) : "",
+          snap?.fractal_efficiency != null ? snap.fractal_efficiency.toFixed(4) : "",
+          snap?.short_interest_pct_float != null ? snap.short_interest_pct_float.toFixed(4) : "",
+          snap?.short_interest_velocity != null ? snap.short_interest_velocity.toFixed(4) : "",
+          snap?.put_call_ratio != null ? snap.put_call_ratio.toFixed(4) : "",
+          snap?.iv_rank != null ? snap.iv_rank.toFixed(4) : "",
+          snap?.dark_pool_index != null ? snap.dark_pool_index.toFixed(4) : "",
+          snap?.vix != null ? snap.vix.toFixed(4) : "",
+          esc(snap?.vix_regime ?? ""),
+          esc(snap?.trend_regime ?? ""),
+          snap?.yield_curve_spread != null ? snap.yield_curve_spread.toFixed(4) : "",
+          snap?.credit_spread != null ? snap.credit_spread.toFixed(4) : "",
+          snap?.macro_release_surprise != null ? snap.macro_release_surprise.toFixed(4) : "",
+          snap?.gdelt_tone_z != null ? snap.gdelt_tone_z.toFixed(4) : "",
+          snap?.stocktwits_virality_z != null ? snap.stocktwits_virality_z.toFixed(4) : "",
+          snap?.google_trends_z != null ? snap.google_trends_z.toFixed(4) : "",
+          snap?.wikipedia_spike_z != null ? snap.wikipedia_spike_z.toFixed(4) : "",
+          snap?.news_relevance_z != null ? snap.news_relevance_z.toFixed(4) : "",
+          snap?.congressional_net_flow != null ? snap.congressional_net_flow.toFixed(4) : "",
+          esc(snap?.event_classification ?? ""),
+          esc(snap?.dominant_physics_regime ?? ""),
+          snap?.divergence_detected != null ? String(snap.divergence_detected) : "",
+          esc(snap?.estimate_revision_direction ?? ""),
+          snap?.estimate_revision_magnitude != null ? snap.estimate_revision_magnitude.toFixed(4) : "",
+          snap?.company_credit_proxy != null ? snap.company_credit_proxy.toFixed(4) : ""
         ];
 
         writeStream.write(row.join(",") + "\n");

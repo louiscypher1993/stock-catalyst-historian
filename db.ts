@@ -2331,6 +2331,85 @@ export function setCachedEstimateRevisions(symbol: string, yearMonth: string, da
 }
 
 // ---------------------------------------------------------------------------
+// Finnhub Cache
+// ---------------------------------------------------------------------------
+
+try {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS finnhub_cache (
+      symbol TEXT NOT NULL,
+      date TEXT NOT NULL,
+      data_type TEXT NOT NULL,
+      response_json TEXT NOT NULL,
+      cached_at TEXT NOT NULL,
+      PRIMARY KEY (symbol, date, data_type)
+    );
+  `);
+} catch (e: any) {
+  console.error("Failed to create finnhub_cache table", e);
+}
+
+export function getCachedFinnhubData(symbol: string, date: string, dataType: string): any | null {
+  try {
+    const row = db.prepare('SELECT response_json, cached_at FROM finnhub_cache WHERE symbol = ? AND date = ? AND data_type = ?')
+      .get(symbol, date, dataType) as { response_json: string; cached_at: string } | undefined;
+    if (!row) return null;
+    if (Date.now() - new Date(row.cached_at).getTime() > 7 * 24 * 60 * 60 * 1000) return null;
+    return JSON.parse(row.response_json);
+  } catch {
+    return null;
+  }
+}
+
+export function setCachedFinnhubData(symbol: string, date: string, dataType: string, data: any): void {
+  try {
+    db.prepare('INSERT OR REPLACE INTO finnhub_cache (symbol, date, data_type, response_json, cached_at) VALUES (?, ?, ?, ?, ?)')
+      .run(symbol, date, dataType, JSON.stringify(data), new Date().toISOString());
+  } catch (err) {
+    console.error('[DB] Failed to cache Finnhub data:', err);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// FDA Cache
+// ---------------------------------------------------------------------------
+
+try {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS fda_cache (
+      company TEXT NOT NULL,
+      date TEXT NOT NULL,
+      response_json TEXT NOT NULL,
+      cached_at TEXT NOT NULL,
+      PRIMARY KEY (company, date)
+    );
+  `);
+} catch (e: any) {
+  console.error("Failed to create fda_cache table", e);
+}
+
+export function getCachedFDAData(company: string, date: string): any | null {
+  try {
+    const row = db.prepare('SELECT response_json, cached_at FROM fda_cache WHERE company = ? AND date = ?')
+      .get(company, date) as { response_json: string; cached_at: string } | undefined;
+    if (!row) return null;
+    if (Date.now() - new Date(row.cached_at).getTime() > 30 * 24 * 60 * 60 * 1000) return null;
+    return JSON.parse(row.response_json);
+  } catch {
+    return null;
+  }
+}
+
+export function setCachedFDAData(company: string, date: string, data: any): void {
+  try {
+    db.prepare('INSERT OR REPLACE INTO fda_cache (company, date, response_json, cached_at) VALUES (?, ?, ?, ?)')
+      .run(company, date, JSON.stringify(data), new Date().toISOString());
+  } catch (err) {
+    console.error('[DB] Failed to cache FDA data:', err);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Batch Scanner Progress
 // ---------------------------------------------------------------------------
 
@@ -2391,6 +2470,66 @@ export function resetBatchScanProgress(): void {
 }
 
 // ---------------------------------------------------------------------------
+
+export interface TrainingRow {
+  symbol: string;
+  date: string;
+  label: 0 | 1;
+  non_event_reason: string | null;
+  z_score: number | null;
+  price_change_pct: number | null;
+  forward_return_1d: number | null;
+  forward_return_1w: number | null;
+  forward_return_1m: number | null;
+  signal_snapshot: Record<string, any> | null;
+}
+
+export function getTrainingDataset(options?: {
+  symbolFilter?: string;
+}): TrainingRow[] {
+  let query = `
+    SELECT features_json, signal_snapshot_json
+    FROM event_features
+    WHERE signal_snapshot_json IS NOT NULL
+  `;
+  const params: any[] = [];
+  if (options?.symbolFilter) {
+    query += ' AND symbol = ?';
+    params.push(options.symbolFilter.toUpperCase());
+  }
+  query += ' ORDER BY date ASC';
+
+  const rows = db.prepare(query).all(...params) as {
+    features_json: string;
+    signal_snapshot_json: string;
+  }[];
+
+  const result: TrainingRow[] = [];
+  for (const row of rows) {
+    try {
+      const features = JSON.parse(row.features_json) as EventFeatureVector;
+      const snapshot = JSON.parse(row.signal_snapshot_json);
+      result.push({
+        symbol: features.symbol ?? '',
+        date: features.date ?? '',
+        label: features.is_null_sample ? 0 : 1,
+        non_event_reason:
+          (features as any).nonEventReason ??
+          (features as any).gatingVerdict?.suppressed_non_event_reason ??
+          null,
+        z_score: features.z_score ?? null,
+        price_change_pct: (features as any).dailyReturn ?? null,
+        forward_return_1d: (features as any).forward_return_1d ?? null,
+        forward_return_1w: (features as any).forward_return_1w ?? null,
+        forward_return_1m: (features as any).forward_return_1m ?? null,
+        signal_snapshot: snapshot,
+      });
+    } catch {
+      // skip malformed rows
+    }
+  }
+  return result;
+}
 
 export function getEventsWithSignals(filter?: {
   minDate?: string;

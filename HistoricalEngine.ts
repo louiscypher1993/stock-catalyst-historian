@@ -57,6 +57,8 @@ import { getShortInterest, getShortInterestVelocity } from "./FinraShortInterest
 import { getTrendsSummary } from "./GoogleTrendsService";
 import { detectWikipediaSpike } from "./WikipediaService";
 import { getCongressionalNetFlow } from "./CongressionalTradingService";
+import { getFinnhubNewsCount, getFinnhubInsiderActivity } from "./FinnhubService";
+import { getFDAActivity } from "./FDAService";
 import { getExecutiveRoster } from "./ExecutiveIntelligence";
 import { fetchYouTubeTranscripts } from "./YouTubeService";
 import { getEarningsCalendar } from "./EarningsCalendarService";
@@ -2032,7 +2034,7 @@ Reply with JSON containing only a single property "score" (a number between 1 an
 
     let realAnomalies = points.filter((p) => p.isAnomaly);
     let nullCandidates = points.filter((p) => !p.isAnomaly && (p as any)._isNullSampleCandidate);
-    let maxNull = Math.floor(realAnomalies.length / 3);
+    let maxNull = Math.floor(realAnomalies.length / 2);
     let selectedNulls = nullCandidates.slice(0, maxNull).map(p => {
       p.isAnomaly = true;
       (p as any).is_null_sample = true;
@@ -2059,7 +2061,7 @@ Reply with JSON containing only a single property "score" (a number between 1 an
         p.isAnomaly = Math.abs(p.zScore) > currentZScoreThreshold;
       }
       realAnomalies = realAnomalies.filter(p => p.isAnomaly);
-      maxNull = Math.floor(realAnomalies.length / 3);
+      maxNull = Math.floor(realAnomalies.length / 2);
       selectedNulls = nullCandidates.slice(0, maxNull).map(p => {
         p.isAnomaly = true;
         (p as any).is_null_sample = true;
@@ -4690,6 +4692,51 @@ Provide a JSON array containing the results mapping perfectly back using the sta
           const creditCtx = getCompanyCreditContext(uppercaseSymbol, deRatio);
           (a as any)._tempCompanyCreditProxy = creditCtx ? creditCtx.creditSpreadProxy : null;
 
+          // 16. Finnhub — News Count + Insider Activity
+          promises.push(
+            (async () => {
+              try {
+                const [finnhubNews, finnhubInsider] = await Promise.allSettled([
+                  getFinnhubNewsCount(uppercaseSymbol, a.date),
+                  getFinnhubInsiderActivity(uppercaseSymbol, a.date),
+                ]);
+                (a as any)._tempFinnhubNewsCount =
+                  finnhubNews.status === "fulfilled" ? finnhubNews.value?.articleCount ?? null : null;
+                (a as any)._tempFinnhubNewsElevated =
+                  finnhubNews.status === "fulfilled" ? finnhubNews.value?.isElevated ?? false : false;
+                (a as any)._tempFinnhubInsiderActivity =
+                  finnhubInsider.status === "fulfilled" ? finnhubInsider.value?.hasRecentActivity ?? false : false;
+                (a as any)._tempFinnhubInsiderCount =
+                  finnhubInsider.status === "fulfilled" ? finnhubInsider.value?.transactionCount ?? 0 : 0;
+              } catch (err) {
+                console.error(`[HistoricalEngine] Failed to retrieve Finnhub data for ${uppercaseSymbol} on ${a.date}:`, err);
+                (a as any)._tempFinnhubNewsCount = null;
+                (a as any)._tempFinnhubNewsElevated = false;
+                (a as any)._tempFinnhubInsiderActivity = false;
+                (a as any)._tempFinnhubInsiderCount = 0;
+              }
+            })()
+          );
+
+          // 17. FDA Drug Submission Activity
+          promises.push(
+            (async () => {
+              try {
+                const [fdaResult] = await Promise.allSettled([
+                  getFDAActivity(companyName ?? uppercaseSymbol, a.date),
+                ]);
+                (a as any)._tempFDAHasActivity =
+                  fdaResult.status === "fulfilled" ? fdaResult.value?.hasActivity ?? false : false;
+                (a as any)._tempFDAActivityCount =
+                  fdaResult.status === "fulfilled" ? fdaResult.value?.activityCount ?? 0 : 0;
+              } catch (err) {
+                console.error(`[HistoricalEngine] Failed to retrieve FDA activity for ${companyName ?? uppercaseSymbol} on ${a.date}:`, err);
+                (a as any)._tempFDAHasActivity = false;
+                (a as any)._tempFDAActivityCount = 0;
+              }
+            })()
+          );
+
           await Promise.all(promises);
           console.log(`[Enrichment] ${uppercaseSymbol} / ${a.date}: polygon=${enrichStatuses.polygon}, fmp_dark_pool=${enrichStatuses.fmp_dark_pool}, fmp_borrow=${enrichStatuses.fmp_borrow}, fmp_social=${enrichStatuses.fmp_social}, gdelt=${enrichStatuses.gdelt}, reddit=${enrichStatuses.reddit}, trends=${enrichStatuses.trends}, wiki=${enrichStatuses.wiki}, newsapi=${enrichStatuses.newsapi}, youtube=${enrichStatuses.youtube}, edgar=${enrichStatuses.edgar}, congressional=${enrichStatuses.congressional}`);
 
@@ -4840,7 +4887,11 @@ Provide a JSON array containing the results mapping perfectly back using the sta
       "youtube_mgmt_confidence",
       "short_interest_pct_float",
       "short_interest_velocity",
-      "estimate_revision_magnitude"
+      "estimate_revision_magnitude",
+      "stocktwits_virality",
+      "_tempFinnhubNewsCount",
+      "_tempFinnhubInsiderCount",
+      "_tempFDAActivityCount",
     ];
 
     keysToTry.forEach(tryNormalize);
@@ -4851,6 +4902,16 @@ Provide a JSON array containing the results mapping perfectly back using the sta
       // Normalise: divide by 20 so a ±20% revision ≈ ±1 z-score unit
       results['estimate_revision_magnitude'] = erMag / 20;
     }
+
+    // Boolean elevation flags — converted to 0/1 signals directly
+    const finnhubElevated = (ext as any)._tempFinnhubNewsElevated;
+    if (finnhubElevated === true) results["finnhub_news_elevated"] = 1;
+
+    const insiderActive = (ext as any)._tempFinnhubInsiderActivity;
+    if (insiderActive === true) results["finnhub_insider_active"] = 1;
+
+    const fdaActive = (ext as any)._tempFDAHasActivity;
+    if (fdaActive === true) results["fda_activity"] = 1;
 
     return results;
   }
