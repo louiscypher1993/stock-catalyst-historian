@@ -3,7 +3,7 @@ import { CompanyProfile, CompanyFinancialRatios, EarningsEvent } from "./src/typ
 
 export let fmpDailyRequestCount = 0;
 export let fmpDailyResetDate = new Date().toISOString().split('T')[0];
-export const FMP_DAILY_BUDGET = 200;
+export const FMP_DAILY_BUDGET = 10000;
 
 export function checkAndIncrementFmpBudget(): boolean {
   const today = new Date().toISOString().split('T')[0];

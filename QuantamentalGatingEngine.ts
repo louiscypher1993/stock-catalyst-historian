@@ -328,7 +328,7 @@ export function classifyEvent(
   }
 
   // The price is essentially flat. Did anything fire that SHOULD have moved it?
-  if (absMove < 0.01) {
+  if (absMove < 0.04) {
     const firedSignals: string[] = [];
 
     // Original two triggers (kept for backwards compatibility).

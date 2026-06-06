@@ -2121,6 +2121,81 @@ Reply with JSON containing only a single property "score" (a number between 1 an
       10, // maxEnrichCount
     );
 
+    // ─── OHLCV-BASED NON-EVENT SECOND PASS ──────────────────────────────────
+    // Defines non-events from OHLCV fields only (always available on every
+    // point). Two categories:
+    //   near-miss: z between 0.8 and threshold, volume elevated — market
+    //              "tried" but didn't clear the anomaly bar
+    //   volume spike: volume > 2x but z < 0.8 — activity with no follow-through
+    {
+      const alreadyNullCount = anomalies.filter(
+        (p) => (p as any).is_null_sample
+      ).length;
+      const nullCap = Math.floor(realAnomalies.length / 2);
+      const remainingCap = nullCap - alreadyNullCount;
+
+      if (remainingCap > 0) {
+        const nonAnomalyPoints = points.filter((p) => !p.isAnomaly);
+
+        const candidates: Array<{
+          point: typeof nonAnomalyPoints[0];
+          reason: string;
+          priority: number;
+        }> = [];
+
+        for (const p of nonAnomalyPoints) {
+          const absZ = Math.abs(p.zScore ?? 0);
+          const vol = (p as any).volumeRatio ?? (p as any).volume_ratio ?? 0;
+
+          // Category 1: near-miss — noticeable move but below anomaly threshold
+          if (absZ >= 0.8 && absZ < currentZScoreThreshold && vol > 1.3) {
+            candidates.push({
+              point: p,
+              reason: `near_miss_z_${absZ.toFixed(2)}_vol_${vol.toFixed(1)}x`,
+              priority: absZ + vol,
+            });
+            continue;
+          }
+
+          // Category 2: volume spike with flat price — activity, no follow-through
+          if (vol > 2.0 && absZ < 0.8) {
+            candidates.push({
+              point: p,
+              reason: `volume_spike_${vol.toFixed(1)}x_flat_z_${absZ.toFixed(2)}`,
+              priority: vol,
+            });
+          }
+        }
+
+        candidates.sort((a, b) => b.priority - a.priority);
+        const selected = candidates.slice(0, remainingCap);
+
+        for (const { point, reason } of selected) {
+          point.isAnomaly = true;
+          (point as any).is_null_sample = true;
+          (point as any)._isNullSampleCandidate = true;
+          (point as any)._tempTriggeredZScoreThreshold = currentZScoreThreshold;
+          (point as any)._tempStatisticalConfidence = 20;
+          (point as any)._tempDataConfidence = dataConfidence;
+          (point as any).nonEventReason = reason;
+          const dateStr =
+            (point as any).dateStr ?? (point as any).date ?? "unknown";
+          console.log(
+            `[NON-EVENT] ${uppercaseSymbol} ${dateStr} — ${reason}`,
+          );
+          anomalies.push(point);
+        }
+
+        if (selected.length > 0) {
+          console.log(
+            `[NON-EVENT] ${uppercaseSymbol}: ${selected.length} non-events ` +
+              `selected (${candidates.length} candidates, cap=${nullCap})`,
+          );
+        }
+      }
+    }
+    // ─── END OHLCV-BASED NON-EVENT SECOND PASS ───────────────────────────────
+
     const uncachedAnomalies = anomalies.filter((a) => !a.hasAnalysis);
     const uncachedSorted = [...uncachedAnomalies].sort((a, b) => {
       const aIsN = (a as any).is_null_sample ? 1 : 0;
