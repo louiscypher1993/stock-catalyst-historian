@@ -63,7 +63,7 @@ export class BatchScanner {
       console.log(`[BatchScanner] Scanning ${sym}…`);
 
       try {
-        const engine = new HistoricalEngine([sym], 2.5, 90);
+        const engine = new HistoricalEngine([sym], 2.15, 90, { skipGemini: true });
         const result = await engine.run_scan(sym, this.yearsBack);
         const eventsFound = result?.anomalies?.length ?? 0;
         markBatchScanComplete(sym, eventsFound);

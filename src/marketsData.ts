@@ -217,6 +217,10 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "Cisco Systems"
       },
       {
+        "symbol": "CVNA",
+        "companyName": "Carvana"
+      },
+      {
         "symbol": "CVS",
         "companyName": "CVS Health Corp."
       },
@@ -231,6 +235,10 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "DAL",
         "companyName": "Delta Air Lines"
+      },
+      {
+        "symbol": "DASH",
+        "companyName": "DoorDash"
       },
       {
         "symbol": "DE",
@@ -601,6 +609,10 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "Ferrari N.V."
       },
       {
+        "symbol": "RBLX",
+        "companyName": "Roblox"
+      },
+      {
         "symbol": "RCI",
         "companyName": "Rogers Communications Inc."
       },
@@ -651,6 +663,10 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "SLB",
         "companyName": "Schlumberger N.V."
+      },
+      {
+        "symbol": "SNAP",
+        "companyName": "Snap"
       },
       {
         "symbol": "SNY",
@@ -930,6 +946,10 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "Constellation Energy"
       },
       {
+        "symbol": "CELH",
+        "companyName": "Celsius Holdings"
+      },
+      {
         "symbol": "CGC",
         "companyName": "Canopy Growth"
       },
@@ -940,6 +960,10 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "CMCSA",
         "companyName": "Comcast Corp."
+      },
+      {
+        "symbol": "COIN",
+        "companyName": "Coinbase"
       },
       {
         "symbol": "COST",
@@ -974,6 +998,10 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "Dollar Tree"
       },
       {
+        "symbol": "DUOL",
+        "companyName": "Duolingo"
+      },
+      {
         "symbol": "DXCM",
         "companyName": "DexCom, Inc."
       },
@@ -988,6 +1016,10 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "ENPH",
         "companyName": "Enphase Energy"
+      },
+      {
+        "symbol": "ETSY",
+        "companyName": "Etsy"
       },
       {
         "symbol": "EXC",
@@ -1032,6 +1064,10 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "HON",
         "companyName": "Honeywell International"
+      },
+      {
+        "symbol": "HOOD",
+        "companyName": "Robinhood"
       },
       {
         "symbol": "IDXX",
@@ -1088,6 +1124,10 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "LULU",
         "companyName": "Lululemon Athletica"
+      },
+      {
+        "symbol": "LYFT",
+        "companyName": "Lyft"
       },
       {
         "symbol": "MCHP",
@@ -2977,6 +3017,10 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "BP plc"
       },
       {
+        "symbol": "BRBY.L",
+        "companyName": "Burberry Group"
+      },
+      {
         "symbol": "BT-A.L",
         "companyName": "BT Group"
       },
@@ -3051,6 +3095,10 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "FRNT.L",
         "companyName": "Frontier Developments plc"
+      },
+      {
+        "symbol": "GAW.L",
+        "companyName": "Games Workshop Group plc"
       },
       {
         "symbol": "GLEN.L",
@@ -3139,6 +3187,10 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "JD.L",
         "companyName": "JD Sports Fashion"
+      },
+      {
+        "symbol": "JET.L",
+        "companyName": "Just Eat Takeaway"
       },
       {
         "symbol": "JMAT.L",
@@ -4078,6 +4130,308 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "XRO.AX",
         "companyName": "Xero Limited"
+      }
+    ]
+  },
+  {
+    "name": "Korea Exchange (KRX)",
+    "stocks": [
+      {
+        "symbol": "005930.KS",
+        "companyName": "Samsung Electronics"
+      },
+      {
+        "symbol": "000660.KS",
+        "companyName": "SK Hynix"
+      },
+      {
+        "symbol": "005490.KS",
+        "companyName": "POSCO Holdings"
+      },
+      {
+        "symbol": "005380.KS",
+        "companyName": "Hyundai Motor"
+      },
+      {
+        "symbol": "000270.KS",
+        "companyName": "Kia"
+      },
+      {
+        "symbol": "051910.KS",
+        "companyName": "LG Chem"
+      },
+      {
+        "symbol": "035720.KS",
+        "companyName": "Kakao"
+      },
+      {
+        "symbol": "035420.KS",
+        "companyName": "NAVER"
+      },
+      {
+        "symbol": "105560.KS",
+        "companyName": "KB Financial Group"
+      },
+      {
+        "symbol": "068270.KS",
+        "companyName": "Celltrion"
+      },
+      {
+        "symbol": "005935.KS",
+        "companyName": "Samsung Electronics Preferred"
+      },
+      {
+        "symbol": "012450.KS",
+        "companyName": "Hanwha Aerospace"
+      },
+      {
+        "symbol": "259960.KS",
+        "companyName": "Krafton"
+      },
+      {
+        "symbol": "329180.KS",
+        "companyName": "HD Korea Shipbuilding"
+      },
+      {
+        "symbol": "207940.KS",
+        "companyName": "Samsung Biologics"
+      },
+      {
+        "symbol": "012330.KS",
+        "companyName": "Hyundai Mobis"
+      },
+      {
+        "symbol": "066570.KS",
+        "companyName": "LG Electronics"
+      },
+      {
+        "symbol": "017670.KS",
+        "companyName": "SK Telecom"
+      },
+      {
+        "symbol": "086790.KS",
+        "companyName": "Hana Financial Group"
+      },
+      {
+        "symbol": "000810.KS",
+        "companyName": "Samsung Fire and Marine Insurance"
+      }
+    ]
+  },
+  {
+    "name": "B3 Brazil Stock Exchange (B3/Bovespa)",
+    "stocks": [
+      {
+        "symbol": "PETR4.SA",
+        "companyName": "Petrobras"
+      },
+      {
+        "symbol": "ITUB4.SA",
+        "companyName": "Itau Unibanco"
+      },
+      {
+        "symbol": "BBDC4.SA",
+        "companyName": "Bradesco"
+      },
+      {
+        "symbol": "B3SA3.SA",
+        "companyName": "B3 Stock Exchange"
+      },
+      {
+        "symbol": "ABEV3.SA",
+        "companyName": "Ambev"
+      },
+      {
+        "symbol": "WEGE3.SA",
+        "companyName": "WEG"
+      },
+      {
+        "symbol": "EMBR3.SA",
+        "companyName": "Embraer"
+      },
+      {
+        "symbol": "LREN3.SA",
+        "companyName": "Lojas Renner"
+      },
+      {
+        "symbol": "RENT3.SA",
+        "companyName": "Localiza"
+      },
+      {
+        "symbol": "RAIL3.SA",
+        "companyName": "Rumo Logistica"
+      },
+      {
+        "symbol": "SUZB3.SA",
+        "companyName": "Suzano"
+      },
+      {
+        "symbol": "JBSS3.SA",
+        "companyName": "JBS"
+      },
+      {
+        "symbol": "HAPV3.SA",
+        "companyName": "Hapvida"
+      },
+      {
+        "symbol": "MGLU3.SA",
+        "companyName": "Magazine Luiza"
+      },
+      {
+        "symbol": "RDOR3.SA",
+        "companyName": "Rede D'Or"
+      }
+    ]
+  },
+  {
+    "name": "Singapore Exchange (SGX)",
+    "stocks": [
+      {
+        "symbol": "D05.SI",
+        "companyName": "DBS Group"
+      },
+      {
+        "symbol": "O39.SI",
+        "companyName": "OCBC Bank"
+      },
+      {
+        "symbol": "U11.SI",
+        "companyName": "UOB"
+      },
+      {
+        "symbol": "C6L.SI",
+        "companyName": "Singapore Airlines"
+      },
+      {
+        "symbol": "Z74.SI",
+        "companyName": "Singtel"
+      },
+      {
+        "symbol": "9CI.SI",
+        "companyName": "CapitaLand Investment"
+      },
+      {
+        "symbol": "J36.SI",
+        "companyName": "Jardine Matheson"
+      },
+      {
+        "symbol": "F34.SI",
+        "companyName": "Wilmar International"
+      }
+    ]
+  },
+  {
+    "name": "Taiwan Stock Exchange (TWSE)",
+    "stocks": [
+      {
+        "symbol": "2330.TW",
+        "companyName": "TSMC"
+      },
+      {
+        "symbol": "2317.TW",
+        "companyName": "Foxconn"
+      },
+      {
+        "symbol": "2454.TW",
+        "companyName": "MediaTek"
+      },
+      {
+        "symbol": "2382.TW",
+        "companyName": "Quanta Computer"
+      },
+      {
+        "symbol": "2412.TW",
+        "companyName": "Chunghwa Telecom"
+      },
+      {
+        "symbol": "2308.TW",
+        "companyName": "Delta Electronics"
+      },
+      {
+        "symbol": "2881.TW",
+        "companyName": "Fubon Financial"
+      },
+      {
+        "symbol": "2002.TW",
+        "companyName": "China Steel"
+      }
+    ]
+  },
+  {
+    "name": "Mexican Stock Exchange (BMV)",
+    "stocks": [
+      {
+        "symbol": "AMXL.MX",
+        "companyName": "America Movil"
+      },
+      {
+        "symbol": "CEMEXCPO.MX",
+        "companyName": "Cemex"
+      },
+      {
+        "symbol": "FEMSAUBD.MX",
+        "companyName": "FEMSA"
+      },
+      {
+        "symbol": "BIMBOA.MX",
+        "companyName": "Grupo Bimbo"
+      },
+      {
+        "symbol": "GFNORTEO.MX",
+        "companyName": "Banorte"
+      },
+      {
+        "symbol": "WALMEX.MX",
+        "companyName": "Walmart Mexico"
+      },
+      {
+        "symbol": "TLEVISACPO.MX",
+        "companyName": "Televisa"
+      },
+      {
+        "symbol": "ASURB.MX",
+        "companyName": "Aeroportuario del Pacifico"
+      },
+      {
+        "symbol": "GMEXICOB.MX",
+        "companyName": "Grupo Mexico"
+      },
+      {
+        "symbol": "VOLAR.MX",
+        "companyName": "Volaris"
+      }
+    ]
+  },
+  {
+    "name": "Saudi Stock Exchange (Tadawul)",
+    "stocks": [
+      {
+        "symbol": "2222.SR",
+        "companyName": "Saudi Aramco"
+      },
+      {
+        "symbol": "1120.SR",
+        "companyName": "Al Rajhi Bank"
+      },
+      {
+        "symbol": "7010.SR",
+        "companyName": "Saudi Telecom STC"
+      },
+      {
+        "symbol": "2010.SR",
+        "companyName": "Sabic"
+      },
+      {
+        "symbol": "1180.SR",
+        "companyName": "Saudi National Bank"
+      },
+      {
+        "symbol": "1010.SR",
+        "companyName": "Riyad Bank"
+      },
+      {
+        "symbol": "1211.SR",
+        "companyName": "Maaden"
       }
     ]
   }

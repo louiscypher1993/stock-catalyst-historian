@@ -1119,77 +1119,40 @@ Internet Findings: ${analysisObj.internet_findings || "N/A"}`;
                                 </div>
                               )}
 
-                            {/* GDELT Events */}
-                            {item.analysis.gdeltEvents &&
-                              item.analysis.gdeltEvents.length > 0 && (
+                            {/* GDELT Tone Summary */}
+                            {item.analysis.gdeltTone &&
+                              item.analysis.gdeltTone.matchCount > 0 && (
                                 <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-900/70">
                                   <div className="text-[9px] font-bold text-violet-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
                                     <Globe className="w-3.5 h-3.5" />
-                                    Global News Events (GDELT)
+                                    Global News Tone (GDELT)
                                   </div>
-                                  <div className="mt-2 space-y-2">
-                                    {item.analysis.gdeltEvents
-                                      .slice(0, 3)
-                                      .map((evt: any, idx: number) => (
-                                        <div
-                                          key={idx}
-                                          className="flex flex-col sm:flex-row justify-between sm:items-center text-xs bg-zinc-900/50 p-2 rounded gap-2"
+                                  <div className="mt-2 flex flex-col sm:flex-row justify-between sm:items-center text-xs bg-zinc-900/50 p-2 rounded gap-2">
+                                    <span className="font-medium text-zinc-300">
+                                      {item.analysis.gdeltTone.matchCount} article(s) mentioning the company
+                                    </span>
+                                    <span className="text-zinc-500 font-mono text-[10px] space-x-2">
+                                      <span>
+                                        Tone:{" "}
+                                        <strong
+                                          className={
+                                            (item.analysis.gdeltTone.matchedToneAvg ?? 0) > 0
+                                              ? "text-emerald-400"
+                                              : (item.analysis.gdeltTone.matchedToneAvg ?? 0) < 0
+                                                ? "text-rose-400"
+                                                : "text-zinc-400"
+                                          }
                                         >
-                                          <div className="flex flex-col">
-                                            <span className="font-medium text-zinc-300">
-                                              Actor 1: {evt.actor1Name}
-                                            </span>
-                                            {evt.actor2Name && (
-                                              <span className="text-zinc-500">
-                                                Actor 2: {evt.actor2Name}
-                                              </span>
-                                            )}
-                                            <span className="text-zinc-500 font-mono text-[10px] mt-1 space-x-2">
-                                              <span>
-                                                Tone:{" "}
-                                                <strong
-                                                  className={
-                                                    evt.avgTone > 0
-                                                      ? "text-emerald-400"
-                                                      : evt.avgTone < 0
-                                                        ? "text-rose-400"
-                                                        : "text-zinc-400"
-                                                  }
-                                                >
-                                                  {evt.avgTone.toFixed(1)}
-                                                </strong>
-                                              </span>
-                                              <span>
-                                                Goldstein:{" "}
-                                                <strong
-                                                  className={
-                                                    evt.goldsteinScale > 0
-                                                      ? "text-emerald-400"
-                                                      : evt.goldsteinScale < 0
-                                                        ? "text-rose-400"
-                                                        : "text-zinc-400"
-                                                  }
-                                                >
-                                                  {evt.goldsteinScale.toFixed(
-                                                    1,
-                                                  )}
-                                                </strong>
-                                              </span>
-                                            </span>
-                                          </div>
-                                          {evt.sourceUrl && (
-                                            <a
-                                              href={evt.sourceUrl}
-                                              target="_blank"
-                                              rel="noreferrer"
-                                              className="text-violet-400 hover:text-violet-300 flex items-center gap-1 font-mono text-[10px]"
-                                            >
-                                              Source{" "}
-                                              <ExternalLink className="w-3 h-3" />
-                                            </a>
-                                          )}
-                                        </div>
-                                      ))}
+                                          {item.analysis.gdeltTone.matchedToneAvg?.toFixed(1) ?? "N/A"}
+                                        </strong>
+                                      </span>
+                                      <span>
+                                        Global baseline:{" "}
+                                        <strong className="text-zinc-400">
+                                          {item.analysis.gdeltTone.globalToneAvg?.toFixed(1) ?? "N/A"}
+                                        </strong>
+                                      </span>
+                                    </span>
                                   </div>
                                 </div>
                               )}

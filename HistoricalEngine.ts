@@ -16,6 +16,7 @@ import {
   getEdgarFilings,
   getScannerState,
   setScannerState,
+  clearScannerState,
   getCachedDarkPool,
   getCachedBorrowRate,
   getCachedSocialSentiment,
@@ -30,6 +31,7 @@ import {
   ChartPoint,
   StockScanResult,
   EarningsEvent,
+  GDELTToneSummary,
 } from "./src/types";
 import { detectRegime } from "./RegimeDetectionService";
 import { EVENT_TAXONOMY } from "./EventTaxonomy";
@@ -44,7 +46,7 @@ import { getRecentFilings } from "./EdgarService";
 import { getFullCompanyContext, getEarningsTranscript, getSocialSentiment, getEstimateRevisions } from "./FMPService";
 import { getTopPeers } from "./PeerDataService";
 import { getDarkPoolActivity, getBorrowRate } from "./ShortDataService";
-import { fetchGDELTEventsForDate } from "./GDELTService";
+import { fetchGDELTToneForDate } from "./GDELTService";
 import {
   fetchInternationalPriceHistory,
   getExchangeStatus,
@@ -464,10 +466,11 @@ function buildAndSaveFeatureVector(
       max_favorable_excursion_1m: div100(p.analysis?.max_favorable_excursion_1m),
       max_adverse_excursion_1m: div100(p.analysis?.max_adverse_excursion_1m),
       gatingVerdict: p.gatingVerdict ?? undefined,
+      is_null_sample: p.gatingVerdict?.event_classification === "SUPPRESSED_NON_EVENT" ? 1 : 0,
       signal_snapshot: (() => {
         const si = (p as any)._tempShortInterest ?? p.analysis?.shortInterest ?? null;
         const siVelocity = (p as any)._tempShortInterestVelocity ?? p.analysis?.shortInterestVelocity ?? null;
-        const gdeltEvts: any[] | null | undefined = (p as any)._tempGdeltEvents ?? p.analysis?.gdeltEvents;
+        const gdeltTone: GDELTToneSummary | null | undefined = (p as any)._tempGdeltTone ?? p.analysis?.gdeltTone;
         const wikiSpikes: any[] | null | undefined = (p as any)._tempWikipediaSpikes ?? p.analysis?.wikipediaSpikes;
         const social = (p as any)._tempSocialSentiment ?? p.analysis?.socialSentiment ?? null;
         const trends = (p as any)._tempTrendsSummary ?? p.analysis?.trendsSummary ?? null;
@@ -494,8 +497,10 @@ function buildAndSaveFeatureVector(
           yield_curve_spread: macroSnap?.yieldCurvSpread ?? null,
           credit_spread: macroSnap?.creditSpread ?? null,
           macro_release_surprise: macroRel?.surprise ?? null,
-          gdelt_tone_z: (gdeltEvts && gdeltEvts.length > 0)
-            ? gdeltEvts.reduce((s: number, e: any) => s + (e.avgTone ?? 0), 0) / gdeltEvts.length / 10
+          gdelt_tone_z: (gdeltTone && gdeltTone.matchCount > 0
+            && gdeltTone.matchedToneAvg !== null && gdeltTone.globalToneAvg !== null
+            && gdeltTone.globalToneStdDev !== null && gdeltTone.globalToneStdDev > 0)
+            ? (gdeltTone.matchedToneAvg - gdeltTone.globalToneAvg) / gdeltTone.globalToneStdDev
             : null,
           stocktwits_virality_z: social !== null && typeof social.viralityScore === 'number'
             ? (social.viralityScore - 50) / 25
@@ -567,12 +572,14 @@ export class HistoricalEngine {
   private symbols: string[];
   private zScoreThreshold: number;
   private rollingWindow: number;
+  private options?: { skipGemini?: boolean };
   private static globalAiClient: GoogleGenAI | null = null;
 
-  constructor(symbols: string[] = [], zScoreThreshold: number = 2.5, rollingWindow: number = 90) {
+  constructor(symbols: string[] = [], zScoreThreshold: number = 2.5, rollingWindow: number = 90, options?: { skipGemini?: boolean }) {
     this.symbols = symbols.map((s) => s.toUpperCase().trim());
     this.zScoreThreshold = zScoreThreshold;
     this.rollingWindow = rollingWindow;
+    this.options = options;
   }
 
   private peerPriceCache = new Map<string, number | null>();
@@ -1309,13 +1316,28 @@ Reply with JSON containing only a single property "score" (a number between 1 an
       console.log(`[Scan] Starting ${uppercaseSymbol} with limited sources: ${limitedSources.join(", ")}. Price data from Yahoo Finance.`);
     }
     
+    // The date the current `years` request needs to reach back to — used to detect
+    // checkpoints saved by an earlier, narrower-range scan that shouldn't be resumed from,
+    // since resuming would silently truncate the newly-requested historical window.
+    const requestedStartDate = (() => {
+      const d = new Date();
+      if (years >= 1) d.setFullYear(d.getFullYear() - years);
+      else d.setMonth(d.getMonth() - Math.round(years * 12));
+      return d.toISOString().split("T")[0];
+    })();
+
     let startDateOverride: string | undefined;
     if (state) {
       if (state.status === 'COMPLETED') {
         console.log(`[HistoricalEngine] ${uppercaseSymbol} previously completed — running fresh scan.`);
       } else if (state.status === 'IN_PROGRESS') {
-        startDateOverride = state.last_scanned_date;
-        console.log(`[HistoricalEngine] Resuming ${uppercaseSymbol} from checkpoint: ${startDateOverride}`);
+        if (state.start_date > requestedStartDate) {
+          console.log(`[HistoricalEngine] Discarding stale checkpoint for ${uppercaseSymbol} (covered from ${state.start_date}, but ${years}y request needs from ${requestedStartDate}) — running fresh scan.`);
+          clearScannerState(uppercaseSymbol);
+        } else {
+          startDateOverride = state.last_scanned_date;
+          console.log(`[HistoricalEngine] Resuming ${uppercaseSymbol} from checkpoint: ${startDateOverride}`);
+        }
       }
     }
 
@@ -1325,6 +1347,7 @@ Reply with JSON containing only a single property "score" (a number between 1 an
       let range = "1y";
       if (years === 2) range = "2y";
       if (years === 5) range = "5y";
+      if (years === 30) range = "max";
       if (years === 0.5) range = "6m";
 
       let nativeBenchmark = "^GSPC";
@@ -2196,17 +2219,17 @@ Reply with JSON containing only a single property "score" (a number between 1 an
     }
     // ─── END OHLCV-BASED NON-EVENT SECOND PASS ───────────────────────────────
 
-    const uncachedAnomalies = anomalies.filter((a) => !a.hasAnalysis);
-    const uncachedSorted = [...uncachedAnomalies].sort((a, b) => {
-      const aIsN = (a as any).is_null_sample ? 1 : 0;
-      const bIsN = (b as any).is_null_sample ? 1 : 0;
-      if (aIsN !== bIsN) return bIsN - aIsN;
-      return Math.abs(b.zScore) - Math.abs(a.zScore);
-    });
+    // Non-events must never reach the Gemini narrative pipeline — exclude
+    // is_null_sample rows here so they can't trigger their own Gemini calls,
+    // independent of the skipGemini option (which is enforced below).
+    const uncachedAnomalies = anomalies.filter((a) => !a.hasAnalysis && !(a as any).is_null_sample);
+    const uncachedSorted = [...uncachedAnomalies].sort(
+      (a, b) => Math.abs(b.zScore) - Math.abs(a.zScore),
+    );
 
     const hasApiKey = !!process.env.GEMINI_API_KEY;
 
-    if (!skipGeminiAnalysis && hasApiKey && uncachedSorted.length > 0) {
+    if (!this.options?.skipGemini && !skipGeminiAnalysis && hasApiKey && uncachedSorted.length > 0) {
       // Process all uncached anomalies in batches of 10
       const batchSize = 10;
       for (
@@ -2491,17 +2514,12 @@ Scheduled Economic Release on ${item.date} (${release.releaseType?.toUpperCase()
               }
 
               let gdeltContext = "";
-              const gdeltEvents: any[] =
-                item.analysis?.gdeltEvents || (item as any)._tempGdeltEvents;
-              if (gdeltEvents && gdeltEvents.length > 0) {
-                const eventDescriptions = gdeltEvents
-                  .map(
-                    (evt: any) =>
-                      `- Actor1: ${evt.actor1Name}${evt.actor2Name ? `, Actor2: ${evt.actor2Name}` : ""} | EventCode: ${evt.eventCode} | Tone: ${evt.avgTone.toFixed(1)} | Goldstein Scale: ${evt.goldsteinScale.toFixed(1)}${evt.sourceUrl ? `\n  Source URL: ${evt.sourceUrl}` : ""}`,
-                  )
-                  .join("\n");
-
-                gdeltContext = `\n\nGDELT Global News Event Context: The system detected the following structured global news events involving ${companyName} on or around this date:\n${eventDescriptions}\nConsider these structured actions when assessing the catalyst for international or globally integrated stocks.`;
+              const gdeltTone: GDELTToneSummary | null | undefined =
+                item.analysis?.gdeltTone || (item as any)._tempGdeltTone;
+              if (gdeltTone && gdeltTone.matchCount > 0 && gdeltTone.matchedToneAvg !== null && gdeltTone.globalToneAvg !== null) {
+                const relativeTone = gdeltTone.matchedToneAvg - gdeltTone.globalToneAvg;
+                const toneLabel = relativeTone > 1 ? "more positive" : relativeTone < -1 ? "more negative" : "roughly in line with";
+                gdeltContext = `\n\nGDELT Global News Tone Context: The system found ${gdeltTone.matchCount} global news article(s) mentioning ${companyName} on or around this date, with an average tone of ${gdeltTone.matchedToneAvg.toFixed(1)} (scale -100 to +100) — ${toneLabel} the global news baseline tone of ${gdeltTone.globalToneAvg.toFixed(1)} for that day.\nConsider this when assessing the catalyst for international or globally integrated stocks.`;
               }
 
               let shortInterestContext = "";
@@ -2621,7 +2639,7 @@ Scheduled Economic Release on ${item.date} (${release.releaseType?.toUpperCase()
               const _p1EdgarStatus = (item.analysis?.edgarFilings && item.analysis.edgarFilings.length > 0)
                 ? `${item.analysis.edgarFilings.length} filing(s) found`
                 : 'none found';
-              const _p1GdeltCount = gdeltEvents ? gdeltEvents.length : 0;
+              const _p1GdeltCount = gdeltTone ? gdeltTone.matchCount : 0;
               const _p1MacroLine = snap
                 ? `Fed=${snap.federalFundsRate ?? 'N/A'}% CPI=${snap.cpiYoY ?? 'N/A'}% Unemp=${snap.unemploymentRate ?? 'N/A'}%`
                 : 'unavailable';
@@ -2754,10 +2772,10 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                         matchPoint as any
                       )._tempWikipediaSpikes;
                     }
-                    if ((matchPoint as any)._tempGdeltEvents !== undefined) {
-                      analysisOnly.gdeltEvents = (
+                    if ((matchPoint as any)._tempGdeltTone !== undefined) {
+                      analysisOnly.gdeltTone = (
                         matchPoint as any
-                      )._tempGdeltEvents;
+                      )._tempGdeltTone;
                     }
                     if ((matchPoint as any)._tempYoutubeVideos !== undefined) {
                       analysisOnly.youtubeVideos = (
@@ -2883,10 +2901,10 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                     matchPoint as any
                   )._tempWikipediaSpikes;
                 }
-                if ((matchPoint as any)._tempGdeltEvents !== undefined) {
-                  fallbackAnalysis.gdeltEvents = (
+                if ((matchPoint as any)._tempGdeltTone !== undefined) {
+                  fallbackAnalysis.gdeltTone = (
                     matchPoint as any
-                  )._tempGdeltEvents;
+                  )._tempGdeltTone;
                 }
                 if ((matchPoint as any)._tempYoutubeVideos !== undefined) {
                   fallbackAnalysis.youtubeVideos = (
@@ -2951,8 +2969,8 @@ Provide a JSON array containing the results mapping perfectly back using the sta
               item as any
             )._tempWikipediaSpikes;
           }
-          if ((item as any)._tempGdeltEvents !== undefined) {
-            fallbackAnalysis.gdeltEvents = (item as any)._tempGdeltEvents;
+          if ((item as any)._tempGdeltTone !== undefined) {
+            fallbackAnalysis.gdeltTone = (item as any)._tempGdeltTone;
           }
           if ((item as any)._tempYoutubeVideos !== undefined) {
             fallbackAnalysis.youtubeVideos = (item as any)._tempYoutubeVideos;
@@ -3249,7 +3267,8 @@ Provide a JSON array containing the results mapping perfectly back using the sta
       if (!res.points || res.points.length === 0) continue;
       const canonicalSym = res.symbol || iterKey;
       const anomalies = res.points.filter((p) => p.isAnomaly);
-      const uncached = anomalies.filter((a) => !a.hasAnalysis);
+      // Non-events must never reach the Gemini narrative pipeline.
+      const uncached = anomalies.filter((a) => !a.hasAnalysis && !(a as any).is_null_sample);
       for (const a of uncached) {
         const listKey = `${canonicalSym}_${a.date}`;
         if (seenInUncachedList.has(listKey)) continue;
@@ -3262,13 +3281,9 @@ Provide a JSON array containing the results mapping perfectly back using the sta
     }
 
     if (uncachedAnomaliesList.length > 0) {
-      // Sort by absolute Z-Score descending and prioritize null samples
-      const sortedUncached = [...uncachedAnomaliesList].sort((a, b) => {
-        const aIsN = (a as any).is_null_sample ? 1 : 0;
-        const bIsN = (b as any).is_null_sample ? 1 : 0;
-        if (aIsN !== bIsN) return bIsN - aIsN;
-        return Math.abs(b.zScore) - Math.abs(a.zScore);
-      });
+      const sortedUncached = [...uncachedAnomaliesList].sort(
+        (a, b) => Math.abs(b.zScore) - Math.abs(a.zScore),
+      );
       const topToFetchUnified = sortedUncached.slice(0, 40);
       const restToFallback = sortedUncached.slice(40);
 
@@ -3280,6 +3295,7 @@ Provide a JSON array containing the results mapping perfectly back using the sta
           let range = "1y";
           if (years === 2) range = "2y";
           if (years === 5) range = "5y";
+          if (years === 30) range = "max";
           if (years === 0.5) range = "6m";
           const benchmarkReturnsMap = await this.fetchBenchmarkReturns(range);
 
@@ -3397,17 +3413,13 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                   }
 
                   let gdeltContext = "";
-                  const gdelt =
-                    item.analysis?.gdeltEvents ||
-                    (item as any)._tempGdeltEvents;
-                  if (gdelt && gdelt.length > 0) {
-                    const eventDescriptions = gdelt
-                      .slice(0, 2)
-                      .map((g: any) => g.title || g.category || "")
-                      .join("; ");
-                    if (eventDescriptions.length > 0) {
-                      gdeltContext = ` GDELT Geopolitical/Macro Events: ${eventDescriptions}.`;
-                    }
+                  const gdeltTone: GDELTToneSummary | null | undefined =
+                    item.analysis?.gdeltTone ||
+                    (item as any)._tempGdeltTone;
+                  if (gdeltTone && gdeltTone.matchCount > 0 && gdeltTone.matchedToneAvg !== null && gdeltTone.globalToneAvg !== null) {
+                    const relativeTone = gdeltTone.matchedToneAvg - gdeltTone.globalToneAvg;
+                    const toneLabel = relativeTone > 1 ? "more positive" : relativeTone < -1 ? "more negative" : "neutral relative to";
+                    gdeltContext = ` GDELT Global News Tone: ${gdeltTone.matchCount} article(s) mentioning the company, tone ${toneLabel} the day's global baseline (${gdeltTone.matchedToneAvg.toFixed(1)} vs ${gdeltTone.globalToneAvg.toFixed(1)}).`;
                   }
 
                   let wikiContext = "";
@@ -3529,7 +3541,7 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                   const [_p2Year, _p2MonthNum] = item.date.split('-');
                   const _p2MonthName = ["January","February","March","April","May","June","July","August","September","October","November","December"][parseInt(_p2MonthNum, 10) - 1] ?? _p2MonthNum;
                   const _p2EdgarCount = edgar ? edgar.length : 0;
-                  const _p2GdeltCount = gdelt ? gdelt.length : 0;
+                  const _p2GdeltCount = gdeltTone ? gdeltTone.matchCount : 0;
                   const _p2MacroLine = snap
                     ? `Fed=${snap.federalFundsRate ?? 'N/A'}% CPI=${snap.cpiYoY ?? 'N/A'}% Unemp=${snap.unemploymentRate ?? 'N/A'}%`
                     : 'unavailable';
@@ -3767,10 +3779,10 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                   matchPoint as any
                 )._tempWikipediaSpikes;
               }
-              if ((matchPoint as any)._tempGdeltEvents !== undefined) {
-                fallbackAnalysis.gdeltEvents = (
+              if ((matchPoint as any)._tempGdeltTone !== undefined) {
+                fallbackAnalysis.gdeltTone = (
                   matchPoint as any
-                )._tempGdeltEvents;
+                )._tempGdeltTone;
               }
               if ((matchPoint as any)._tempYoutubeVideos !== undefined) {
                 fallbackAnalysis.youtubeVideos = (
@@ -3850,10 +3862,10 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                   matchPoint as any
                 )._tempWikipediaSpikes;
               }
-              if ((matchPoint as any)._tempGdeltEvents !== undefined) {
-                fallbackAnalysis.gdeltEvents = (
+              if ((matchPoint as any)._tempGdeltTone !== undefined) {
+                fallbackAnalysis.gdeltTone = (
                   matchPoint as any
-                )._tempGdeltEvents;
+                )._tempGdeltTone;
               }
               if ((matchPoint as any)._tempYoutubeVideos !== undefined) {
                 fallbackAnalysis.youtubeVideos = (
@@ -4079,7 +4091,7 @@ Provide a JSON array containing the results mapping perfectly back using the sta
         (!a.analysis.wikipediaSpikes || a.analysis.wikipediaSpikes.length === 0)
       )
         return true;
-      if (!a.analysis.gdeltEvents || a.analysis.gdeltEvents.length === 0)
+      if (!a.analysis.gdeltTone)
         return true;
       if (
         hasYouTubeApiKey &&
@@ -4096,6 +4108,13 @@ Provide a JSON array containing the results mapping perfectly back using the sta
     const activeEnrichDates = new Set(
       sortedUncachedToEnrich.slice(0, maxEnrichCount).map((a) => a.date),
     );
+    // SUPPRESSED_NON_EVENT rows are flat-price by definition, so they always
+    // rank low on |zScore| and would otherwise fall outside the maxEnrichCount
+    // cut. Force them into the active set so signal_snapshot gets the same
+    // GDELT/StockTwits/Wikipedia/Trends/News/Congressional data as real events.
+    for (const a of uncachedToEnrich) {
+      if ((a as any).is_null_sample) activeEnrichDates.add(a.date);
+    }
 
     // Synthesizer helper for social sentiment summary from cached SQLite rows
     const synthesizeSocialSentimentSummary = (
@@ -4462,35 +4481,33 @@ Provide a JSON array containing the results mapping perfectly back using the sta
             (a as any)._tempWikipediaSpikes = a.analysis.wikipediaSpikes;
           }
 
-          // 7. GDELT Events
-          if (!a.analysis.gdeltEvents || a.analysis.gdeltEvents.length === 0) {
+          // 7. GDELT GKG Tone
+          if (!a.analysis.gdeltTone) {
             promises.push(
               (async () => {
                 try {
-                  const gdeltEvents = await fetchGDELTEventsForDate(
+                  const gdeltTone = await fetchGDELTToneForDate(
                     uppercaseSymbol,
                     companyName,
                     a.date,
                   );
-                  if (gdeltEvents && gdeltEvents.length > 0) {
-                    a.analysis!.gdeltEvents = gdeltEvents;
-                    (a as any)._tempGdeltEvents = gdeltEvents;
-                  } else {
-                    a.analysis!.gdeltEvents = [] as any;
-                    (a as any)._tempGdeltEvents = [];
-                  }
+                  a.analysis!.gdeltTone = gdeltTone;
+                  (a as any)._tempGdeltTone = gdeltTone;
+                  enrichStatuses.gdelt = gdeltTone.matchCount > 0 ? 'hit' : 'skip';
                 } catch (err) {
                   console.error(
-                    `[HistoricalEngine] Failed to retrieve GDELT events for anomaly on ${a.date}:`,
+                    `[HistoricalEngine] Failed to retrieve GDELT tone for anomaly on ${a.date}:`,
                     err,
                   );
-                  a.analysis!.gdeltEvents = [] as any;
-                  (a as any)._tempGdeltEvents = [];
+                  a.analysis!.gdeltTone = null;
+                  (a as any)._tempGdeltTone = null;
+                  enrichStatuses.gdelt = 'skip';
                 }
               })(),
             );
           } else {
-            (a as any)._tempGdeltEvents = a.analysis.gdeltEvents;
+            (a as any)._tempGdeltTone = a.analysis.gdeltTone;
+            enrichStatuses.gdelt = (a.analysis.gdeltTone.matchCount ?? 0) > 0 ? 'hit' : 'skip';
           }
 
           // 8. YouTube Videos
@@ -4666,6 +4683,8 @@ Provide a JSON array containing the results mapping perfectly back using the sta
                     
                     (a as any)._tempPeerAverageReturn = Math.round(peerAvgReturn * 100) / 100;
                     (a as any)._tempContagionDelta = Math.round(contagionDelta * 100) / 100;
+                    a.analysis.peer_average_return = (a as any)._tempPeerAverageReturn;
+                    a.analysis.peer_contagion_delta = (a as any)._tempContagionDelta;
                   } else {
                     (a as any)._tempPeerAverageReturn = null;
                     (a as any)._tempContagionDelta = null;
@@ -4841,10 +4860,10 @@ Provide a JSON array containing the results mapping perfectly back using the sta
               updated = true;
             }
             if (
-              (a as any)._tempGdeltEvents !== undefined &&
-              (!a.analysis.gdeltEvents || a.analysis.gdeltEvents.length === 0)
+              (a as any)._tempGdeltTone !== undefined &&
+              !a.analysis.gdeltTone
             ) {
-              a.analysis.gdeltEvents = (a as any)._tempGdeltEvents;
+              a.analysis.gdeltTone = (a as any)._tempGdeltTone;
               updated = true;
             }
             if (

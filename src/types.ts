@@ -225,8 +225,8 @@ export interface StockAnalysis {
   wikipediaSpikes?: WikipediaTrafficSignal[];
   /** Google Trends summary centered on the anomaly date */
   trendsSummary?: TrendsSummary;
-  /** Global structured events extracted from GDELT */
-  gdeltEvents?: GDELTEvent[];
+  /** Aggregated GDELT GKG tone summary for the anomaly date */
+  gdeltTone?: GDELTToneSummary | null;
   /** Parsed YouTube transcripts (e.g. from earnings calls or CEO interviews) */
   youtubeVideos?: YouTubeVideo[];
   /** Processed news articles mapped to this anomaly */
@@ -237,16 +237,15 @@ export interface StockAnalysis {
   google_trends_shock_ratio?: number;
 }
 
-export interface GDELTEvent {
-  eventId: string;
-  date: string;
-  actor1Name: string;
-  actor2Name?: string;
-  eventCode: string;
-  eventDescription?: string;
-  goldsteinScale: number;
-  avgTone: number;
-  sourceUrl?: string;
+export interface GDELTToneSummary {
+  /** Average tone of GKG records whose Organizations field mentioned the company (null if no matches) */
+  matchedToneAvg: number | null;
+  /** Average tone across every GKG record that day, used as the z-score baseline */
+  globalToneAvg: number | null;
+  /** Standard deviation of tone across every GKG record that day */
+  globalToneStdDev: number | null;
+  /** Number of GKG records whose Organizations field mentioned the company */
+  matchCount: number;
 }
 
 export interface YouTubeVideo {

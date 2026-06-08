@@ -1227,7 +1227,7 @@ const SCANNER_UNIVERSE = GLOBAL_MARKETS
   .flatMap(m => m.stocks.map(s => s.symbol))
   .filter(sym => !sym.startsWith('SPSX'));
 
-const batchScanner = new BatchScanner(SCANNER_UNIVERSE, 5);
+const batchScanner = new BatchScanner(SCANNER_UNIVERSE, 30);
 
 app.get("/api/batch-scanner/status", (_req, res) => {
   const trainingRows = getTrainingDataset();
