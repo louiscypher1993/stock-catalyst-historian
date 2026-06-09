@@ -4,13 +4,6 @@ import {
   setCachedFinnhubData,
 } from "./db";
 
-const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
-let finnhubAvailable = !!FINNHUB_API_KEY;
-
-if (!FINNHUB_API_KEY) {
-  console.warn("[Finnhub] FINNHUB_API_KEY not set — service disabled");
-}
-
 function offsetDate(date: string, days: number): string {
   const d = new Date(date);
   d.setUTCDate(d.getUTCDate() + days);
@@ -21,7 +14,8 @@ export async function getFinnhubNewsCount(
   symbol: string,
   date: string
 ): Promise<{ articleCount: number; isElevated: boolean } | null> {
-  if (!finnhubAvailable) return null;
+  const apiKey = process.env.FINNHUB_API_KEY;
+  if (!apiKey) return null;
 
   const cached = getCachedFinnhubData(symbol, date, "news");
   if (cached !== null) return cached;
@@ -30,13 +24,12 @@ export async function getFinnhubNewsCount(
   try {
     const from = offsetDate(date, -2);
     const to = offsetDate(date, 2);
-    const url = `https://finnhub.io/api/v1/company-news?symbol=${encodeURIComponent(symbol)}&from=${from}&to=${to}&token=${FINNHUB_API_KEY}`;
+    const url = `https://finnhub.io/api/v1/company-news?symbol=${encodeURIComponent(symbol)}&from=${from}&to=${to}&token=${apiKey}`;
 
     const res = await fetch(url);
 
     if (res.status === 401 || res.status === 403) {
-      console.warn(`[Finnhub] Auth failure (${res.status}) — disabling service permanently`);
-      finnhubAvailable = false;
+      console.warn(`[Finnhub] Auth failure (${res.status}) — check FINNHUB_API_KEY`);
       return null;
     }
 
@@ -88,20 +81,20 @@ export async function getFinnhubInsiderActivity(
   symbol: string,
   date: string
 ): Promise<{ hasRecentActivity: boolean; transactionCount: number } | null> {
-  if (!finnhubAvailable) return null;
+  const apiKey = process.env.FINNHUB_API_KEY;
+  if (!apiKey) return null;
 
   const cached = getCachedFinnhubData(symbol, date, "insider");
   if (cached !== null) return cached;
 
   const start = Date.now();
   try {
-    const url = `https://finnhub.io/api/v1/stock/insider-transactions?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_API_KEY}`;
+    const url = `https://finnhub.io/api/v1/stock/insider-transactions?symbol=${encodeURIComponent(symbol)}&token=${apiKey}`;
 
     const res = await fetch(url);
 
     if (res.status === 401 || res.status === 403) {
-      console.warn(`[Finnhub] Auth failure (${res.status}) — disabling service permanently`);
-      finnhubAvailable = false;
+      console.warn(`[Finnhub] Auth failure (${res.status}) — check FINNHUB_API_KEY`);
       return null;
     }
 

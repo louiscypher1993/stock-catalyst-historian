@@ -43,7 +43,7 @@ import {
   getDailyPutCallRatio,
 } from "./PolygonService";
 import { getRecentFilings } from "./EdgarService";
-import { getFullCompanyContext, getEarningsTranscript, getSocialSentiment, getEstimateRevisions, getFMPNewsSentiment, getFMPInsiderTrading, getFMPInstitutionalOwnership, getFMPEarningsSurprise } from "./FMPService";
+import { getFullCompanyContext, getEarningsTranscript, getSocialSentiment, getEstimateRevisions, getFMPNewsSentiment, getFMPInsiderTrading, getFMPInstitutionalOwnership, getFMPEarningsSurprise, getFMPAnalystGrades, getFMPPriceTargetConsensus } from "./FMPService";
 import { getTopPeers } from "./PeerDataService";
 import { getDarkPoolActivity, getBorrowRate, getFMPShortInterest } from "./ShortDataService";
 import { fetchGDELTToneForDate } from "./GDELTService";
@@ -416,6 +416,11 @@ function buildAndSaveFeatureVector(
     const vixRaw = (p as any)._tempVixAtEvent ?? p.vixAtEvent ?? p.analysis?.vixAtEvent ?? null;
     const scaledVix = vixRaw !== null ? vixRaw / 100 : null;
 
+    const triggeredZThreshold = (p as any)._tempTriggeredZScoreThreshold ?? p.analysis?.triggered_z_score_threshold ?? null;
+    const confidenceTier: string | null = triggeredZThreshold !== null
+      ? triggeredZThreshold >= 2.15 ? 'high' : triggeredZThreshold >= 1.8 ? 'medium' : 'low'
+      : null;
+
     const features: EventFeatureVector = {
       symbol: symbol,
       date: p.date,
@@ -492,6 +497,14 @@ function buildAndSaveFeatureVector(
       eps_surprise_pct: (p as any)._tempEpsSurprisePct ?? (p.analysis as any)?.eps_surprise_pct ?? null,
       revenue_surprise_pct: (p as any)._tempRevenueSurprisePct ?? (p.analysis as any)?.revenue_surprise_pct ?? null,
       earnings_date_proximity_days: (p as any)._tempEarningsProximityDays ?? (p.analysis as any)?.earnings_date_proximity_days ?? null,
+      analyst_upgrades_30d: (p as any)._tempAnalystUpgrades30d ?? (p.analysis as any)?.analyst_upgrades_30d ?? null,
+      analyst_downgrades_30d: (p as any)._tempAnalystDowngrades30d ?? (p.analysis as any)?.analyst_downgrades_30d ?? null,
+      price_target_consensus: (p as any)._tempPriceTargetConsensus ?? (p.analysis as any)?.price_target_consensus ?? null,
+      price_target_upside_pct: (p as any)._tempPriceTargetUpsidePct ?? (p.analysis as any)?.price_target_upside_pct ?? null,
+      confidence_tier: confidenceTier,
+      confidence_tier_high: confidenceTier !== null ? (confidenceTier === 'high' ? 1 : 0) : null,
+      confidence_tier_medium: confidenceTier !== null ? (confidenceTier === 'medium' ? 1 : 0) : null,
+      confidence_tier_low: confidenceTier !== null ? (confidenceTier === 'low' ? 1 : 0) : null,
       google_trends_shock_ratio: (p as any)._tempTrendsSummary?.google_trends_shock_ratio ?? p.analysis?.trendsSummary?.google_trends_shock_ratio ?? p.analysis?.google_trends_shock_ratio ?? null,
       sector_excess_return: div100(p.sectorExcessReturn),
       max_favorable_excursion_1m: div100(p.analysis?.max_favorable_excursion_1m),
@@ -4288,6 +4301,8 @@ Provide a JSON array containing the results mapping perfectly back using the sta
             insider: 'skip',
             institutional: 'skip',
             earnings: 'skip',
+            grades: 'skip',
+            price_target: 'skip',
             gdelt: 'skip',
             reddit: 'skip',
             trends: 'skip',
@@ -4588,6 +4603,77 @@ Provide a JSON array containing the results mapping perfectly back using the sta
             (a as any)._tempRevenueSurprisePct = (a.analysis as any).revenue_surprise_pct ?? null;
             (a as any)._tempEarningsProximityDays = (a.analysis as any).earnings_date_proximity_days ?? null;
             enrichStatuses.earnings = (a.analysis as any).eps_surprise_pct !== null && (a.analysis as any).eps_surprise_pct !== undefined ? 'hit' : 'skip';
+          }
+
+          // 4.9 FMP Analyst Grades (30-day window)
+          if ((a.analysis as any).analyst_upgrades_30d === undefined) {
+            promises.push(
+              (async () => {
+                try {
+                  const grades = await getFMPAnalystGrades(uppercaseSymbol, a.date);
+                  if (grades) {
+                    (a.analysis as any).analyst_upgrades_30d = grades.upgrades;
+                    (a.analysis as any).analyst_downgrades_30d = grades.downgrades;
+                    (a as any)._tempAnalystUpgrades30d = grades.upgrades;
+                    (a as any)._tempAnalystDowngrades30d = grades.downgrades;
+                    enrichStatuses.grades = grades.upgrades > 0 || grades.downgrades > 0 ? 'hit' : 'skip';
+                  } else {
+                    (a as any)._tempAnalystUpgrades30d = null;
+                    (a as any)._tempAnalystDowngrades30d = null;
+                    enrichStatuses.grades = 'skip';
+                  }
+                } catch (err) {
+                  console.error(`[HistoricalEngine] Failed to retrieve FMP analyst grades for ${uppercaseSymbol} on ${a.date}:`, err);
+                  (a as any)._tempAnalystUpgrades30d = null;
+                  (a as any)._tempAnalystDowngrades30d = null;
+                  enrichStatuses.grades = 'skip';
+                }
+              })()
+            );
+          } else {
+            (a as any)._tempAnalystUpgrades30d = (a.analysis as any).analyst_upgrades_30d ?? null;
+            (a as any)._tempAnalystDowngrades30d = (a.analysis as any).analyst_downgrades_30d ?? null;
+            enrichStatuses.grades = (a.analysis as any).analyst_upgrades_30d !== null && (a.analysis as any).analyst_upgrades_30d !== undefined ? 'hit' : 'skip';
+          }
+
+          // 4.10 FMP Price Target Consensus
+          if ((a.analysis as any).price_target_consensus === undefined) {
+            promises.push(
+              (async () => {
+                try {
+                  const pt = await getFMPPriceTargetConsensus(uppercaseSymbol, a.date);
+                  if (pt) {
+                    (a.analysis as any).price_target_consensus = pt.priceTargetConsensus;
+                    (a as any)._tempPriceTargetConsensus = pt.priceTargetConsensus;
+                    (a as any)._tempPriceTargetHigh = pt.priceTargetHigh;
+                    (a as any)._tempPriceTargetLow = pt.priceTargetLow;
+                    const eventClose: number | null = (a as any).close ?? (a as any)._tempClose ?? null;
+                    const upside = pt.priceTargetConsensus !== null && eventClose !== null && eventClose > 0
+                      ? Math.round(((pt.priceTargetConsensus - eventClose) / eventClose) * 10000) / 100
+                      : null;
+                    (a as any)._tempPriceTargetUpsidePct = upside;
+                    enrichStatuses.price_target = pt.priceTargetConsensus !== null ? 'hit' : 'skip';
+                  } else {
+                    (a as any)._tempPriceTargetConsensus = null;
+                    (a as any)._tempPriceTargetHigh = null;
+                    (a as any)._tempPriceTargetLow = null;
+                    (a as any)._tempPriceTargetUpsidePct = null;
+                    enrichStatuses.price_target = 'skip';
+                  }
+                } catch (err) {
+                  console.error(`[HistoricalEngine] Failed to retrieve FMP price target for ${uppercaseSymbol} on ${a.date}:`, err);
+                  (a as any)._tempPriceTargetConsensus = null;
+                  (a as any)._tempPriceTargetHigh = null;
+                  (a as any)._tempPriceTargetLow = null;
+                  (a as any)._tempPriceTargetUpsidePct = null;
+                  enrichStatuses.price_target = 'skip';
+                }
+              })()
+            );
+          } else {
+            (a as any)._tempPriceTargetConsensus = (a.analysis as any).price_target_consensus ?? null;
+            (a as any)._tempPriceTargetUpsidePct = (a.analysis as any).price_target_upside_pct ?? null;
+            enrichStatuses.price_target = (a.analysis as any).price_target_consensus !== null && (a.analysis as any).price_target_consensus !== undefined ? 'hit' : 'skip';
           }
 
           // 5. Google Trends
@@ -5023,7 +5109,7 @@ Provide a JSON array containing the results mapping perfectly back using the sta
           );
 
           await Promise.all(promises);
-          console.log(`[Enrichment] ${uppercaseSymbol} / ${a.date}: polygon=${enrichStatuses.polygon}, fmp_dark_pool=${enrichStatuses.fmp_dark_pool}, fmp_borrow=${enrichStatuses.fmp_borrow}, fmp_social=${enrichStatuses.fmp_social}, fmp_short=${enrichStatuses.fmp_short}, fmp_news=${enrichStatuses.fmp_news}, insider=${enrichStatuses.insider}, institutional=${enrichStatuses.institutional}, earnings=${enrichStatuses.earnings}, gdelt=${enrichStatuses.gdelt}, reddit=${enrichStatuses.reddit}, trends=${enrichStatuses.trends}, wiki=${enrichStatuses.wiki}, newsapi=${enrichStatuses.newsapi}, youtube=${enrichStatuses.youtube}, edgar=${enrichStatuses.edgar}, congressional=${enrichStatuses.congressional}`);
+          console.log(`[Enrichment] ${uppercaseSymbol} / ${a.date}: polygon=${enrichStatuses.polygon}, fmp_dark_pool=${enrichStatuses.fmp_dark_pool}, fmp_borrow=${enrichStatuses.fmp_borrow}, fmp_social=${enrichStatuses.fmp_social}, fmp_short=${enrichStatuses.fmp_short}, fmp_news=${enrichStatuses.fmp_news}, insider=${enrichStatuses.insider}, institutional=${enrichStatuses.institutional}, earnings=${enrichStatuses.earnings}, grades=${enrichStatuses.grades}, price_target=${enrichStatuses.price_target}, gdelt=${enrichStatuses.gdelt}, reddit=${enrichStatuses.reddit}, trends=${enrichStatuses.trends}, wiki=${enrichStatuses.wiki}, newsapi=${enrichStatuses.newsapi}, youtube=${enrichStatuses.youtube}, edgar=${enrichStatuses.edgar}, congressional=${enrichStatuses.congressional}`);
 
           // Dynamically merge and update cache record if this was already loaded from cache previously
           if (a.hasAnalysis && a.analysis) {

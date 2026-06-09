@@ -21,6 +21,7 @@ import { EVENT_TAXONOMY } from "./EventTaxonomy";
 import { exportAndUploadToDrive, exportToLocalStream } from "./CSVExportService";
 import { runSignalValidation } from "./SignalValidationService";
 import { BatchScanner } from "./BatchScannerService";
+import { startBackfill, getBackfillStatus } from "./EnrichBackfillService";
 
 dotenv.config();
 
@@ -1252,6 +1253,21 @@ app.post("/api/batch-scanner/start", (_req, res) => {
 app.post("/api/batch-scanner/stop", (_req, res) => {
   batchScanner.stop();
   return res.json({ stopped: true, status: batchScanner.getStatus() });
+});
+
+app.post("/api/enrich-backfill", (req, res) => {
+  if (getBackfillStatus().isRunning) {
+    return res.status(409).json({ error: "Backfill already running.", status: getBackfillStatus() });
+  }
+  const { symbols, forceAll } = req.body as { symbols?: string[]; forceAll?: boolean };
+  startBackfill(symbols, forceAll ?? false).catch(err => {
+    console.error("[Backfill] Unhandled error:", err);
+  });
+  return res.json({ started: true, status: getBackfillStatus() });
+});
+
+app.get("/api/enrich-backfill/status", (_req, res) => {
+  return res.json(getBackfillStatus());
 });
 
 // Configure Vite middleware or production build output serving

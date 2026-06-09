@@ -3,7 +3,7 @@ import { CompanyProfile, CompanyFinancialRatios, EarningsEvent } from "./src/typ
 
 export let fmpDailyRequestCount = 0;
 export let fmpDailyResetDate = new Date().toISOString().split('T')[0];
-export const FMP_DAILY_BUDGET = 10000;
+export const FMP_DAILY_BUDGET = 10000000;
 
 export function checkAndIncrementFmpBudget(): boolean {
   const today = new Date().toISOString().split('T')[0];
@@ -511,7 +511,9 @@ import {
   getCachedFmpNewsSentiment, setCachedFmpNewsSentiment,
   getCachedFmpInsiderTrading, setCachedFmpInsiderTrading,
   getCachedFmpInstitutionalOwnership, setCachedFmpInstitutionalOwnership,
-  getCachedFmpEarningsSurprise, setCachedFmpEarningsSurprise
+  getCachedFmpEarningsSurprise, setCachedFmpEarningsSurprise,
+  getCachedFmpAnalystGrades, setCachedFmpAnalystGrades,
+  getCachedFmpPriceTarget, setCachedFmpPriceTarget
 } from "./db";
 
 export async function getHistoricalDarkPoolVolume(symbol: string, date: string): Promise<number | null> {
@@ -765,7 +767,7 @@ export async function getEstimateRevisions(
   try {
     // Symbol is a path segment on v4, not a query param — /stable/analyst-estimates?symbol=X
     // was producing HTTP 400 for every symbol because that endpoint requires a different format.
-    const url = `https://financialmodelingprep.com/api/v4/analyst-estimates/${uppercaseSymbol}?period=annual&limit=5&apikey=${apiKey}`;
+    const url = `https://financialmodelingprep.com/stable/analyst-estimates?symbol=${uppercaseSymbol}&period=annual&page=0&limit=5&apikey=${apiKey}`;
     const res = await fetchWithTimeout(url);
 
     if (!res.ok) {
@@ -941,7 +943,7 @@ export async function getFMPNewsSentiment(
     const fromDate = new Date(targetMs - 7 * 86400000).toISOString().split('T')[0];
     const toDate = date;
 
-    const url = `https://financialmodelingprep.com/api/v3/stock_news?tickers=${uppercaseSymbol}&from=${fromDate}&to=${toDate}&limit=50&apikey=${apiKey}`;
+    const url = `https://financialmodelingprep.com/stable/news/stock-latest?symbols=${uppercaseSymbol}&from=${fromDate}&to=${toDate}&limit=50&apikey=${apiKey}`;
     const res = await fetchWithTimeout(url);
     const data = await handleFmpResponse(res, 'getFMPNewsSentiment');
 
@@ -952,10 +954,7 @@ export async function getFMPNewsSentiment(
 
     const scores: number[] = [];
     for (const article of data) {
-      // Prefer numeric sentimentScore; fall back to mapping string sentiment label
-      if (typeof article.sentimentScore === 'number') {
-        scores.push(article.sentimentScore);
-      } else if (typeof article.sentiment === 'string') {
+      if (typeof article.sentiment === 'string') {
         const s = article.sentiment.toLowerCase();
         if (s === 'positive') scores.push(1);
         else if (s === 'negative') scores.push(-1);
@@ -1015,7 +1014,7 @@ export async function getFMPInsiderTrading(
   }
 
   try {
-    const url = `https://financialmodelingprep.com/api/v4/insider-trading?symbol=${uppercaseSymbol}&limit=20&apikey=${apiKey}`;
+    const url = `https://financialmodelingprep.com/stable/insider-trading/search?symbol=${uppercaseSymbol}&limit=20&apikey=${apiKey}`;
     const res = await fetchWithTimeout(url);
     const data = await handleFmpResponse(res, 'getFMPInsiderTrading');
 
@@ -1070,12 +1069,12 @@ export async function getFMPInsiderTrading(
   }
 }
 
-/**
- * Fetches institutional ownership data for the symbol relative to `date` from
- * FMP /api/v4/institutional-ownership/symbol-ownership.
- * Returns the most recent quarter on or before the event date, plus the QoQ change.
- * Requires FMP Premium.
- */
+function dateToYearQuarter(date: string): { year: number; quarter: number } {
+  const d = new Date(date);
+  const month = d.getUTCMonth() + 1; // 1-12
+  return { year: d.getUTCFullYear(), quarter: Math.ceil(month / 3) };
+}
+
 export async function getFMPInstitutionalOwnership(
   symbol: string,
   date: string
@@ -1099,7 +1098,8 @@ export async function getFMPInstitutionalOwnership(
   }
 
   try {
-    const url = `https://financialmodelingprep.com/api/v4/institutional-ownership/symbol-ownership?symbol=${uppercaseSymbol}&date=${date}&includeCurrentQuarter=true&apikey=${apiKey}`;
+    const { year, quarter } = dateToYearQuarter(date);
+    const url = `https://financialmodelingprep.com/stable/institutional-ownership/symbol-positions-summary?symbol=${uppercaseSymbol}&year=${year}&quarter=${quarter}&apikey=${apiKey}`;
     const res = await fetchWithTimeout(url);
     const data = await handleFmpResponse(res, 'getFMPInstitutionalOwnership');
 
@@ -1258,6 +1258,162 @@ export async function getFMPEarningsSurprise(
     return { eps_surprise_pct: epsSurprisePct, revenue_surprise_pct: revenueSurprisePct, earnings_date_proximity_days: proximityDays };
   } catch (err: any) {
     console.warn(`[FMP] getFMPEarningsSurprise failed for ${uppercaseSymbol}: ${err.message}`);
+    return null;
+  }
+}
+
+const GRADE_SCORE: Record<string, number> = {
+  'strong buy': 5, 'outperform': 4, 'buy': 4, 'overweight': 4,
+  'hold': 3, 'neutral': 3, 'market perform': 3, 'equal-weight': 3,
+  'underperform': 2, 'underweight': 2, 'sell': 1, 'strong sell': 0,
+};
+
+function gradeScore(grade: string): number {
+  return GRADE_SCORE[grade.toLowerCase().trim()] ?? 3;
+}
+
+export async function getFMPAnalystGrades(
+  symbol: string,
+  date: string
+): Promise<{ upgrades: number; downgrades: number; strongBuyCount: number; sellCount: number } | null> {
+  if (!checkAndIncrementFmpBudget()) return null;
+  if (isSourceRateLimited('fmp')) return null;
+
+  const uppercaseSymbol = symbol.toUpperCase().trim();
+  const startTime = Date.now();
+
+  const cached = getCachedFmpAnalystGrades(uppercaseSymbol, date);
+  if (cached !== null) {
+    console.log(`[FMP] Analyst grades cache hit for ${uppercaseSymbol} / ${date}`);
+    return cached;
+  }
+
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey) {
+    console.warn('[FMP] Missing FMP_API_KEY — skipping analyst grades.');
+    return null;
+  }
+
+  try {
+    const url = `https://financialmodelingprep.com/stable/grades-historical?symbol=${uppercaseSymbol}&apikey=${apiKey}`;
+    const res = await fetchWithTimeout(url);
+    const data = await handleFmpResponse(res, 'getFMPAnalystGrades');
+
+    if (!Array.isArray(data) || data.length === 0) {
+      setCachedFmpAnalystGrades(uppercaseSymbol, date, 0, 0, 0, 0);
+      return null;
+    }
+
+    const eventMs = new Date(date).getTime();
+    const cutoffMs = eventMs - 30 * 24 * 60 * 60 * 1000;
+
+    const window = data.filter((r: any) => {
+      const d = r.date || r.gradingDate;
+      if (!d) return false;
+      const t = new Date(String(d).slice(0, 10)).getTime();
+      return t >= cutoffMs && t <= eventMs;
+    });
+
+    if (window.length === 0) {
+      setCachedFmpAnalystGrades(uppercaseSymbol, date, 0, 0, 0, 0);
+      return null;
+    }
+
+    let upgrades = 0;
+    let downgrades = 0;
+    let strongBuyCount = 0;
+    let sellCount = 0;
+
+    for (const r of window) {
+      const newGrade: string = r.newGrade || r.grade || '';
+      const prevGrade: string = r.previousGrade || r.previousGradeValue || '';
+      const action: string = (r.action || '').toLowerCase();
+
+      if (action === 'up' || (prevGrade && gradeScore(newGrade) > gradeScore(prevGrade))) {
+        upgrades++;
+      } else if (action === 'down' || (prevGrade && gradeScore(newGrade) < gradeScore(prevGrade))) {
+        downgrades++;
+      }
+
+      const ng = newGrade.toLowerCase();
+      if (ng.includes('strong buy') || ng.includes('outperform') || ng.includes('overweight')) strongBuyCount++;
+      if (ng.includes('sell') || ng.includes('underperform') || ng.includes('underweight')) sellCount++;
+    }
+
+    setCachedFmpAnalystGrades(uppercaseSymbol, date, upgrades, downgrades, strongBuyCount, sellCount);
+    logDataSourceFetch({
+      sourceId: 'fmp',
+      sourceName: 'Financial Modeling Prep',
+      dataType: 'analyst_grades',
+      symbol: uppercaseSymbol,
+      fetchedAt: new Date().toISOString(),
+      success: true,
+      latencyMs: Date.now() - startTime,
+      isFallback: false
+    });
+    console.log(`[FMP] Analyst grades for ${uppercaseSymbol} / ${date}: upgrades=${upgrades}, downgrades=${downgrades}, strongBuy=${strongBuyCount}, sell=${sellCount}`);
+    return { upgrades, downgrades, strongBuyCount, sellCount };
+  } catch (err: any) {
+    console.warn(`[FMP] getFMPAnalystGrades failed for ${uppercaseSymbol}: ${err.message}`);
+    return null;
+  }
+}
+
+export async function getFMPPriceTargetConsensus(
+  symbol: string,
+  date: string
+): Promise<{ priceTargetConsensus: number | null; priceTargetHigh: number | null; priceTargetLow: number | null } | null> {
+  if (!checkAndIncrementFmpBudget()) return null;
+  if (isSourceRateLimited('fmp')) return null;
+
+  const uppercaseSymbol = symbol.toUpperCase().trim();
+  const startTime = Date.now();
+
+  const cached = getCachedFmpPriceTarget(uppercaseSymbol, date);
+  if (cached !== null) {
+    console.log(`[FMP] Price target cache hit for ${uppercaseSymbol} / ${date}`);
+    return cached;
+  }
+
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey) {
+    console.warn('[FMP] Missing FMP_API_KEY — skipping price target consensus.');
+    return null;
+  }
+
+  try {
+    const url = `https://financialmodelingprep.com/stable/price-target-consensus?symbol=${uppercaseSymbol}&apikey=${apiKey}`;
+    const res = await fetchWithTimeout(url);
+    const data = await handleFmpResponse(res, 'getFMPPriceTargetConsensus');
+
+    const entry = Array.isArray(data) ? data[0] : data;
+    if (!entry || typeof entry !== 'object') {
+      setCachedFmpPriceTarget(uppercaseSymbol, date, null, null, null);
+      return { priceTargetConsensus: null, priceTargetHigh: null, priceTargetLow: null };
+    }
+
+    const consensus: number | null = typeof entry.targetConsensus === 'number' ? entry.targetConsensus :
+                                     typeof entry.priceTargetAverage === 'number' ? entry.priceTargetAverage : null;
+    const high: number | null = typeof entry.targetHigh === 'number' ? entry.targetHigh :
+                                typeof entry.priceTargetHigh === 'number' ? entry.priceTargetHigh : null;
+    const low: number | null = typeof entry.targetLow === 'number' ? entry.targetLow :
+                               typeof entry.priceTargetLow === 'number' ? entry.priceTargetLow : null;
+
+    setCachedFmpPriceTarget(uppercaseSymbol, date, consensus, high, low);
+    logDataSourceFetch({
+      sourceId: 'fmp',
+      sourceName: 'Financial Modeling Prep',
+      dataType: 'price_target_consensus',
+      symbol: uppercaseSymbol,
+      fetchedAt: new Date().toISOString(),
+      success: true,
+      latencyMs: Date.now() - startTime,
+      isFallback: false
+    });
+    console.log(`[FMP] Price target for ${uppercaseSymbol} / ${date}: consensus=${consensus}, high=${high}, low=${low}`);
+    return { priceTargetConsensus: consensus, priceTargetHigh: high, priceTargetLow: low };
+  } catch (err: any) {
+    console.warn(`[FMP] getFMPPriceTargetConsensus failed for ${uppercaseSymbol}: ${err.message}`);
     return null;
   }
 }

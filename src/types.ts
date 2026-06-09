@@ -244,6 +244,10 @@ export interface StockAnalysis {
   eps_surprise_pct?: number | null;
   revenue_surprise_pct?: number | null;
   earnings_date_proximity_days?: number | null;
+  analyst_upgrades_30d?: number | null;
+  analyst_downgrades_30d?: number | null;
+  price_target_consensus?: number | null;
+  price_target_upside_pct?: number | null;
   google_trends_shock_ratio?: number;
 }
 
@@ -470,6 +474,14 @@ export interface EventFeatureVector {
   eps_surprise_pct?: number | null;
   revenue_surprise_pct?: number | null;
   earnings_date_proximity_days?: number | null;
+  analyst_upgrades_30d?: number | null;
+  analyst_downgrades_30d?: number | null;
+  price_target_consensus?: number | null;
+  price_target_upside_pct?: number | null;
+  confidence_tier?: string | null;
+  confidence_tier_high?: number | null;
+  confidence_tier_medium?: number | null;
+  confidence_tier_low?: number | null;
   google_trends_shock_ratio?: number;
   sector_encoded?: number;
   event_type_encoded?: number;

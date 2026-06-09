@@ -423,6 +423,28 @@ try {
 }
 
 try {
+  db.exec("ALTER TABLE event_features ADD COLUMN confidence_tier TEXT;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add confidence_tier to event_features", e);
+  }
+}
+
+try {
+  db.exec(`
+    UPDATE event_features SET confidence_tier =
+      CASE
+        WHEN json_extract(features_json, '$.triggered_z_score_threshold') >= 2.15 THEN 'high'
+        WHEN json_extract(features_json, '$.triggered_z_score_threshold') >= 1.8 THEN 'medium'
+        ELSE 'low'
+      END
+    WHERE confidence_tier IS NULL;
+  `);
+} catch (e: any) {
+  console.error("Failed to backfill confidence_tier in event_features", e);
+}
+
+try {
   db.exec(`
     CREATE TABLE IF NOT EXISTS fmp_dark_pool_cache (
       symbol TEXT,
@@ -485,6 +507,25 @@ try {
       eps_surprise_pct REAL,
       revenue_surprise_pct REAL,
       proximity_days INTEGER,
+      cached_at TEXT NOT NULL,
+      PRIMARY KEY (symbol, date)
+    );
+    CREATE TABLE IF NOT EXISTS fmp_analyst_grades_cache (
+      symbol TEXT,
+      date TEXT,
+      upgrades INTEGER,
+      downgrades INTEGER,
+      strong_buy_count INTEGER,
+      sell_count INTEGER,
+      cached_at TEXT NOT NULL,
+      PRIMARY KEY (symbol, date)
+    );
+    CREATE TABLE IF NOT EXISTS fmp_price_target_cache (
+      symbol TEXT,
+      date TEXT,
+      price_target_consensus REAL,
+      price_target_high REAL,
+      price_target_low REAL,
       cached_at TEXT NOT NULL,
       PRIMARY KEY (symbol, date)
     );
@@ -706,6 +747,47 @@ export function setCachedFmpEarningsSurprise(symbol: string, date: string, epsSu
   stmt.run(symbol, date, epsSurprisePct, revenueSurprisePct, proximityDays, new Date().toISOString());
 }
 
+export function getCachedFmpAnalystGrades(symbol: string, date: string): { upgrades: number; downgrades: number; strongBuyCount: number; sellCount: number } | null {
+  const stmt = db.prepare('SELECT upgrades, downgrades, strong_buy_count, sell_count FROM fmp_analyst_grades_cache WHERE symbol = ? AND date = ?');
+  const row = stmt.get(symbol, date) as { upgrades: number; downgrades: number; strong_buy_count: number; sell_count: number } | undefined;
+  if (row) return { upgrades: row.upgrades, downgrades: row.downgrades, strongBuyCount: row.strong_buy_count, sellCount: row.sell_count };
+  return null;
+}
+
+export function setCachedFmpAnalystGrades(symbol: string, date: string, upgrades: number, downgrades: number, strongBuyCount: number, sellCount: number): void {
+  const stmt = db.prepare(`
+    INSERT INTO fmp_analyst_grades_cache (symbol, date, upgrades, downgrades, strong_buy_count, sell_count, cached_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(symbol, date) DO UPDATE SET
+      upgrades = excluded.upgrades,
+      downgrades = excluded.downgrades,
+      strong_buy_count = excluded.strong_buy_count,
+      sell_count = excluded.sell_count,
+      cached_at = excluded.cached_at
+  `);
+  stmt.run(symbol, date, upgrades, downgrades, strongBuyCount, sellCount, new Date().toISOString());
+}
+
+export function getCachedFmpPriceTarget(symbol: string, date: string): { priceTargetConsensus: number | null; priceTargetHigh: number | null; priceTargetLow: number | null } | null {
+  const stmt = db.prepare('SELECT price_target_consensus, price_target_high, price_target_low FROM fmp_price_target_cache WHERE symbol = ? AND date = ?');
+  const row = stmt.get(symbol, date) as { price_target_consensus: number | null; price_target_high: number | null; price_target_low: number | null } | undefined;
+  if (row) return { priceTargetConsensus: row.price_target_consensus, priceTargetHigh: row.price_target_high, priceTargetLow: row.price_target_low };
+  return null;
+}
+
+export function setCachedFmpPriceTarget(symbol: string, date: string, priceTargetConsensus: number | null, priceTargetHigh: number | null, priceTargetLow: number | null): void {
+  const stmt = db.prepare(`
+    INSERT INTO fmp_price_target_cache (symbol, date, price_target_consensus, price_target_high, price_target_low, cached_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(symbol, date) DO UPDATE SET
+      price_target_consensus = excluded.price_target_consensus,
+      price_target_high = excluded.price_target_high,
+      price_target_low = excluded.price_target_low,
+      cached_at = excluded.cached_at
+  `);
+  stmt.run(symbol, date, priceTargetConsensus, priceTargetHigh, priceTargetLow, new Date().toISOString());
+}
+
 /**
  * Retrieves a cached analysis from SQLite.
  * SQLite's robust concurrent read transactions mean we no longer
@@ -826,9 +908,9 @@ export function setEventFeatures(cacheKey: string, features: EventFeatureVector)
       cache_key, symbol, date, primaryCategory, features_json, created_at,
       max_favorable_excursion_1m, max_adverse_excursion_1m, sector_excess_return,
       short_interest_ratio, options_put_call_ratio, is_null_sample, is_human_verified,
-      gating_verdict_json, signal_snapshot_json
+      gating_verdict_json, signal_snapshot_json, confidence_tier
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(cache_key) DO UPDATE SET
       symbol = excluded.symbol,
       date = excluded.date,
@@ -843,7 +925,8 @@ export function setEventFeatures(cacheKey: string, features: EventFeatureVector)
       is_null_sample = excluded.is_null_sample,
       is_human_verified = excluded.is_human_verified,
       gating_verdict_json = excluded.gating_verdict_json,
-      signal_snapshot_json = excluded.signal_snapshot_json
+      signal_snapshot_json = excluded.signal_snapshot_json,
+      confidence_tier = excluded.confidence_tier
   `);
   stmt.run(
     cacheKey,
@@ -860,7 +943,8 @@ export function setEventFeatures(cacheKey: string, features: EventFeatureVector)
     features.is_null_sample ? 1 : 0,
     features.is_human_verified ? 1 : 0,
     features.gatingVerdict ? JSON.stringify(features.gatingVerdict) : null,
-    features.signal_snapshot ? JSON.stringify(features.signal_snapshot) : null
+    features.signal_snapshot ? JSON.stringify(features.signal_snapshot) : null,
+    features.confidence_tier ?? null
   );
 }
 
