@@ -952,6 +952,10 @@ export async function getFMPNewsSentiment(
       return { fmp_news_sentiment_avg: null, fmp_news_article_count_7d: 0 };
     }
 
+    if (data.length > 0) {
+      console.log('[FMP] News article sample fields:', Object.keys(data[0]));
+    }
+
     const scores: number[] = [];
     for (const article of data) {
       if (typeof article.sentiment === 'string') {
@@ -1075,10 +1079,14 @@ function dateToYearQuarter(date: string): { year: number; quarter: number } {
   return { year: d.getUTCFullYear(), quarter: Math.ceil(month / 3) };
 }
 
+// Set once if the institutional-ownership endpoint returns 402 Payment Required.
+let _institutionalOwnershipUnavailable = false;
+
 export async function getFMPInstitutionalOwnership(
   symbol: string,
   date: string
 ): Promise<{ institutional_ownership_pct: number | null; institutional_ownership_change_qoq: number | null } | null> {
+  if (_institutionalOwnershipUnavailable) return null;
   if (!checkAndIncrementFmpBudget()) return null;
   if (isSourceRateLimited('fmp')) return null;
 
@@ -1101,7 +1109,27 @@ export async function getFMPInstitutionalOwnership(
     const { year, quarter } = dateToYearQuarter(date);
     const url = `https://financialmodelingprep.com/stable/institutional-ownership/symbol-positions-summary?symbol=${uppercaseSymbol}&year=${year}&quarter=${quarter}&apikey=${apiKey}`;
     const res = await fetchWithTimeout(url);
-    const data = await handleFmpResponse(res, 'getFMPInstitutionalOwnership');
+
+    if (!res.ok) {
+      let body = '';
+      try { body = await res.text(); } catch (_) {}
+      if (res.status === 402) {
+        if (!_institutionalOwnershipUnavailable) {
+          console.warn('[FMP] institutional-ownership endpoint requires a higher plan — disabling for this session.');
+          _institutionalOwnershipUnavailable = true;
+        }
+        return null;
+      }
+      if (res.status === 429) {
+        markSourceRateLimited('fmp');
+        console.warn('[FMP] 429 Rate limited on getFMPInstitutionalOwnership');
+      } else {
+        console.debug(`[FMP] getFMPInstitutionalOwnership HTTP ${res.status} for ${uppercaseSymbol} — skipping`);
+      }
+      return null;
+    }
+
+    const data: any[] = await res.json();
 
     if (!Array.isArray(data) || data.length === 0) {
       setCachedFmpInstitutionalOwnership(uppercaseSymbol, date, null, null);
@@ -1177,10 +1205,14 @@ export async function getFMPInstitutionalOwnership(
   }
 }
 
+// Set once if the earnings-surprises endpoint proves unavailable on the current plan.
+let _earningsSurpriseEndpointUnavailable = false;
+
 export async function getFMPEarningsSurprise(
   symbol: string,
   date: string
 ): Promise<{ eps_surprise_pct: number | null; revenue_surprise_pct: number | null; earnings_date_proximity_days: number | null } | null> {
+  if (_earningsSurpriseEndpointUnavailable) return null;
   if (!checkAndIncrementFmpBudget()) return null;
   if (isSourceRateLimited('fmp')) return null;
 
@@ -1200,9 +1232,29 @@ export async function getFMPEarningsSurprise(
   }
 
   try {
-    const url = `https://financialmodelingprep.com/api/v4/earnings-surprises?symbol=${uppercaseSymbol}&apikey=${apiKey}`;
+    const url = `https://financialmodelingprep.com/stable/earnings?symbol=${uppercaseSymbol}&limit=10&apikey=${apiKey}`;
     const res = await fetchWithTimeout(url);
-    const data = await handleFmpResponse(res, 'getFMPEarningsSurprise');
+
+    if (!res.ok) {
+      let body = '';
+      try { body = await res.text(); } catch (_) {}
+      if (res.status === 403 && (body.includes('Exclusive Endpoint') || body.includes('Legacy Endpoint') || body.includes('Professional plan'))) {
+        if (!_earningsSurpriseEndpointUnavailable) {
+          console.warn('[FMP] earnings endpoint is not available on the current plan — disabling for this session.');
+          _earningsSurpriseEndpointUnavailable = true;
+        }
+        return null;
+      }
+      if (res.status === 429) {
+        markSourceRateLimited('fmp');
+        console.warn('[FMP] 429 Rate limited on getFMPEarningsSurprise');
+      } else {
+        console.debug(`[FMP] getFMPEarningsSurprise HTTP ${res.status} for ${uppercaseSymbol} — skipping`);
+      }
+      return null;
+    }
+
+    const data: any[] = await res.json();
 
     if (!Array.isArray(data) || data.length === 0) {
       setCachedFmpEarningsSurprise(uppercaseSymbol, date, null, null, null);
