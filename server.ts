@@ -5,7 +5,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import Database from "better-sqlite3";
-import { HistoricalEngine, generateLocalFallbackAnalysis, enrichConfidences } from "./HistoricalEngine";
+import { HistoricalEngine, generateLocalFallbackAnalysis, enrichConfidences, normaliseForYahoo } from "./HistoricalEngine";
 import { getCachedAnalysis, setCachedAnalysis, getLatestIntelligenceReport, saveIntelligenceReport, getHighMaterialityEvents, getExecutiveEventsBySymbol, saveExecutiveEvents, getCachedProfile, setCachedProfile, getDataSourceLogs, getEventFeature, setEventFeatures, getDatabaseCacheStats, verifyCachedAnalysis, getEventsForCompetitor, clearScannerState, clearAllCompletedCheckpoints, getTrainingDataset } from "./db";
 import { findSimilarEvents, computeAnalogueOutcomes } from "./HistoricalSimilarityService";
 import { generateIntelligenceReport, getCompetitorMap } from "./ExecutiveIntelligence";
@@ -780,7 +780,7 @@ app.post("/api/batch-update", async (req, res) => {
 
       try {
         // Fetch latest daily quote from Yahoo to verify if new trading days have occurred
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${uppercaseSym}?range=1y&interval=1d`;
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${normaliseForYahoo(uppercaseSym)}?range=1y&interval=1d`;
         const response = await fetch(url, {
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.0.0 Safari/537.36",

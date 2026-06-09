@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="market_cache.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="3169"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="anomaly_cache" custom_title="0" dock_id="1" table="4,13:mainanomaly_cache"/><dock_state state="000000ff00000000fd00000001000000020000000000000000fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000011e00ffffff000000000000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1*">SELECT symbol, events_found, error_message 
+FROM batch_scanner_progress 
+WHERE status = 'pending'
+LIMIT 30;</sql><sql name="SQL 2*">SELECT 
+  COUNT(*) as total_rows,
+  SUM(CASE WHEN is_null_sample = 0 THEN 1 ELSE 0 END) as events,
+  SUM(CASE WHEN is_null_sample = 1 THEN 1 ELSE 0 END) as non_events,
+  COUNT(DISTINCT symbol) as symbols
+FROM event_features;</sql><current_tab id="1"/></tab_sql></sqlb_project>

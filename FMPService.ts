@@ -507,7 +507,11 @@ import {
   getCachedDarkPool, setCachedDarkPool,
   getCachedBorrowRate, setCachedBorrowRate,
   getCachedSocialSentiment, setCachedSocialSentiment,
-  getCachedEstimateRevisions, setCachedEstimateRevisions
+  getCachedEstimateRevisions, setCachedEstimateRevisions,
+  getCachedFmpNewsSentiment, setCachedFmpNewsSentiment,
+  getCachedFmpInsiderTrading, setCachedFmpInsiderTrading,
+  getCachedFmpInstitutionalOwnership, setCachedFmpInstitutionalOwnership,
+  getCachedFmpEarningsSurprise, setCachedFmpEarningsSurprise
 } from "./db";
 
 export async function getHistoricalDarkPoolVolume(symbol: string, date: string): Promise<number | null> {
@@ -726,14 +730,14 @@ export async function getMarketStructure(symbol: string, date: string): Promise<
   }
 }
 
-// Set once when the analyst-estimates endpoint proves unavailable on the free tier, to avoid log spam.
+// Set once if the analyst-estimates endpoint proves unavailable on the current plan.
 let _estimateRevisionsEndpointUnavailable = false;
 
 /**
- * Derives EPS estimate revision momentum in the ~8 weeks before the event date.
- * Uses FMP /stable/analyst-estimates to compare consecutive consensus periods.
- * Returns null (without an API call) if the endpoint is known to be off the free tier.
- * Results are cached for 30 days.
+ * Derives EPS estimate revision momentum by comparing the two most recent
+ * consecutive consensus periods from FMP /api/v4/analyst-estimates/{symbol}.
+ * Returns null gracefully if the endpoint is unavailable or data is insufficient.
+ * Results are cached per symbol/month to avoid repeat calls.
  */
 export async function getEstimateRevisions(
   symbol: string,
@@ -759,7 +763,9 @@ export async function getEstimateRevisions(
   }
 
   try {
-    const url = `https://financialmodelingprep.com/stable/analyst-estimates?symbol=${uppercaseSymbol}&limit=5&apikey=${apiKey}`;
+    // Symbol is a path segment on v4, not a query param — /stable/analyst-estimates?symbol=X
+    // was producing HTTP 400 for every symbol because that endpoint requires a different format.
+    const url = `https://financialmodelingprep.com/api/v4/analyst-estimates/${uppercaseSymbol}?period=annual&limit=5&apikey=${apiKey}`;
     const res = await fetchWithTimeout(url);
 
     if (!res.ok) {
@@ -767,12 +773,13 @@ export async function getEstimateRevisions(
       try { body = await res.text(); } catch (_) {}
       if (res.status === 403 && (body.includes('Exclusive Endpoint') || body.includes('Legacy Endpoint') || body.includes('Professional plan'))) {
         if (!_estimateRevisionsEndpointUnavailable) {
-          console.warn('[FMP] analyst-estimates endpoint is not on the free tier — disabling for this session.');
+          console.warn('[FMP] analyst-estimates endpoint is not available on the current plan — disabling for this session.');
           _estimateRevisionsEndpointUnavailable = true;
         }
         return null;
       }
-      console.warn(`[FMP] getEstimateRevisions HTTP ${res.status} for ${uppercaseSymbol}`);
+      // Suppress per-symbol noise; a single debug line is enough
+      console.debug(`[FMP] getEstimateRevisions HTTP ${res.status} for ${uppercaseSymbol} — skipping`);
       return null;
     }
 
@@ -820,11 +827,14 @@ export async function getEstimateRevisions(
 
 /**
  * Fetches historical social sentiment from FMP for a given symbol and date.
- * Looks for exact match on date (t=0), or closest trailing day.
+ * Uses /api/v4/historical/social-sentiment with a ±7-day window, then picks
+ * the entry on or immediately before the target date (t=0 or closest trailing).
+ * Requires FMP Premium.
  */
 export async function getSocialSentiment(symbol: string, date: string): Promise<{ fmp_social_sentiment_score: number | null, fmp_social_post_volume: number | null }> {
-  if (!checkAndIncrementFmpBudget()) return { fmp_social_sentiment_score: null, fmp_social_post_volume: null };
-  if (isSourceRateLimited('fmp')) return { fmp_social_sentiment_score: null, fmp_social_post_volume: null };
+  const NULL_RESULT = { fmp_social_sentiment_score: null, fmp_social_post_volume: null };
+  if (!checkAndIncrementFmpBudget()) return NULL_RESULT;
+  if (isSourceRateLimited('fmp')) return NULL_RESULT;
   const uppercaseSymbol = symbol.toUpperCase().trim();
   const startTime = Date.now();
 
@@ -838,10 +848,416 @@ export async function getSocialSentiment(symbol: string, date: string): Promise<
       };
     }
 
-    console.log(`[FMP] getSocialSentiment has no free-tier stable endpoint — skipping.`);
-    return { fmp_social_sentiment_score: null, fmp_social_post_volume: null };
+    const apiKey = process.env.FMP_API_KEY;
+    if (!apiKey) {
+      console.warn('[FMP] Missing FMP_API_KEY — skipping social sentiment.');
+      return NULL_RESULT;
+    }
+
+    const targetMs = new Date(date).getTime();
+    const fromDate = new Date(targetMs - 5 * 86400000).toISOString().split('T')[0];
+    const toDate = new Date(targetMs + 2 * 86400000).toISOString().split('T')[0];
+
+    const url = `https://financialmodelingprep.com/api/v4/historical/social-sentiment?symbol=${uppercaseSymbol}&from=${fromDate}&to=${toDate}&apikey=${apiKey}`;
+    const res = await fetchWithTimeout(url);
+    const data = await handleFmpResponse(res, 'getSocialSentiment');
+
+    if (!Array.isArray(data) || data.length === 0) return NULL_RESULT;
+
+    // Find the entry on or immediately before the target date
+    const sorted = [...data]
+      .filter((r: any) => r.date != null)
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const entry = sorted.find((r: any) => r.date.slice(0, 10) <= date) ?? sorted[0];
+    if (!entry) return NULL_RESULT;
+
+    // Average StockTwits + Twitter sentiment scores; fall back to whichever is available
+    const stwit = typeof entry.stocktwitsSentiment === 'number' ? entry.stocktwitsSentiment : null;
+    const twit  = typeof entry.twitterSentiment    === 'number' ? entry.twitterSentiment    : null;
+    const sentimentScore =
+      stwit !== null && twit !== null ? (stwit + twit) / 2 :
+      stwit ?? twit;
+
+    const postVolume =
+      (typeof entry.stocktwitsPosts === 'number' ? entry.stocktwitsPosts : 0) +
+      (typeof entry.twitterPosts    === 'number' ? entry.twitterPosts    : 0) || null;
+
+    if (sentimentScore !== null) {
+      setCachedSocialSentiment(uppercaseSymbol, date, sentimentScore, postVolume ?? 0);
+      logDataSourceFetch({
+        sourceId: 'fmp',
+        sourceName: 'Financial Modeling Prep',
+        dataType: 'social_sentiment',
+        symbol: uppercaseSymbol,
+        fetchedAt: new Date().toISOString(),
+        success: true,
+        latencyMs: Date.now() - startTime,
+        isFallback: false
+      });
+      console.log(`[FMP] Social Sentiment for ${uppercaseSymbol} / ${date}: score=${Math.round(sentimentScore * 1000) / 1000}, volume=${postVolume}`);
+    }
+
+    return {
+      fmp_social_sentiment_score: sentimentScore !== null ? Math.round(sentimentScore * 10000) / 10000 : null,
+      fmp_social_post_volume: postVolume
+    };
   } catch (error: any) {
     console.error(`[FMP] Error fetching social sentiment for ${uppercaseSymbol}:`, error.message);
-    return { fmp_social_sentiment_score: null, fmp_social_post_volume: null };
+    return NULL_RESULT;
+  }
+}
+
+/**
+ * Fetches news articles for the symbol in the 7 days before `date` from
+ * FMP /api/v3/stock_news and computes average sentiment (-1 to +1) and article count.
+ * Requires FMP Premium for the sentimentScore field; falls back to mapping
+ * "positive/negative/neutral" strings if the numeric score is absent.
+ */
+export async function getFMPNewsSentiment(
+  symbol: string,
+  date: string
+): Promise<{ fmp_news_sentiment_avg: number | null; fmp_news_article_count_7d: number } | null> {
+  if (!checkAndIncrementFmpBudget()) return null;
+  if (isSourceRateLimited('fmp')) return null;
+
+  const uppercaseSymbol = symbol.toUpperCase().trim();
+  const startTime = Date.now();
+
+  const cached = getCachedFmpNewsSentiment(uppercaseSymbol, date);
+  if (cached !== null) {
+    console.log(`[FMP] News sentiment cache hit for ${uppercaseSymbol} / ${date}`);
+    return { fmp_news_sentiment_avg: cached.sentimentAvg, fmp_news_article_count_7d: cached.articleCount };
+  }
+
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey) {
+    console.warn('[FMP] Missing FMP_API_KEY — skipping news sentiment.');
+    return null;
+  }
+
+  try {
+    const targetMs = new Date(date).getTime();
+    const fromDate = new Date(targetMs - 7 * 86400000).toISOString().split('T')[0];
+    const toDate = date;
+
+    const url = `https://financialmodelingprep.com/api/v3/stock_news?tickers=${uppercaseSymbol}&from=${fromDate}&to=${toDate}&limit=50&apikey=${apiKey}`;
+    const res = await fetchWithTimeout(url);
+    const data = await handleFmpResponse(res, 'getFMPNewsSentiment');
+
+    if (!Array.isArray(data) || data.length === 0) {
+      setCachedFmpNewsSentiment(uppercaseSymbol, date, null, 0);
+      return { fmp_news_sentiment_avg: null, fmp_news_article_count_7d: 0 };
+    }
+
+    const scores: number[] = [];
+    for (const article of data) {
+      // Prefer numeric sentimentScore; fall back to mapping string sentiment label
+      if (typeof article.sentimentScore === 'number') {
+        scores.push(article.sentimentScore);
+      } else if (typeof article.sentiment === 'string') {
+        const s = article.sentiment.toLowerCase();
+        if (s === 'positive') scores.push(1);
+        else if (s === 'negative') scores.push(-1);
+        else if (s === 'neutral') scores.push(0);
+      }
+    }
+
+    const articleCount = data.length;
+    const sentimentAvg = scores.length > 0
+      ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10000) / 10000
+      : null;
+
+    setCachedFmpNewsSentiment(uppercaseSymbol, date, sentimentAvg, articleCount);
+    logDataSourceFetch({
+      sourceId: 'fmp',
+      sourceName: 'Financial Modeling Prep',
+      dataType: 'stock_news_sentiment',
+      symbol: uppercaseSymbol,
+      fetchedAt: new Date().toISOString(),
+      success: true,
+      latencyMs: Date.now() - startTime,
+      isFallback: false
+    });
+    console.log(`[FMP] News sentiment for ${uppercaseSymbol} / ${date}: avg=${sentimentAvg}, articles=${articleCount}`);
+    return { fmp_news_sentiment_avg: sentimentAvg, fmp_news_article_count_7d: articleCount };
+  } catch (err: any) {
+    console.warn(`[FMP] getFMPNewsSentiment failed for ${uppercaseSymbol}: ${err.message}`);
+    return null;
+  }
+}
+
+/**
+ * Fetches insider transactions for the symbol in the 30 days before `date` from
+ * FMP /api/v4/insider-trading and computes net shares, buy count, and sell count.
+ * Requires FMP Premium.
+ */
+export async function getFMPInsiderTrading(
+  symbol: string,
+  date: string
+): Promise<{ insider_net_shares_30d: number | null; insider_buy_count_30d: number; insider_sell_count_30d: number } | null> {
+  if (!checkAndIncrementFmpBudget()) return null;
+  if (isSourceRateLimited('fmp')) return null;
+
+  const uppercaseSymbol = symbol.toUpperCase().trim();
+  const startTime = Date.now();
+
+  const cached = getCachedFmpInsiderTrading(uppercaseSymbol, date);
+  if (cached !== null) {
+    console.log(`[FMP] Insider trading cache hit for ${uppercaseSymbol} / ${date}`);
+    return { insider_net_shares_30d: cached.netShares, insider_buy_count_30d: cached.buyCount, insider_sell_count_30d: cached.sellCount };
+  }
+
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey) {
+    console.warn('[FMP] Missing FMP_API_KEY — skipping insider trading.');
+    return null;
+  }
+
+  try {
+    const url = `https://financialmodelingprep.com/api/v4/insider-trading?symbol=${uppercaseSymbol}&limit=20&apikey=${apiKey}`;
+    const res = await fetchWithTimeout(url);
+    const data = await handleFmpResponse(res, 'getFMPInsiderTrading');
+
+    if (!Array.isArray(data) || data.length === 0) {
+      setCachedFmpInsiderTrading(uppercaseSymbol, date, null, 0, 0);
+      return { insider_net_shares_30d: null, insider_buy_count_30d: 0, insider_sell_count_30d: 0 };
+    }
+
+    const cutoffMs = new Date(date).getTime() - 30 * 86400000;
+    const window = data.filter((tx: any) => {
+      const txDate = tx.transactionDate || tx.filingDate || tx.date;
+      if (!txDate) return false;
+      return new Date(txDate).getTime() >= cutoffMs && new Date(txDate).getTime() <= new Date(date).getTime();
+    });
+
+    let buyShares = 0;
+    let sellShares = 0;
+    let buyCount = 0;
+    let sellCount = 0;
+
+    for (const tx of window) {
+      const txType: string = (tx.transactionType || '').toUpperCase();
+      const shares = typeof tx.securitiesTransacted === 'number' ? tx.securitiesTransacted :
+                     typeof tx.shares === 'number' ? tx.shares : 0;
+      if (txType.startsWith('P') || txType.includes('PURCHASE') || txType.includes('BUY') || txType === 'A') {
+        buyShares += shares;
+        buyCount++;
+      } else if (txType.startsWith('S') || txType.includes('SALE') || txType.includes('SELL')) {
+        sellShares += shares;
+        sellCount++;
+      }
+    }
+
+    const netShares = (buyCount > 0 || sellCount > 0) ? Math.round(buyShares - sellShares) : null;
+
+    setCachedFmpInsiderTrading(uppercaseSymbol, date, netShares, buyCount, sellCount);
+    logDataSourceFetch({
+      sourceId: 'fmp',
+      sourceName: 'Financial Modeling Prep',
+      dataType: 'insider_trading',
+      symbol: uppercaseSymbol,
+      fetchedAt: new Date().toISOString(),
+      success: true,
+      latencyMs: Date.now() - startTime,
+      isFallback: false
+    });
+    console.log(`[FMP] Insider trading for ${uppercaseSymbol} / ${date}: net=${netShares}, buys=${buyCount}, sells=${sellCount}`);
+    return { insider_net_shares_30d: netShares, insider_buy_count_30d: buyCount, insider_sell_count_30d: sellCount };
+  } catch (err: any) {
+    console.warn(`[FMP] getFMPInsiderTrading failed for ${uppercaseSymbol}: ${err.message}`);
+    return null;
+  }
+}
+
+/**
+ * Fetches institutional ownership data for the symbol relative to `date` from
+ * FMP /api/v4/institutional-ownership/symbol-ownership.
+ * Returns the most recent quarter on or before the event date, plus the QoQ change.
+ * Requires FMP Premium.
+ */
+export async function getFMPInstitutionalOwnership(
+  symbol: string,
+  date: string
+): Promise<{ institutional_ownership_pct: number | null; institutional_ownership_change_qoq: number | null } | null> {
+  if (!checkAndIncrementFmpBudget()) return null;
+  if (isSourceRateLimited('fmp')) return null;
+
+  const uppercaseSymbol = symbol.toUpperCase().trim();
+  const startTime = Date.now();
+
+  const cached = getCachedFmpInstitutionalOwnership(uppercaseSymbol, date);
+  if (cached !== null) {
+    console.log(`[FMP] Institutional ownership cache hit for ${uppercaseSymbol} / ${date}`);
+    return { institutional_ownership_pct: cached.ownershipPct, institutional_ownership_change_qoq: cached.changeQoQ };
+  }
+
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey) {
+    console.warn('[FMP] Missing FMP_API_KEY — skipping institutional ownership.');
+    return null;
+  }
+
+  try {
+    const url = `https://financialmodelingprep.com/api/v4/institutional-ownership/symbol-ownership?symbol=${uppercaseSymbol}&date=${date}&includeCurrentQuarter=true&apikey=${apiKey}`;
+    const res = await fetchWithTimeout(url);
+    const data = await handleFmpResponse(res, 'getFMPInstitutionalOwnership');
+
+    if (!Array.isArray(data) || data.length === 0) {
+      setCachedFmpInstitutionalOwnership(uppercaseSymbol, date, null, null);
+      return { institutional_ownership_pct: null, institutional_ownership_change_qoq: null };
+    }
+
+    // Sort descending by quarter date; pick entry on or before event date
+    const sorted = [...data]
+      .filter((r: any) => r.date != null)
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const current = sorted.find((r: any) => String(r.date).slice(0, 10) <= date) ?? sorted[0];
+    if (!current) {
+      setCachedFmpInstitutionalOwnership(uppercaseSymbol, date, null, null);
+      return { institutional_ownership_pct: null, institutional_ownership_change_qoq: null };
+    }
+
+    // Extract ownership pct — handle both 0-1 fraction and 0-100 scale
+    const rawPct: number | null =
+      typeof current.institutionalOwnershipPercentage === 'number' ? current.institutionalOwnershipPercentage :
+      typeof current.percentOwned === 'number' ? current.percentOwned :
+      typeof current.ownershipPercentage === 'number' ? current.ownershipPercentage :
+      null;
+
+    let ownershipPct: number | null = null;
+    if (rawPct !== null) {
+      ownershipPct = rawPct <= 1 ? Math.round(rawPct * 10000) / 100 : Math.round(rawPct * 100) / 100;
+    }
+
+    // QoQ change: prefer an explicit field, fall back to computing from previous quarter
+    let changeQoQ: number | null = null;
+    const rawChange: number | null =
+      typeof current.quarterlyChange === 'number' ? current.quarterlyChange :
+      typeof current.changeInOwnership === 'number' ? current.changeInOwnership :
+      null;
+
+    if (rawChange !== null) {
+      changeQoQ = rawChange <= 1 && rawChange >= -1
+        ? Math.round(rawChange * 10000) / 100
+        : Math.round(rawChange * 100) / 100;
+    } else if (ownershipPct !== null && sorted.length > 1) {
+      const currentIdx = sorted.indexOf(current);
+      const prior = sorted[currentIdx + 1];
+      if (prior) {
+        const priorRaw: number | null =
+          typeof prior.institutionalOwnershipPercentage === 'number' ? prior.institutionalOwnershipPercentage :
+          typeof prior.percentOwned === 'number' ? prior.percentOwned :
+          typeof prior.ownershipPercentage === 'number' ? prior.ownershipPercentage :
+          null;
+        if (priorRaw !== null) {
+          const priorPct = priorRaw <= 1 ? priorRaw * 100 : priorRaw;
+          changeQoQ = Math.round((ownershipPct - priorPct) * 100) / 100;
+        }
+      }
+    }
+
+    setCachedFmpInstitutionalOwnership(uppercaseSymbol, date, ownershipPct, changeQoQ);
+    logDataSourceFetch({
+      sourceId: 'fmp',
+      sourceName: 'Financial Modeling Prep',
+      dataType: 'institutional_ownership',
+      symbol: uppercaseSymbol,
+      fetchedAt: new Date().toISOString(),
+      success: true,
+      latencyMs: Date.now() - startTime,
+      isFallback: false
+    });
+    console.log(`[FMP] Institutional ownership for ${uppercaseSymbol} / ${date}: pct=${ownershipPct}, qoq_change=${changeQoQ}`);
+    return { institutional_ownership_pct: ownershipPct, institutional_ownership_change_qoq: changeQoQ };
+  } catch (err: any) {
+    console.warn(`[FMP] getFMPInstitutionalOwnership failed for ${uppercaseSymbol}: ${err.message}`);
+    return null;
+  }
+}
+
+export async function getFMPEarningsSurprise(
+  symbol: string,
+  date: string
+): Promise<{ eps_surprise_pct: number | null; revenue_surprise_pct: number | null; earnings_date_proximity_days: number | null } | null> {
+  if (!checkAndIncrementFmpBudget()) return null;
+  if (isSourceRateLimited('fmp')) return null;
+
+  const uppercaseSymbol = symbol.toUpperCase().trim();
+  const startTime = Date.now();
+
+  const cached = getCachedFmpEarningsSurprise(uppercaseSymbol, date);
+  if (cached !== null) {
+    console.log(`[FMP] Earnings surprise cache hit for ${uppercaseSymbol} / ${date}`);
+    return { eps_surprise_pct: cached.epsSurprisePct, revenue_surprise_pct: cached.revenueSurprisePct, earnings_date_proximity_days: cached.proximityDays };
+  }
+
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey) {
+    console.warn('[FMP] Missing FMP_API_KEY — skipping earnings surprise.');
+    return null;
+  }
+
+  try {
+    const url = `https://financialmodelingprep.com/api/v4/earnings-surprises?symbol=${uppercaseSymbol}&apikey=${apiKey}`;
+    const res = await fetchWithTimeout(url);
+    const data = await handleFmpResponse(res, 'getFMPEarningsSurprise');
+
+    if (!Array.isArray(data) || data.length === 0) {
+      setCachedFmpEarningsSurprise(uppercaseSymbol, date, null, null, null);
+      return { eps_surprise_pct: null, revenue_surprise_pct: null, earnings_date_proximity_days: null };
+    }
+
+    const eventMs = new Date(date).getTime();
+    const cutoffMs = eventMs - 30 * 24 * 60 * 60 * 1000;
+
+    const recent = data
+      .filter((r: any) => {
+        if (!r.date) return false;
+        const t = new Date(String(r.date).slice(0, 10)).getTime();
+        return t >= cutoffMs && t <= eventMs;
+      })
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    if (recent.length === 0) {
+      setCachedFmpEarningsSurprise(uppercaseSymbol, date, null, null, null);
+      return { eps_surprise_pct: null, revenue_surprise_pct: null, earnings_date_proximity_days: null };
+    }
+
+    const entry = recent[0];
+    const earningsMs = new Date(String(entry.date).slice(0, 10)).getTime();
+    const proximityDays = Math.round((eventMs - earningsMs) / (24 * 60 * 60 * 1000));
+
+    let epsSurprisePct: number | null = null;
+    const actualEps: number | null = typeof entry.actualEarningResult === 'number' ? entry.actualEarningResult : null;
+    const estimatedEps: number | null = typeof entry.estimatedEarning === 'number' ? entry.estimatedEarning : null;
+    if (actualEps !== null && estimatedEps !== null && estimatedEps !== 0) {
+      epsSurprisePct = Math.round(((actualEps - estimatedEps) / Math.abs(estimatedEps)) * 10000) / 100;
+    }
+
+    let revenueSurprisePct: number | null = null;
+    const actualRev: number | null = typeof entry.actualRevenue === 'number' ? entry.actualRevenue : null;
+    const estimatedRev: number | null = typeof entry.estimatedRevenue === 'number' ? entry.estimatedRevenue : null;
+    if (actualRev !== null && estimatedRev !== null && estimatedRev !== 0) {
+      revenueSurprisePct = Math.round(((actualRev - estimatedRev) / Math.abs(estimatedRev)) * 10000) / 100;
+    }
+
+    setCachedFmpEarningsSurprise(uppercaseSymbol, date, epsSurprisePct, revenueSurprisePct, proximityDays);
+    logDataSourceFetch({
+      sourceId: 'fmp',
+      sourceName: 'Financial Modeling Prep',
+      dataType: 'earnings_surprise',
+      symbol: uppercaseSymbol,
+      fetchedAt: new Date().toISOString(),
+      success: true,
+      latencyMs: Date.now() - startTime,
+      isFallback: false
+    });
+    console.log(`[FMP] Earnings surprise for ${uppercaseSymbol} / ${date}: eps_pct=${epsSurprisePct}, rev_pct=${revenueSurprisePct}, proximity=${proximityDays}d`);
+    return { eps_surprise_pct: epsSurprisePct, revenue_surprise_pct: revenueSurprisePct, earnings_date_proximity_days: proximityDays };
+  } catch (err: any) {
+    console.warn(`[FMP] getFMPEarningsSurprise failed for ${uppercaseSymbol}: ${err.message}`);
+    return null;
   }
 }

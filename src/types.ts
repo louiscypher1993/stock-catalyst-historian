@@ -234,6 +234,16 @@ export interface StockAnalysis {
 
   fmp_social_sentiment_score?: number;
   fmp_social_post_volume?: number;
+  fmp_news_sentiment_avg?: number;
+  fmp_news_article_count_7d?: number;
+  insider_net_shares_30d?: number | null;
+  insider_buy_count_30d?: number | null;
+  insider_sell_count_30d?: number | null;
+  institutional_ownership_pct?: number | null;
+  institutional_ownership_change_qoq?: number | null;
+  eps_surprise_pct?: number | null;
+  revenue_surprise_pct?: number | null;
+  earnings_date_proximity_days?: number | null;
   google_trends_shock_ratio?: number;
 }
 
@@ -450,6 +460,16 @@ export interface EventFeatureVector {
 
   fmp_social_sentiment_score?: number;
   fmp_social_post_volume?: number;
+  fmp_news_sentiment_avg?: number;
+  fmp_news_article_count_7d?: number;
+  insider_net_shares_30d?: number | null;
+  insider_buy_count_30d?: number | null;
+  insider_sell_count_30d?: number | null;
+  institutional_ownership_pct?: number | null;
+  institutional_ownership_change_qoq?: number | null;
+  eps_surprise_pct?: number | null;
+  revenue_surprise_pct?: number | null;
+  earnings_date_proximity_days?: number | null;
   google_trends_shock_ratio?: number;
   sector_encoded?: number;
   event_type_encoded?: number;
@@ -539,6 +559,13 @@ export interface EventFeatureVector {
     estimate_revision_magnitude: number | null;
     // company-level credit proxy derived from D/E ratio (NOT a real spread; flagged as proxy)
     company_credit_proxy: number | null;
+    // FMP news sentiment around the event window
+    fmp_news_sentiment_avg: number | null;
+    fmp_news_article_count_7d: number | null;
+    // FMP insider trading in the 30 days before the event
+    insider_net_shares_30d: number | null;
+    // FMP institutional ownership at the closest quarter before the event
+    institutional_ownership_pct: number | null;
   };
 }
 

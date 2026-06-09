@@ -1,9 +1,10 @@
 import { fetchInternationalPriceHistory } from "./EODHDService";
+import { normaliseForYahoo } from "./HistoricalEngine";
 
 async function fetchYahooFallback(symbol: string, years: number) {
   const range = `${Math.ceil(years)}y`;
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=${range}&interval=1d`;
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${normaliseForYahoo(symbol)}?range=${range}&interval=1d`;
     const response = await fetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0",

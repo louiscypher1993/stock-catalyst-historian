@@ -43,9 +43,9 @@ import {
   getDailyPutCallRatio,
 } from "./PolygonService";
 import { getRecentFilings } from "./EdgarService";
-import { getFullCompanyContext, getEarningsTranscript, getSocialSentiment, getEstimateRevisions } from "./FMPService";
+import { getFullCompanyContext, getEarningsTranscript, getSocialSentiment, getEstimateRevisions, getFMPNewsSentiment, getFMPInsiderTrading, getFMPInstitutionalOwnership, getFMPEarningsSurprise } from "./FMPService";
 import { getTopPeers } from "./PeerDataService";
-import { getDarkPoolActivity, getBorrowRate } from "./ShortDataService";
+import { getDarkPoolActivity, getBorrowRate, getFMPShortInterest } from "./ShortDataService";
 import { fetchGDELTToneForDate } from "./GDELTService";
 import {
   fetchInternationalPriceHistory,
@@ -76,6 +76,27 @@ const normaliseSuspectedCatalyst = (val: any): string | undefined => {
   if (typeof val === 'string') return val;
   return undefined;
 };
+
+// Exchange suffixes that Yahoo Finance preserves with a dot (international markets).
+const YAHOO_INTL_SUFFIXES = new Set([
+  '.L', '.PA', '.AS', '.BR', '.DE', '.F', '.HK', '.SS', '.SZ',
+  '.T', '.TO', '.AX', '.NS', '.BO', '.KS', '.TW', '.SW', '.ST',
+  '.OL', '.CO', '.HE', '.ME', '.SA', '.BA', '.MX', '.IS', '.NZ',
+]);
+
+/**
+ * Converts a symbol from FMP/internal format to Yahoo Finance format.
+ * US multi-class share tickers use a dash separator on Yahoo (BRK.B → BRK-B),
+ * while international exchange suffixes are preserved as-is.
+ */
+export function normaliseForYahoo(symbol: string): string {
+  const upper = symbol.toUpperCase().trim();
+  const dotIdx = upper.lastIndexOf('.');
+  if (dotIdx === -1) return upper;
+  const suffix = upper.slice(dotIdx);
+  if (YAHOO_INTL_SUFFIXES.has(suffix)) return upper;
+  return upper.replace(/\./g, '-');
+}
 
 /**
  * A highly robust, promise-based sleep helper function. 
@@ -461,6 +482,16 @@ function buildAndSaveFeatureVector(
       sector_relative_z_score: (p as any)._tempSectorRelativeZScore ?? p.analysis?.sector_relative_z_score ?? null,
       fmp_social_sentiment_score: (p as any)._tempFmpSocialSentimentScore ?? p.analysis?.fmp_social_sentiment_score ?? null,
       fmp_social_post_volume: (p as any)._tempFmpSocialPostVolume ?? p.analysis?.fmp_social_post_volume ?? null,
+      fmp_news_sentiment_avg: (p as any)._tempFmpNewsSentimentAvg ?? (p.analysis as any)?.fmp_news_sentiment_avg ?? null,
+      fmp_news_article_count_7d: (p as any)._tempFmpNewsArticleCount7d ?? (p.analysis as any)?.fmp_news_article_count_7d ?? null,
+      insider_net_shares_30d: (p as any)._tempInsiderNetShares30d ?? (p.analysis as any)?.insider_net_shares_30d ?? null,
+      insider_buy_count_30d: (p as any)._tempInsiderBuyCount30d ?? (p.analysis as any)?.insider_buy_count_30d ?? null,
+      insider_sell_count_30d: (p as any)._tempInsiderSellCount30d ?? (p.analysis as any)?.insider_sell_count_30d ?? null,
+      institutional_ownership_pct: (p as any)._tempInstitutionalOwnershipPct ?? (p.analysis as any)?.institutional_ownership_pct ?? null,
+      institutional_ownership_change_qoq: (p as any)._tempInstitutionalOwnershipChangeQoQ ?? (p.analysis as any)?.institutional_ownership_change_qoq ?? null,
+      eps_surprise_pct: (p as any)._tempEpsSurprisePct ?? (p.analysis as any)?.eps_surprise_pct ?? null,
+      revenue_surprise_pct: (p as any)._tempRevenueSurprisePct ?? (p.analysis as any)?.revenue_surprise_pct ?? null,
+      earnings_date_proximity_days: (p as any)._tempEarningsProximityDays ?? (p.analysis as any)?.earnings_date_proximity_days ?? null,
       google_trends_shock_ratio: (p as any)._tempTrendsSummary?.google_trends_shock_ratio ?? p.analysis?.trendsSummary?.google_trends_shock_ratio ?? p.analysis?.google_trends_shock_ratio ?? null,
       sector_excess_return: div100(p.sectorExcessReturn),
       max_favorable_excursion_1m: div100(p.analysis?.max_favorable_excursion_1m),
@@ -519,6 +550,10 @@ function buildAndSaveFeatureVector(
           estimate_revision_direction: (p as any)._tempEstimateRevisions?.revisionDirection ?? null,
           estimate_revision_magnitude: (p as any)._tempEstimateRevisions?.revisionMagnitudePct ?? null,
           company_credit_proxy: (p as any)._tempCompanyCreditProxy ?? null,
+          fmp_news_sentiment_avg: (p as any)._tempFmpNewsSentimentAvg ?? (p.analysis as any)?.fmp_news_sentiment_avg ?? null,
+          fmp_news_article_count_7d: (p as any)._tempFmpNewsArticleCount7d ?? (p.analysis as any)?.fmp_news_article_count_7d ?? null,
+          insider_net_shares_30d: (p as any)._tempInsiderNetShares30d ?? (p.analysis as any)?.insider_net_shares_30d ?? null,
+          institutional_ownership_pct: (p as any)._tempInstitutionalOwnershipPct ?? (p.analysis as any)?.institutional_ownership_pct ?? null,
         };
       })(),
     };
@@ -530,12 +565,13 @@ function buildAndSaveFeatureVector(
 
 async function fetchYahooPeerReturn(symbol: string, targetDate: string): Promise<number | null> {
   try {
+    const yahooSymbol = normaliseForYahoo(symbol);
     const dDate = new Date(targetDate);
     const dDateStart = new Date(dDate);
     dDateStart.setDate(dDateStart.getDate() - 7); // 7 days back to get t-1
     const p1 = Math.floor(dDateStart.getTime() / 1000);
     const p2 = Math.floor((dDate.getTime() + 86400000) / 1000);
-    const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?period1=${p1}&period2=${p2}&interval=1d`, {
+    const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?period1=${p1}&period2=${p2}&interval=1d`, {
       headers: { "User-Agent": "Mozilla/5.0" }
     });
     if (!res.ok) return null;
@@ -615,7 +651,7 @@ export class HistoricalEngine {
     }
 
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${uppercaseSymbol}?range=5d&interval=1d`;
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${normaliseForYahoo(uppercaseSymbol)}?range=5d&interval=1d`;
       const response = await fetch(url, {
         headers: {
           "User-Agent": "Mozilla/5.0",
@@ -868,7 +904,7 @@ Reply with JSON containing only a single property "score" (a number between 1 an
     if (upper === "BAT.L") return "BATS.L";
     if (upper === "NEXT.L") return "NXT.L";
     if (upper === "BINT.L") return "BNZL.L";
-    return upper;
+    return normaliseForYahoo(upper);
   }
 
   private generateSyntheticStockData(
@@ -4247,6 +4283,11 @@ Provide a JSON array containing the results mapping perfectly back using the sta
             fmp_dark_pool: 'skip',
             fmp_borrow: 'skip',
             fmp_social: 'skip',
+            fmp_short: 'skip',
+            fmp_news: 'skip',
+            insider: 'skip',
+            institutional: 'skip',
+            earnings: 'skip',
             gdelt: 'skip',
             reddit: 'skip',
             trends: 'skip',
@@ -4411,6 +4452,142 @@ Provide a JSON array containing the results mapping perfectly back using the sta
           } else {
             (a as any)._tempFmpSocialSentimentScore = a.analysis.fmp_social_sentiment_score;
             (a as any)._tempFmpSocialPostVolume = a.analysis.fmp_social_post_volume;
+          }
+
+          // 4.5 FMP News Sentiment
+          if (a.analysis.fmp_news_sentiment_avg === undefined) {
+            promises.push(
+              (async () => {
+                try {
+                  const newsSentiment = await getFMPNewsSentiment(uppercaseSymbol, a.date);
+                  if (newsSentiment && (newsSentiment.fmp_news_sentiment_avg !== null || newsSentiment.fmp_news_article_count_7d > 0)) {
+                    a.analysis!.fmp_news_sentiment_avg = newsSentiment.fmp_news_sentiment_avg as any;
+                    a.analysis!.fmp_news_article_count_7d = newsSentiment.fmp_news_article_count_7d as any;
+                    (a as any)._tempFmpNewsSentimentAvg = newsSentiment.fmp_news_sentiment_avg;
+                    (a as any)._tempFmpNewsArticleCount7d = newsSentiment.fmp_news_article_count_7d;
+                    enrichStatuses.fmp_news = newsSentiment.fmp_news_article_count_7d > 0 ? 'hit' : 'skip';
+                  } else {
+                    a.analysis!.fmp_news_sentiment_avg = null as any;
+                    a.analysis!.fmp_news_article_count_7d = 0 as any;
+                    (a as any)._tempFmpNewsSentimentAvg = null;
+                    (a as any)._tempFmpNewsArticleCount7d = 0;
+                    enrichStatuses.fmp_news = 'skip';
+                  }
+                } catch (err) {
+                  console.error(`[HistoricalEngine] Failed to retrieve FMP news sentiment for ${uppercaseSymbol} on ${a.date}:`, err);
+                  (a as any)._tempFmpNewsSentimentAvg = null;
+                  (a as any)._tempFmpNewsArticleCount7d = 0;
+                  enrichStatuses.fmp_news = 'skip';
+                }
+              })()
+            );
+          } else {
+            (a as any)._tempFmpNewsSentimentAvg = a.analysis.fmp_news_sentiment_avg;
+            (a as any)._tempFmpNewsArticleCount7d = (a.analysis as any).fmp_news_article_count_7d ?? 0;
+            enrichStatuses.fmp_news = (a.analysis as any).fmp_news_article_count_7d > 0 ? 'hit' : 'skip';
+          }
+
+          // 4.6 FMP Insider Trading (30-day window)
+          if ((a.analysis as any).insider_net_shares_30d === undefined) {
+            promises.push(
+              (async () => {
+                try {
+                  const insider = await getFMPInsiderTrading(uppercaseSymbol, a.date);
+                  if (insider) {
+                    (a.analysis as any).insider_net_shares_30d = insider.insider_net_shares_30d;
+                    (a.analysis as any).insider_buy_count_30d = insider.insider_buy_count_30d;
+                    (a.analysis as any).insider_sell_count_30d = insider.insider_sell_count_30d;
+                    (a as any)._tempInsiderNetShares30d = insider.insider_net_shares_30d;
+                    (a as any)._tempInsiderBuyCount30d = insider.insider_buy_count_30d;
+                    (a as any)._tempInsiderSellCount30d = insider.insider_sell_count_30d;
+                    enrichStatuses.insider = insider.insider_buy_count_30d > 0 || insider.insider_sell_count_30d > 0 ? 'hit' : 'skip';
+                  } else {
+                    (a as any)._tempInsiderNetShares30d = null;
+                    (a as any)._tempInsiderBuyCount30d = 0;
+                    (a as any)._tempInsiderSellCount30d = 0;
+                    enrichStatuses.insider = 'skip';
+                  }
+                } catch (err) {
+                  console.error(`[HistoricalEngine] Failed to retrieve FMP insider trading for ${uppercaseSymbol} on ${a.date}:`, err);
+                  (a as any)._tempInsiderNetShares30d = null;
+                  (a as any)._tempInsiderBuyCount30d = 0;
+                  (a as any)._tempInsiderSellCount30d = 0;
+                  enrichStatuses.insider = 'skip';
+                }
+              })()
+            );
+          } else {
+            (a as any)._tempInsiderNetShares30d = (a.analysis as any).insider_net_shares_30d;
+            (a as any)._tempInsiderBuyCount30d = (a.analysis as any).insider_buy_count_30d ?? 0;
+            (a as any)._tempInsiderSellCount30d = (a.analysis as any).insider_sell_count_30d ?? 0;
+            enrichStatuses.insider = ((a.analysis as any).insider_buy_count_30d > 0 || (a.analysis as any).insider_sell_count_30d > 0) ? 'hit' : 'skip';
+          }
+
+          // 4.7 FMP Institutional Ownership
+          if ((a.analysis as any).institutional_ownership_pct === undefined) {
+            promises.push(
+              (async () => {
+                try {
+                  const inst = await getFMPInstitutionalOwnership(uppercaseSymbol, a.date);
+                  if (inst) {
+                    (a.analysis as any).institutional_ownership_pct = inst.institutional_ownership_pct;
+                    (a.analysis as any).institutional_ownership_change_qoq = inst.institutional_ownership_change_qoq;
+                    (a as any)._tempInstitutionalOwnershipPct = inst.institutional_ownership_pct;
+                    (a as any)._tempInstitutionalOwnershipChangeQoQ = inst.institutional_ownership_change_qoq;
+                    enrichStatuses.institutional = inst.institutional_ownership_pct !== null ? 'hit' : 'skip';
+                  } else {
+                    (a as any)._tempInstitutionalOwnershipPct = null;
+                    (a as any)._tempInstitutionalOwnershipChangeQoQ = null;
+                    enrichStatuses.institutional = 'skip';
+                  }
+                } catch (err) {
+                  console.error(`[HistoricalEngine] Failed to retrieve FMP institutional ownership for ${uppercaseSymbol} on ${a.date}:`, err);
+                  (a as any)._tempInstitutionalOwnershipPct = null;
+                  (a as any)._tempInstitutionalOwnershipChangeQoQ = null;
+                  enrichStatuses.institutional = 'skip';
+                }
+              })()
+            );
+          } else {
+            (a as any)._tempInstitutionalOwnershipPct = (a.analysis as any).institutional_ownership_pct;
+            (a as any)._tempInstitutionalOwnershipChangeQoQ = (a.analysis as any).institutional_ownership_change_qoq ?? null;
+            enrichStatuses.institutional = (a.analysis as any).institutional_ownership_pct !== null ? 'hit' : 'skip';
+          }
+
+          // 4.8 FMP Earnings Surprise
+          if ((a.analysis as any).eps_surprise_pct === undefined) {
+            promises.push(
+              (async () => {
+                try {
+                  const earnings = await getFMPEarningsSurprise(uppercaseSymbol, a.date);
+                  if (earnings) {
+                    (a.analysis as any).eps_surprise_pct = earnings.eps_surprise_pct;
+                    (a.analysis as any).revenue_surprise_pct = earnings.revenue_surprise_pct;
+                    (a.analysis as any).earnings_date_proximity_days = earnings.earnings_date_proximity_days;
+                    (a as any)._tempEpsSurprisePct = earnings.eps_surprise_pct;
+                    (a as any)._tempRevenueSurprisePct = earnings.revenue_surprise_pct;
+                    (a as any)._tempEarningsProximityDays = earnings.earnings_date_proximity_days;
+                    enrichStatuses.earnings = earnings.eps_surprise_pct !== null || earnings.revenue_surprise_pct !== null ? 'hit' : 'skip';
+                  } else {
+                    (a as any)._tempEpsSurprisePct = null;
+                    (a as any)._tempRevenueSurprisePct = null;
+                    (a as any)._tempEarningsProximityDays = null;
+                    enrichStatuses.earnings = 'skip';
+                  }
+                } catch (err) {
+                  console.error(`[HistoricalEngine] Failed to retrieve FMP earnings surprise for ${uppercaseSymbol} on ${a.date}:`, err);
+                  (a as any)._tempEpsSurprisePct = null;
+                  (a as any)._tempRevenueSurprisePct = null;
+                  (a as any)._tempEarningsProximityDays = null;
+                  enrichStatuses.earnings = 'skip';
+                }
+              })()
+            );
+          } else {
+            (a as any)._tempEpsSurprisePct = (a.analysis as any).eps_surprise_pct ?? null;
+            (a as any)._tempRevenueSurprisePct = (a.analysis as any).revenue_surprise_pct ?? null;
+            (a as any)._tempEarningsProximityDays = (a.analysis as any).earnings_date_proximity_days ?? null;
+            enrichStatuses.earnings = (a.analysis as any).eps_surprise_pct !== null && (a.analysis as any).eps_surprise_pct !== undefined ? 'hit' : 'skip';
           }
 
           // 5. Google Trends
@@ -4624,20 +4801,34 @@ Provide a JSON array containing the results mapping perfectly back using the sta
             })()
           );
 
-          // 10.6 FINRA Short Interest
+          // 10.6 Short Interest — FMP primary, FINRA fallback
           promises.push(
             (async () => {
               try {
-                const [si, velocity] = await Promise.all([
-                  getShortInterest(uppercaseSymbol, a.date),
+                const [fmpSI, velocity] = await Promise.all([
+                  getFMPShortInterest(uppercaseSymbol, a.date),
                   getShortInterestVelocity(uppercaseSymbol, a.date)
                 ]);
-                (a as any)._tempShortInterest = si;
+
+                if (fmpSI) {
+                  (a as any)._tempShortInterest = {
+                    pctOfFloat: fmpSI.pctOfFloat,
+                    sharesFloat: fmpSI.sharesFloat,
+                    settlementDate: a.date,
+                    source: 'fmp'
+                  };
+                  enrichStatuses.fmp_short = 'hit';
+                } else {
+                  enrichStatuses.fmp_short = 'skip';
+                  const si = await getShortInterest(uppercaseSymbol, a.date);
+                  (a as any)._tempShortInterest = si;
+                }
                 (a as any)._tempShortInterestVelocity = velocity;
               } catch (err) {
-                console.error(`[HistoricalEngine] Failed to load FINRA short interest for ${uppercaseSymbol} on ${a.date}:`, err);
+                console.error(`[HistoricalEngine] Failed to load short interest for ${uppercaseSymbol} on ${a.date}:`, err);
                 (a as any)._tempShortInterest = null;
                 (a as any)._tempShortInterestVelocity = null;
+                enrichStatuses.fmp_short = 'skip';
               }
             })()
           );
@@ -4832,7 +5023,7 @@ Provide a JSON array containing the results mapping perfectly back using the sta
           );
 
           await Promise.all(promises);
-          console.log(`[Enrichment] ${uppercaseSymbol} / ${a.date}: polygon=${enrichStatuses.polygon}, fmp_dark_pool=${enrichStatuses.fmp_dark_pool}, fmp_borrow=${enrichStatuses.fmp_borrow}, fmp_social=${enrichStatuses.fmp_social}, gdelt=${enrichStatuses.gdelt}, reddit=${enrichStatuses.reddit}, trends=${enrichStatuses.trends}, wiki=${enrichStatuses.wiki}, newsapi=${enrichStatuses.newsapi}, youtube=${enrichStatuses.youtube}, edgar=${enrichStatuses.edgar}, congressional=${enrichStatuses.congressional}`);
+          console.log(`[Enrichment] ${uppercaseSymbol} / ${a.date}: polygon=${enrichStatuses.polygon}, fmp_dark_pool=${enrichStatuses.fmp_dark_pool}, fmp_borrow=${enrichStatuses.fmp_borrow}, fmp_social=${enrichStatuses.fmp_social}, fmp_short=${enrichStatuses.fmp_short}, fmp_news=${enrichStatuses.fmp_news}, insider=${enrichStatuses.insider}, institutional=${enrichStatuses.institutional}, earnings=${enrichStatuses.earnings}, gdelt=${enrichStatuses.gdelt}, reddit=${enrichStatuses.reddit}, trends=${enrichStatuses.trends}, wiki=${enrichStatuses.wiki}, newsapi=${enrichStatuses.newsapi}, youtube=${enrichStatuses.youtube}, edgar=${enrichStatuses.edgar}, congressional=${enrichStatuses.congressional}`);
 
           // Dynamically merge and update cache record if this was already loaded from cache previously
           if (a.hasAnalysis && a.analysis) {

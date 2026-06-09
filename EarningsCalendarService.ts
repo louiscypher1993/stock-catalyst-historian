@@ -6,6 +6,21 @@ import {
   getEdgarFilings
 } from "./db";
 
+// Local copy — cannot import from HistoricalEngine (circular dependency).
+const _YAHOO_INTL_SUFFIXES = new Set([
+  '.L', '.PA', '.AS', '.BR', '.DE', '.F', '.HK', '.SS', '.SZ',
+  '.T', '.TO', '.AX', '.NS', '.BO', '.KS', '.TW', '.SW', '.ST',
+  '.OL', '.CO', '.HE', '.ME', '.SA', '.BA', '.MX', '.IS', '.NZ',
+]);
+function normaliseForYahoo(symbol: string): string {
+  const upper = symbol.toUpperCase().trim();
+  const dotIdx = upper.lastIndexOf('.');
+  if (dotIdx === -1) return upper;
+  const suffix = upper.slice(dotIdx);
+  if (_YAHOO_INTL_SUFFIXES.has(suffix)) return upper;
+  return upper.replace(/\./g, '-');
+}
+
 export interface EarningsCalendarResult {
   events: Array<{
     reportDate: string;
@@ -49,7 +64,7 @@ async function getYahooEarnings(symbol: string): Promise<EarningsCalendarResult 
     const cached = getYahooEarningsCache(symbol);
     if (cached) return cached;
 
-    const res = await fetch(`https://query2.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=calendarEvents,earningsHistory,financialData`, {
+    const res = await fetch(`https://query2.finance.yahoo.com/v10/finance/quoteSummary/${normaliseForYahoo(symbol)}?modules=calendarEvents,earningsHistory,financialData`, {
       headers: { "User-Agent": "Mozilla/5.0" }
     });
     if (!res.ok) return null;

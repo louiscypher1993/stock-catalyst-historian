@@ -446,6 +446,48 @@ try {
       cached_at TEXT,
       PRIMARY KEY (symbol, date)
     );
+    CREATE TABLE IF NOT EXISTS fmp_short_interest_cache (
+      symbol TEXT,
+      date TEXT,
+      short_interest_pct REAL NOT NULL,
+      shares_float REAL,
+      cached_at TEXT NOT NULL,
+      PRIMARY KEY (symbol, date)
+    );
+    CREATE TABLE IF NOT EXISTS fmp_news_sentiment_cache (
+      symbol TEXT,
+      date TEXT,
+      sentiment_avg REAL,
+      article_count INTEGER NOT NULL DEFAULT 0,
+      cached_at TEXT NOT NULL,
+      PRIMARY KEY (symbol, date)
+    );
+    CREATE TABLE IF NOT EXISTS fmp_insider_trading_cache (
+      symbol TEXT,
+      date TEXT,
+      net_shares REAL,
+      buy_count INTEGER NOT NULL DEFAULT 0,
+      sell_count INTEGER NOT NULL DEFAULT 0,
+      cached_at TEXT NOT NULL,
+      PRIMARY KEY (symbol, date)
+    );
+    CREATE TABLE IF NOT EXISTS fmp_institutional_ownership_cache (
+      symbol TEXT,
+      date TEXT,
+      ownership_pct REAL,
+      change_qoq REAL,
+      cached_at TEXT NOT NULL,
+      PRIMARY KEY (symbol, date)
+    );
+    CREATE TABLE IF NOT EXISTS fmp_earnings_surprise_cache (
+      symbol TEXT,
+      date TEXT,
+      eps_surprise_pct REAL,
+      revenue_surprise_pct REAL,
+      proximity_days INTEGER,
+      cached_at TEXT NOT NULL,
+      PRIMARY KEY (symbol, date)
+    );
     CREATE TABLE IF NOT EXISTS finra_short_interest (
       symbol TEXT,
       settlement_date TEXT,
@@ -565,6 +607,103 @@ export function setCachedSocialSentiment(symbol: string, date: string, sentiment
       cached_at = excluded.cached_at
   `);
   stmt.run(symbol, date, sentimentScore, postVolume, new Date().toISOString());
+}
+
+export function getCachedFmpShortInterest(symbol: string, date: string): { shortInterestPct: number; sharesFloat: number | null } | null {
+  const stmt = db.prepare('SELECT short_interest_pct, shares_float FROM fmp_short_interest_cache WHERE symbol = ? AND date = ?');
+  const row = stmt.get(symbol, date) as { short_interest_pct: number; shares_float: number | null } | undefined;
+  if (row) return { shortInterestPct: row.short_interest_pct, sharesFloat: row.shares_float };
+  return null;
+}
+
+export function setCachedFmpShortInterest(symbol: string, date: string, shortInterestPct: number, sharesFloat: number | null): void {
+  const stmt = db.prepare(`
+    INSERT INTO fmp_short_interest_cache (symbol, date, short_interest_pct, shares_float, cached_at)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(symbol, date) DO UPDATE SET
+      short_interest_pct = excluded.short_interest_pct,
+      shares_float = excluded.shares_float,
+      cached_at = excluded.cached_at
+  `);
+  stmt.run(symbol, date, shortInterestPct, sharesFloat, new Date().toISOString());
+}
+
+export function getCachedFmpNewsSentiment(symbol: string, date: string): { sentimentAvg: number | null; articleCount: number } | null {
+  const stmt = db.prepare('SELECT sentiment_avg, article_count FROM fmp_news_sentiment_cache WHERE symbol = ? AND date = ?');
+  const row = stmt.get(symbol, date) as { sentiment_avg: number | null; article_count: number } | undefined;
+  if (row) return { sentimentAvg: row.sentiment_avg, articleCount: row.article_count };
+  return null;
+}
+
+export function setCachedFmpNewsSentiment(symbol: string, date: string, sentimentAvg: number | null, articleCount: number): void {
+  const stmt = db.prepare(`
+    INSERT INTO fmp_news_sentiment_cache (symbol, date, sentiment_avg, article_count, cached_at)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(symbol, date) DO UPDATE SET
+      sentiment_avg = excluded.sentiment_avg,
+      article_count = excluded.article_count,
+      cached_at = excluded.cached_at
+  `);
+  stmt.run(symbol, date, sentimentAvg, articleCount, new Date().toISOString());
+}
+
+export function getCachedFmpInsiderTrading(symbol: string, date: string): { netShares: number | null; buyCount: number; sellCount: number } | null {
+  const stmt = db.prepare('SELECT net_shares, buy_count, sell_count FROM fmp_insider_trading_cache WHERE symbol = ? AND date = ?');
+  const row = stmt.get(symbol, date) as { net_shares: number | null; buy_count: number; sell_count: number } | undefined;
+  if (row) return { netShares: row.net_shares, buyCount: row.buy_count, sellCount: row.sell_count };
+  return null;
+}
+
+export function setCachedFmpInsiderTrading(symbol: string, date: string, netShares: number | null, buyCount: number, sellCount: number): void {
+  const stmt = db.prepare(`
+    INSERT INTO fmp_insider_trading_cache (symbol, date, net_shares, buy_count, sell_count, cached_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(symbol, date) DO UPDATE SET
+      net_shares = excluded.net_shares,
+      buy_count = excluded.buy_count,
+      sell_count = excluded.sell_count,
+      cached_at = excluded.cached_at
+  `);
+  stmt.run(symbol, date, netShares, buyCount, sellCount, new Date().toISOString());
+}
+
+export function getCachedFmpInstitutionalOwnership(symbol: string, date: string): { ownershipPct: number | null; changeQoQ: number | null } | null {
+  const stmt = db.prepare('SELECT ownership_pct, change_qoq FROM fmp_institutional_ownership_cache WHERE symbol = ? AND date = ?');
+  const row = stmt.get(symbol, date) as { ownership_pct: number | null; change_qoq: number | null } | undefined;
+  if (row) return { ownershipPct: row.ownership_pct, changeQoQ: row.change_qoq };
+  return null;
+}
+
+export function setCachedFmpInstitutionalOwnership(symbol: string, date: string, ownershipPct: number | null, changeQoQ: number | null): void {
+  const stmt = db.prepare(`
+    INSERT INTO fmp_institutional_ownership_cache (symbol, date, ownership_pct, change_qoq, cached_at)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(symbol, date) DO UPDATE SET
+      ownership_pct = excluded.ownership_pct,
+      change_qoq = excluded.change_qoq,
+      cached_at = excluded.cached_at
+  `);
+  stmt.run(symbol, date, ownershipPct, changeQoQ, new Date().toISOString());
+}
+
+export function getCachedFmpEarningsSurprise(symbol: string, date: string): { epsSurprisePct: number | null; revenueSurprisePct: number | null; proximityDays: number | null } | null {
+  const stmt = db.prepare('SELECT eps_surprise_pct, revenue_surprise_pct, proximity_days FROM fmp_earnings_surprise_cache WHERE symbol = ? AND date = ?');
+  const row = stmt.get(symbol, date) as { eps_surprise_pct: number | null; revenue_surprise_pct: number | null; proximity_days: number | null } | undefined;
+  if (row) return { epsSurprisePct: row.eps_surprise_pct, revenueSurprisePct: row.revenue_surprise_pct, proximityDays: row.proximity_days };
+  return null;
+}
+
+export function setCachedFmpEarningsSurprise(symbol: string, date: string, epsSurprisePct: number | null, revenueSurprisePct: number | null, proximityDays: number | null): void {
+  const stmt = db.prepare(`
+    INSERT INTO fmp_earnings_surprise_cache (symbol, date, eps_surprise_pct, revenue_surprise_pct, proximity_days, cached_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(symbol, date) DO UPDATE SET
+      eps_surprise_pct = excluded.eps_surprise_pct,
+      revenue_surprise_pct = excluded.revenue_surprise_pct,
+      proximity_days = excluded.proximity_days,
+      cached_at = excluded.cached_at
+  `);
+  stmt.run(symbol, date, epsSurprisePct, revenueSurprisePct, proximityDays, new Date().toISOString());
 }
 
 /**

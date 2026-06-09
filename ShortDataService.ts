@@ -3,8 +3,85 @@ import {
   getFinraAtsCache,
   setFinraAtsCache,
   getIbkrShortCache,
-  setIbkrShortCache
+  setIbkrShortCache,
+  getCachedFmpShortInterest,
+  setCachedFmpShortInterest
 } from "./db";
+
+/**
+ * Fetches historical short interest data from FMP /api/v4/historical/shares_float.
+ * Returns the entry closest to (on or before) `date`.
+ * Requires FMP Premium.
+ */
+export async function getFMPShortInterest(symbol: string, date: string): Promise<{
+  pctOfFloat: number;
+  sharesFloat: number | null;
+  source: 'fmp';
+} | null> {
+  try {
+    const uppercaseSymbol = symbol.toUpperCase().trim();
+
+    const cached = getCachedFmpShortInterest(uppercaseSymbol, date);
+    if (cached !== null) {
+      return { pctOfFloat: cached.shortInterestPct, sharesFloat: cached.sharesFloat, source: 'fmp' };
+    }
+
+    const apiKey = process.env.FMP_API_KEY;
+    if (!apiKey) return null;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    let res: Response;
+    try {
+      res = await fetch(
+        `https://financialmodelingprep.com/api/v4/historical/shares_float?symbol=${uppercaseSymbol}&apikey=${apiKey}`,
+        { signal: controller.signal }
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (!res.ok) {
+      console.debug(`[ShortDataService] FMP shares_float HTTP ${res.status} for ${uppercaseSymbol}`);
+      return null;
+    }
+
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return null;
+
+    // Sort descending and pick the entry on or immediately before the target date
+    const sorted = [...data]
+      .filter((r: any) => r.date != null)
+      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const entry = sorted.find((r: any) => String(r.date).slice(0, 10) <= date) ?? sorted[0];
+    if (!entry) return null;
+
+    // Try multiple candidate field names for short interest percentage
+    const pctRaw: number | null =
+      typeof entry.shortPercent  === 'number' ? entry.shortPercent :
+      typeof entry.shortFloat    === 'number' ? entry.shortFloat :
+      // shortInterest is sometimes stored as a decimal fraction (e.g. 0.032 = 3.2%) on this endpoint
+      typeof entry.shortInterest === 'number' && entry.shortInterest <= 1
+        ? entry.shortInterest * 100
+        : typeof entry.shortInterest === 'number' && entry.shortInterest < 100
+          ? entry.shortInterest
+          : null;
+
+    if (pctRaw === null) return null;
+
+    const sharesFloat: number | null =
+      typeof entry.floatShares === 'number' ? entry.floatShares :
+      typeof entry.sharesFloat === 'number' ? entry.sharesFloat :
+      null;
+
+    setCachedFmpShortInterest(uppercaseSymbol, date, pctRaw, sharesFloat);
+    return { pctOfFloat: pctRaw, sharesFloat, source: 'fmp' };
+  } catch (err: any) {
+    console.error(`[ShortDataService] FMP short interest error for ${symbol}:`, err.message ?? err);
+    return null;
+  }
+}
 
 // Helper to get the Monday of the week for a given date string 'YYYY-MM-DD'
 function getMonday(dateStr: string): string {
