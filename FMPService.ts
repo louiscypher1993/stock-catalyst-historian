@@ -5,6 +5,10 @@ export let fmpDailyRequestCount = 0;
 export let fmpDailyResetDate = new Date().toISOString().split('T')[0];
 export const FMP_DAILY_BUDGET = 10000000;
 
+let fmpMinuteRequestCount = 0;
+let fmpMinuteResetTime = Date.now() + 60000;
+const FMP_MINUTE_LIMIT = 700;
+
 export function checkAndIncrementFmpBudget(): boolean {
   const today = new Date().toISOString().split('T')[0];
   if (today !== fmpDailyResetDate) {
@@ -15,7 +19,16 @@ export function checkAndIncrementFmpBudget(): boolean {
     console.warn(`[FMP] Daily budget of ${FMP_DAILY_BUDGET} requests reached.\n        No further FMP calls will be made today. Resets at midnight UTC.`);
     return false;
   }
+  if (Date.now() > fmpMinuteResetTime) {
+    fmpMinuteRequestCount = 0;
+    fmpMinuteResetTime = Date.now() + 60000;
+  }
+  if (fmpMinuteRequestCount >= FMP_MINUTE_LIMIT) {
+    console.warn(`[FMP] Per-minute limit of ${FMP_MINUTE_LIMIT} requests reached — throttling.`);
+    return false;
+  }
   fmpDailyRequestCount++;
+  fmpMinuteRequestCount++;
   console.log(`[FMP] Request ${fmpDailyRequestCount}/${FMP_DAILY_BUDGET} used today.`);
   return true;
 }
@@ -512,7 +525,9 @@ import {
   getCachedFmpInsiderTrading, setCachedFmpInsiderTrading,
   getCachedFmpInstitutionalOwnership, setCachedFmpInstitutionalOwnership,
   getCachedFmpEarningsSurprise, setCachedFmpEarningsSurprise,
+  getCachedEarningsHistory, setCachedEarningsHistory,
   getCachedFmpAnalystGrades, setCachedFmpAnalystGrades,
+  getCachedGradesHistory, setCachedGradesHistory,
   getCachedFmpPriceTarget, setCachedFmpPriceTarget
 } from "./db";
 
@@ -945,25 +960,38 @@ export async function getFMPNewsSentiment(
 
     const url = `https://financialmodelingprep.com/stable/news/stock-latest?symbols=${uppercaseSymbol}&from=${fromDate}&to=${toDate}&limit=50&apikey=${apiKey}`;
     const res = await fetchWithTimeout(url);
-    const data = await handleFmpResponse(res, 'getFMPNewsSentiment');
+    let data = await handleFmpResponse(res, 'getFMPNewsSentiment');
+
+    if (Array.isArray(data) && data.length > 0) {
+      // If the endpoint returns unfiltered results, fall back to press-releases
+      if (data[0]?.symbol && String(data[0].symbol).toUpperCase() !== uppercaseSymbol) {
+        const prUrl = `https://financialmodelingprep.com/stable/news/press-releases?symbols=${uppercaseSymbol}&from=${fromDate}&to=${toDate}&limit=50&apikey=${apiKey}`;
+        const prRes = await fetchWithTimeout(prUrl);
+        const prData = await handleFmpResponse(prRes, 'getFMPNewsSentiment');
+        if (Array.isArray(prData) && prData.length > 0) {
+          data = prData;
+          console.log('[FMP] Fell back to press-releases for', uppercaseSymbol, '— first article symbol:', data[0]?.symbol);
+        }
+      }
+    }
 
     if (!Array.isArray(data) || data.length === 0) {
       setCachedFmpNewsSentiment(uppercaseSymbol, date, null, 0);
       return { fmp_news_sentiment_avg: null, fmp_news_article_count_7d: 0 };
     }
 
-    if (data.length > 0) {
-      console.log('[FMP] News article sample fields:', Object.keys(data[0]));
-    }
+    const POSITIVE_WORDS = ['beat', 'surge', 'record', 'raised', 'upgraded', 'strong', 'growth', 'profit'];
+    const NEGATIVE_WORDS = ['miss', 'fell', 'cut', 'downgrade', 'loss', 'weak', 'decline', 'below', 'warn'];
 
     const scores: number[] = [];
     for (const article of data) {
-      if (typeof article.sentiment === 'string') {
-        const s = article.sentiment.toLowerCase();
-        if (s === 'positive') scores.push(1);
-        else if (s === 'negative') scores.push(-1);
-        else if (s === 'neutral') scores.push(0);
-      }
+      const text: string = (article.text || '').toLowerCase();
+      const words = text.split(/\W+/).filter(Boolean);
+      if (words.length === 0) continue;
+      const pos = words.filter((w: string) => POSITIVE_WORDS.includes(w)).length;
+      const neg = words.filter((w: string) => NEGATIVE_WORDS.includes(w)).length;
+      const raw = (pos - neg) / words.length * 100;
+      scores.push(Math.max(-1, Math.min(1, raw)));
     }
 
     const articleCount = data.length;
@@ -1213,202 +1241,202 @@ export async function getFMPEarningsSurprise(
   date: string
 ): Promise<{ eps_surprise_pct: number | null; revenue_surprise_pct: number | null; earnings_date_proximity_days: number | null } | null> {
   if (_earningsSurpriseEndpointUnavailable) return null;
-  if (!checkAndIncrementFmpBudget()) return null;
   if (isSourceRateLimited('fmp')) return null;
 
   const uppercaseSymbol = symbol.toUpperCase().trim();
-  const startTime = Date.now();
 
+  // Check per-row cache first (keeps backward compat for already-computed rows)
   const cached = getCachedFmpEarningsSurprise(uppercaseSymbol, date);
   if (cached !== null) {
     console.log(`[FMP] Earnings surprise cache hit for ${uppercaseSymbol} / ${date}`);
     return { eps_surprise_pct: cached.epsSurprisePct, revenue_surprise_pct: cached.revenueSurprisePct, earnings_date_proximity_days: cached.proximityDays };
   }
 
-  const apiKey = process.env.FMP_API_KEY;
-  if (!apiKey) {
-    console.warn('[FMP] Missing FMP_API_KEY — skipping earnings surprise.');
-    return null;
-  }
+  // Check per-symbol history cache — avoids re-fetching for every row of the same symbol
+  let history = getCachedEarningsHistory(uppercaseSymbol);
 
-  try {
-    const url = `https://financialmodelingprep.com/stable/earnings?symbol=${uppercaseSymbol}&limit=10&apikey=${apiKey}`;
-    const res = await fetchWithTimeout(url);
+  if (!history) {
+    // No symbol-level cache — fetch full history from FMP
+    if (!checkAndIncrementFmpBudget()) return null;
 
-    if (!res.ok) {
-      let body = '';
-      try { body = await res.text(); } catch (_) {}
-      if (res.status === 403 && (body.includes('Exclusive Endpoint') || body.includes('Legacy Endpoint') || body.includes('Professional plan'))) {
-        if (!_earningsSurpriseEndpointUnavailable) {
-          console.warn('[FMP] earnings endpoint is not available on the current plan — disabling for this session.');
-          _earningsSurpriseEndpointUnavailable = true;
-        }
-        return null;
-      }
-      if (res.status === 429) {
-        markSourceRateLimited('fmp');
-        console.warn('[FMP] 429 Rate limited on getFMPEarningsSurprise');
-      } else {
-        console.debug(`[FMP] getFMPEarningsSurprise HTTP ${res.status} for ${uppercaseSymbol} — skipping`);
-      }
+    const apiKey = process.env.FMP_API_KEY;
+    if (!apiKey) {
+      console.warn('[FMP] Missing FMP_API_KEY — skipping earnings surprise.');
       return null;
     }
 
-    const data: any[] = await res.json();
+    try {
+      const url = `https://financialmodelingprep.com/stable/earnings?symbol=${uppercaseSymbol}&limit=200&apikey=${apiKey}`;
+      const res = await fetchWithTimeout(url);
 
-    if (!Array.isArray(data) || data.length === 0) {
-      setCachedFmpEarningsSurprise(uppercaseSymbol, date, null, null, null);
-      return { eps_surprise_pct: null, revenue_surprise_pct: null, earnings_date_proximity_days: null };
+      if (!res.ok) {
+        let body = '';
+        try { body = await res.text(); } catch (_) {}
+        if (res.status === 403 && (body.includes('Exclusive Endpoint') || body.includes('Legacy Endpoint') || body.includes('Professional plan'))) {
+          if (!_earningsSurpriseEndpointUnavailable) {
+            console.warn('[FMP] earnings endpoint is not available on the current plan — disabling for this session.');
+            _earningsSurpriseEndpointUnavailable = true;
+          }
+          return null;
+        }
+        if (res.status === 429) {
+          markSourceRateLimited('fmp');
+          console.warn('[FMP] 429 Rate limited on getFMPEarningsSurprise');
+        } else if (res.status === 402) {
+          console.debug(`[FMP] getFMPEarningsSurprise 402 for ${uppercaseSymbol} (not covered for this symbol) — skipping`);
+        } else {
+          console.debug(`[FMP] getFMPEarningsSurprise HTTP ${res.status} for ${uppercaseSymbol} — skipping`);
+        }
+        return null;
+      }
+
+      const data: any[] = await res.json();
+      if (!Array.isArray(data)) return null;
+
+      setCachedEarningsHistory(uppercaseSymbol, data);
+      history = data;
+      console.log(`[FMP] Earnings history fetched for ${uppercaseSymbol}: ${data.length} entries cached`);
+    } catch (err: any) {
+      console.warn(`[FMP] getFMPEarningsSurprise fetch failed for ${uppercaseSymbol}: ${err.message}`);
+      return null;
     }
-
-    const eventMs = new Date(date).getTime();
-    const cutoffMs = eventMs - 30 * 24 * 60 * 60 * 1000;
-
-    const recent = data
-      .filter((r: any) => {
-        if (!r.date) return false;
-        const t = new Date(String(r.date).slice(0, 10)).getTime();
-        return t >= cutoffMs && t <= eventMs;
-      })
-      .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    if (recent.length === 0) {
-      setCachedFmpEarningsSurprise(uppercaseSymbol, date, null, null, null);
-      return { eps_surprise_pct: null, revenue_surprise_pct: null, earnings_date_proximity_days: null };
-    }
-
-    const entry = recent[0];
-    const earningsMs = new Date(String(entry.date).slice(0, 10)).getTime();
-    const proximityDays = Math.round((eventMs - earningsMs) / (24 * 60 * 60 * 1000));
-
-    let epsSurprisePct: number | null = null;
-    const actualEps: number | null = typeof entry.actualEarningResult === 'number' ? entry.actualEarningResult : null;
-    const estimatedEps: number | null = typeof entry.estimatedEarning === 'number' ? entry.estimatedEarning : null;
-    if (actualEps !== null && estimatedEps !== null && estimatedEps !== 0) {
-      epsSurprisePct = Math.round(((actualEps - estimatedEps) / Math.abs(estimatedEps)) * 10000) / 100;
-    }
-
-    let revenueSurprisePct: number | null = null;
-    const actualRev: number | null = typeof entry.actualRevenue === 'number' ? entry.actualRevenue : null;
-    const estimatedRev: number | null = typeof entry.estimatedRevenue === 'number' ? entry.estimatedRevenue : null;
-    if (actualRev !== null && estimatedRev !== null && estimatedRev !== 0) {
-      revenueSurprisePct = Math.round(((actualRev - estimatedRev) / Math.abs(estimatedRev)) * 10000) / 100;
-    }
-
-    setCachedFmpEarningsSurprise(uppercaseSymbol, date, epsSurprisePct, revenueSurprisePct, proximityDays);
-    logDataSourceFetch({
-      sourceId: 'fmp',
-      sourceName: 'Financial Modeling Prep',
-      dataType: 'earnings_surprise',
-      symbol: uppercaseSymbol,
-      fetchedAt: new Date().toISOString(),
-      success: true,
-      latencyMs: Date.now() - startTime,
-      isFallback: false
-    });
-    console.log(`[FMP] Earnings surprise for ${uppercaseSymbol} / ${date}: eps_pct=${epsSurprisePct}, rev_pct=${revenueSurprisePct}, proximity=${proximityDays}d`);
-    return { eps_surprise_pct: epsSurprisePct, revenue_surprise_pct: revenueSurprisePct, earnings_date_proximity_days: proximityDays };
-  } catch (err: any) {
-    console.warn(`[FMP] getFMPEarningsSurprise failed for ${uppercaseSymbol}: ${err.message}`);
-    return null;
   }
-}
 
-const GRADE_SCORE: Record<string, number> = {
-  'strong buy': 5, 'outperform': 4, 'buy': 4, 'overweight': 4,
-  'hold': 3, 'neutral': 3, 'market perform': 3, 'equal-weight': 3,
-  'underperform': 2, 'underweight': 2, 'sell': 1, 'strong sell': 0,
-};
+  const eventMs = new Date(date).getTime();
+  const cutoffMs = eventMs - 30 * 24 * 60 * 60 * 1000;
 
-function gradeScore(grade: string): number {
-  return GRADE_SCORE[grade.toLowerCase().trim()] ?? 3;
+  const recent = history
+    .filter((r: any) => {
+      if (!r.date) return false;
+      if (r.epsActual === null || r.epsActual === undefined) return false;
+      const t = new Date(String(r.date).slice(0, 10)).getTime();
+      return t >= cutoffMs && t <= eventMs;
+    })
+    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  if (recent.length === 0) {
+    setCachedFmpEarningsSurprise(uppercaseSymbol, date, null, null, null);
+    return { eps_surprise_pct: null, revenue_surprise_pct: null, earnings_date_proximity_days: null };
+  }
+
+  const entry = recent[0];
+  const earningsMs = new Date(String(entry.date).slice(0, 10)).getTime();
+  const proximityDays = Math.round((eventMs - earningsMs) / (24 * 60 * 60 * 1000));
+
+  let epsSurprisePct: number | null = null;
+  const actualEps: number | null = typeof entry.epsActual === 'number' ? entry.epsActual : null;
+  const estimatedEps: number | null = typeof entry.epsEstimated === 'number' ? entry.epsEstimated : null;
+  if (actualEps !== null && estimatedEps !== null && estimatedEps !== 0) {
+    epsSurprisePct = Math.round(((actualEps - estimatedEps) / Math.abs(estimatedEps)) * 10000) / 100;
+  }
+
+  let revenueSurprisePct: number | null = null;
+  const actualRev: number | null = typeof entry.revenueActual === 'number' ? entry.revenueActual : null;
+  const estimatedRev: number | null = typeof entry.revenueEstimated === 'number' ? entry.revenueEstimated : null;
+  if (actualRev !== null && estimatedRev !== null && estimatedRev !== 0) {
+    revenueSurprisePct = Math.round(((actualRev - estimatedRev) / Math.abs(estimatedRev)) * 10000) / 100;
+  }
+
+  setCachedFmpEarningsSurprise(uppercaseSymbol, date, epsSurprisePct, revenueSurprisePct, proximityDays);
+  console.log(`[FMP] Earnings surprise for ${uppercaseSymbol} / ${date}: eps_pct=${epsSurprisePct}, rev_pct=${revenueSurprisePct}, proximity=${proximityDays}d`);
+  return { eps_surprise_pct: epsSurprisePct, revenue_surprise_pct: revenueSurprisePct, earnings_date_proximity_days: proximityDays };
 }
 
 export async function getFMPAnalystGrades(
   symbol: string,
   date: string
 ): Promise<{ upgrades: number; downgrades: number; strongBuyCount: number; sellCount: number } | null> {
-  if (!checkAndIncrementFmpBudget()) return null;
   if (isSourceRateLimited('fmp')) return null;
 
   const uppercaseSymbol = symbol.toUpperCase().trim();
-  const startTime = Date.now();
 
+  // Check per-row cache first (keeps backward compat for already-computed rows)
   const cached = getCachedFmpAnalystGrades(uppercaseSymbol, date);
   if (cached !== null) {
     console.log(`[FMP] Analyst grades cache hit for ${uppercaseSymbol} / ${date}`);
     return cached;
   }
 
-  const apiKey = process.env.FMP_API_KEY;
-  if (!apiKey) {
-    console.warn('[FMP] Missing FMP_API_KEY — skipping analyst grades.');
-    return null;
-  }
+  // Check per-symbol history cache — avoids re-fetching for every row of the same symbol
+  let history = getCachedGradesHistory(uppercaseSymbol);
 
-  try {
-    const url = `https://financialmodelingprep.com/stable/grades-historical?symbol=${uppercaseSymbol}&apikey=${apiKey}`;
-    const res = await fetchWithTimeout(url);
-    const data = await handleFmpResponse(res, 'getFMPAnalystGrades');
+  if (!history) {
+    if (!checkAndIncrementFmpBudget()) return null;
 
-    if (!Array.isArray(data) || data.length === 0) {
-      setCachedFmpAnalystGrades(uppercaseSymbol, date, 0, 0, 0, 0);
+    const apiKey = process.env.FMP_API_KEY;
+    if (!apiKey) {
+      console.warn('[FMP] Missing FMP_API_KEY — skipping analyst grades.');
       return null;
     }
 
-    const eventMs = new Date(date).getTime();
-    const cutoffMs = eventMs - 30 * 24 * 60 * 60 * 1000;
+    try {
+      const url = `https://financialmodelingprep.com/stable/grades-historical?symbol=${uppercaseSymbol}&limit=200&apikey=${apiKey}`;
+      const res = await fetchWithTimeout(url);
 
-    const window = data.filter((r: any) => {
-      const d = r.date || r.gradingDate;
-      if (!d) return false;
-      const t = new Date(String(d).slice(0, 10)).getTime();
-      return t >= cutoffMs && t <= eventMs;
-    });
-
-    if (window.length === 0) {
-      setCachedFmpAnalystGrades(uppercaseSymbol, date, 0, 0, 0, 0);
-      return null;
-    }
-
-    let upgrades = 0;
-    let downgrades = 0;
-    let strongBuyCount = 0;
-    let sellCount = 0;
-
-    for (const r of window) {
-      const newGrade: string = r.newGrade || r.grade || '';
-      const prevGrade: string = r.previousGrade || r.previousGradeValue || '';
-      const action: string = (r.action || '').toLowerCase();
-
-      if (action === 'up' || (prevGrade && gradeScore(newGrade) > gradeScore(prevGrade))) {
-        upgrades++;
-      } else if (action === 'down' || (prevGrade && gradeScore(newGrade) < gradeScore(prevGrade))) {
-        downgrades++;
+      if (!res.ok) {
+        if (res.status === 429) {
+          markSourceRateLimited('fmp');
+          console.warn('[FMP] 429 Rate limited on getFMPAnalystGrades');
+        } else {
+          console.debug(`[FMP] getFMPAnalystGrades HTTP ${res.status} for ${uppercaseSymbol} — skipping`);
+        }
+        return null;
       }
 
-      const ng = newGrade.toLowerCase();
-      if (ng.includes('strong buy') || ng.includes('outperform') || ng.includes('overweight')) strongBuyCount++;
-      if (ng.includes('sell') || ng.includes('underperform') || ng.includes('underweight')) sellCount++;
-    }
+      const data: any[] = await res.json();
+      if (!Array.isArray(data)) return null;
 
-    setCachedFmpAnalystGrades(uppercaseSymbol, date, upgrades, downgrades, strongBuyCount, sellCount);
-    logDataSourceFetch({
-      sourceId: 'fmp',
-      sourceName: 'Financial Modeling Prep',
-      dataType: 'analyst_grades',
-      symbol: uppercaseSymbol,
-      fetchedAt: new Date().toISOString(),
-      success: true,
-      latencyMs: Date.now() - startTime,
-      isFallback: false
-    });
-    console.log(`[FMP] Analyst grades for ${uppercaseSymbol} / ${date}: upgrades=${upgrades}, downgrades=${downgrades}, strongBuy=${strongBuyCount}, sell=${sellCount}`);
-    return { upgrades, downgrades, strongBuyCount, sellCount };
-  } catch (err: any) {
-    console.warn(`[FMP] getFMPAnalystGrades failed for ${uppercaseSymbol}: ${err.message}`);
-    return null;
+      setCachedGradesHistory(uppercaseSymbol, data);
+      history = data;
+      console.log(`[FMP] Grades history fetched for ${uppercaseSymbol}: ${data.length} entries cached`);
+    } catch (err: any) {
+      console.warn(`[FMP] getFMPAnalystGrades fetch failed for ${uppercaseSymbol}: ${err.message}`);
+      return null;
+    }
   }
+
+  if (history.length === 0) {
+    setCachedFmpAnalystGrades(uppercaseSymbol, date, 0, 0, 0, 0);
+    return { upgrades: 0, downgrades: 0, strongBuyCount: 0, sellCount: 0 };
+  }
+
+  // Find the snapshot at event date and 30 days prior
+  const eventMs = new Date(date).getTime();
+  const priorMs = eventMs - 30 * 24 * 60 * 60 * 1000;
+
+  const sorted = [...history].sort((a: any, b: any) =>
+    new Date(String(b.date).slice(0, 10)).getTime() - new Date(String(a.date).slice(0, 10)).getTime()
+  );
+
+  const snapshotAt = (targetMs: number) =>
+    sorted.find((r: any) => r.date && new Date(String(r.date).slice(0, 10)).getTime() <= targetMs) ?? null;
+
+  const atEvent = snapshotAt(eventMs);
+  const atPrior = snapshotAt(priorMs);
+
+  // Bullish = strongBuy + buy; Bearish = sell + strongSell
+  const bullish = (r: any): number =>
+    (r.analystRatingsStrongBuy ?? 0) + (r.analystRatingsBuy ?? 0);
+  const bearish = (r: any): number =>
+    (r.analystRatingsSell ?? 0) + (r.analystRatingsStrongSell ?? 0);
+
+  let upgrades = 0;
+  let downgrades = 0;
+
+  if (atEvent && atPrior) {
+    const bullishDelta = bullish(atEvent) - bullish(atPrior);
+    const bearishDelta = bearish(atEvent) - bearish(atPrior);
+    upgrades = Math.max(0, bullishDelta);
+    downgrades = Math.max(0, bearishDelta);
+  }
+
+  const strongBuyCount = atEvent ? (atEvent.analystRatingsStrongBuy ?? 0) : 0;
+  const sellCount = atEvent ? ((atEvent.analystRatingsSell ?? 0) + (atEvent.analystRatingsStrongSell ?? 0)) : 0;
+
+  const result = { upgrades, downgrades, strongBuyCount, sellCount };
+  setCachedFmpAnalystGrades(uppercaseSymbol, date, result.upgrades, result.downgrades, result.strongBuyCount, result.sellCount);
+  console.log(`[FMP] Analyst grades for ${uppercaseSymbol} / ${date}: upgrades=${upgrades}, downgrades=${downgrades}, strongBuy=${strongBuyCount}, sell=${sellCount}`);
+  return result;
 }
 
 export async function getFMPPriceTargetConsensus(

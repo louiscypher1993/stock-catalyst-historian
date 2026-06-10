@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="market_cache.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="3169"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="anomaly_cache" custom_title="0" dock_id="1" table="4,13:mainanomaly_cache"/><dock_state state="000000ff00000000fd00000001000000020000000000000000fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000011e00ffffff000000000000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1*">SELECT 
+  COUNT(*) as total_rows,
+  ROUND(100.0 * SUM(CASE WHEN json_extract(signal_snapshot_json, '$.fmp_news_sentiment_avg') IS NOT NULL THEN 1 ELSE 0 END) / COUNT(*), 1) as fmp_news_pct,
+  ROUND(100.0 * SUM(CASE WHEN json_extract(signal_snapshot_json, '$.eps_surprise_pct') IS NOT NULL THEN 1 ELSE 0 END) / COUNT(*), 1) as eps_surprise_pct,
+  ROUND(100.0 * SUM(CASE WHEN json_extract(signal_snapshot_json, '$.analyst_upgrades_30d') IS NOT NULL THEN 1 ELSE 0 END) / COUNT(*), 1) as analyst_grades_pct,
+  ROUND(100.0 * SUM(CASE WHEN json_extract(signal_snapshot_json, '$.price_target_consensus') IS NOT NULL THEN 1 ELSE 0 END) / COUNT(*), 1) as price_target_pct,
+  ROUND(100.0 * SUM(CASE WHEN json_extract(signal_snapshot_json, '$.stocktwits_virality_z') IS NOT NULL THEN 1 ELSE 0 END) / COUNT(*), 1) as stocktwits_pct
+FROM event_features;</sql><sql name="SQL 2*">-- How many rows have eps_surprise_pct explicitly set to null vs missing entirely?
+SELECT 
+  SUM(CASE WHEN json_extract(signal_snapshot_json, '$.eps_surprise_pct') IS NULL THEN 1 ELSE 0 END) as null_or_missing,
+  SUM(CASE WHEN json_extract(signal_snapshot_json, '$.eps_surprise_pct') = 'null' THEN 1 ELSE 0 END) as explicit_null
+FROM event_features
+WHERE symbol NOT LIKE '%.%' -- US symbols only
+AND json_extract(signal_snapshot_json, '$.eps_surprise_pct') IS NULL;</sql><sql name="SQL 3*">-- How many US-listed rows were actually processed vs skipped?
+SELECT COUNT(*) as us_rows_with_null_eps
+FROM event_features
+WHERE symbol NOT LIKE '%.%'
+AND symbol NOT LIKE '%-A'
+AND json_extract(signal_snapshot_json, '$.eps_surprise_pct') IS NULL;</sql><current_tab id="0"/></tab_sql></sqlb_project>

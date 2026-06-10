@@ -62,7 +62,7 @@ knownBusinessConnections (array of strings, brief descriptions).`;
   let rawText = "[]";
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -180,7 +180,7 @@ If no relevant personal news is found in any category, return an empty array.`;
 
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-2.5-flash",
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -492,7 +492,7 @@ export async function getCompetitorMap(
   try {
     const ai = getAIClient();
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -572,7 +572,7 @@ Return a JSON array with fields: eventType, headline, detail, impactOnTargetStoc
 
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-2.5-flash",
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -812,7 +812,7 @@ ${wikipediaSpikes.length > 0 ? `\nNotable pre-anomaly Wikipedia traffic spikes (
 
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-2.5-flash",
         contents: prompt
       });
       if (response.text) {

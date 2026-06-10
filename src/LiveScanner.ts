@@ -212,7 +212,7 @@ Explain what corporate announcements, macroeconomic releases, or sudden block tr
 Provide highly structured corporate-finance language. Ensure no target leakage. No emojis. Just clinical, professional analytics.`;
 
           const genAiCall = await aiClient.models.generateContent({
-            model: "gemini-3.5-flash",
+            model: "gemini-2.5-flash",
             contents: prompt,
             config: {
               responseMimeType: "application/json",

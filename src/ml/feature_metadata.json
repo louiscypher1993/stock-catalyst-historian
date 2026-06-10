@@ -1,0 +1,824 @@
+{
+  "generated_at": "2026-06-10T09:31:38.085Z",
+  "row_count": 60767,
+  "column_count": 108,
+  "null_fill_value": 0,
+  "null_indicator_threshold": 0.1,
+  "columns": [
+    {
+      "name": "cache_key",
+      "type": "string",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "symbol",
+      "type": "string",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "date",
+      "type": "string",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "z_score",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "excess_return",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "atr_shock_score",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "volume_ratio",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "relative_volume_30d",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "body_to_range_ratio",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "overnight_gap_pct",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "gap_fill_ratio",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "obv_delta_10d",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "dist_sma_50",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "dist_sma_200",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "rsi_14",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "vix_close",
+      "type": "number",
+      "null_count": 323,
+      "null_rate": 0.005315384995145392,
+      "fill_rate": 0.9946846150048546,
+      "has_null_indicator": false
+    },
+    {
+      "name": "vix_regime",
+      "type": "number",
+      "null_count": 6043,
+      "null_rate": 0.09944542268007307,
+      "fill_rate": 0.9005545773199269,
+      "has_null_indicator": false
+    },
+    {
+      "name": "trend_regime",
+      "type": "number",
+      "null_count": 323,
+      "null_rate": 0.005315384995145392,
+      "fill_rate": 0.9946846150048546,
+      "has_null_indicator": false
+    },
+    {
+      "name": "yield_curve_spread",
+      "type": "number",
+      "null_count": 24366,
+      "null_rate": 0.4009742129774384,
+      "fill_rate": 0.5990257870225616,
+      "has_null_indicator": true
+    },
+    {
+      "name": "yield_curve_spread_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "credit_spread",
+      "type": "number",
+      "null_count": 52641,
+      "null_rate": 0.8662761038063422,
+      "fill_rate": 0.13372389619365774,
+      "has_null_indicator": true
+    },
+    {
+      "name": "credit_spread_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "economic_policy_uncertainty",
+      "type": "number",
+      "null_count": 25197,
+      "null_rate": 0.4146493985222242,
+      "fill_rate": 0.5853506014777757,
+      "has_null_indicator": true
+    },
+    {
+      "name": "economic_policy_uncertainty_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "shannon_entropy_30d",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "amihud_illiquidity_30d",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "fractal_efficiency_ratio_10d",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "market_reynolds_number",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "kinetic_energy",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "seismic_magnitude_mw",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "barycenter_stretch_20d",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "sector_relative_z_score",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "gdelt_tone_z",
+      "type": "number",
+      "null_count": 60766,
+      "null_rate": 0.9999835436997054,
+      "fill_rate": 0.000016456300294567776,
+      "has_null_indicator": true
+    },
+    {
+      "name": "gdelt_tone_z_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "stocktwits_virality_z",
+      "type": "number",
+      "null_count": 24347,
+      "null_rate": 0.4006615432718416,
+      "fill_rate": 0.5993384567281583,
+      "has_null_indicator": true
+    },
+    {
+      "name": "stocktwits_virality_z_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "google_trends_z",
+      "type": "number",
+      "null_count": 59805,
+      "null_rate": 0.9841690391166258,
+      "fill_rate": 0.0158309608833742,
+      "has_null_indicator": true
+    },
+    {
+      "name": "google_trends_z_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "wikipedia_spike_z",
+      "type": "number",
+      "null_count": 60604,
+      "null_rate": 0.9973176230519855,
+      "fill_rate": 0.0026823769480145473,
+      "has_null_indicator": true
+    },
+    {
+      "name": "wikipedia_spike_z_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "news_relevance_z",
+      "type": "number",
+      "null_count": 60767,
+      "null_rate": 1,
+      "fill_rate": 0,
+      "has_null_indicator": true
+    },
+    {
+      "name": "news_relevance_z_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "short_interest_pct_float",
+      "type": "number",
+      "null_count": 60767,
+      "null_rate": 1,
+      "fill_rate": 0,
+      "has_null_indicator": true
+    },
+    {
+      "name": "short_interest_pct_float_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "put_call_ratio_t_minus_1",
+      "type": "number",
+      "null_count": 60767,
+      "null_rate": 1,
+      "fill_rate": 0,
+      "has_null_indicator": true
+    },
+    {
+      "name": "put_call_ratio_t_minus_1_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "dark_pool_index",
+      "type": "number",
+      "null_count": 60767,
+      "null_rate": 1,
+      "fill_rate": 0,
+      "has_null_indicator": true
+    },
+    {
+      "name": "dark_pool_index_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "ctb_velocity_7d",
+      "type": "number",
+      "null_count": 60767,
+      "null_rate": 1,
+      "fill_rate": 0,
+      "has_null_indicator": true
+    },
+    {
+      "name": "ctb_velocity_7d_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "iv_crush_pct",
+      "type": "number",
+      "null_count": 60767,
+      "null_rate": 1,
+      "fill_rate": 0,
+      "has_null_indicator": true
+    },
+    {
+      "name": "iv_crush_pct_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "peer_average_return",
+      "type": "number",
+      "null_count": 60739,
+      "null_rate": 0.9995392235917521,
+      "fill_rate": 0.0004607764082478977,
+      "has_null_indicator": true
+    },
+    {
+      "name": "peer_average_return_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "peer_contagion_delta",
+      "type": "number",
+      "null_count": 60739,
+      "null_rate": 0.9995392235917521,
+      "fill_rate": 0.0004607764082478977,
+      "has_null_indicator": true
+    },
+    {
+      "name": "peer_contagion_delta_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "congressional_net_flow_30d",
+      "type": "number",
+      "null_count": 49766,
+      "null_rate": 0.8189642404594599,
+      "fill_rate": 0.1810357595405401,
+      "has_null_indicator": true
+    },
+    {
+      "name": "congressional_net_flow_30d_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "insider_net_shares_30d",
+      "type": "number",
+      "null_count": 60645,
+      "null_rate": 0.9979923313640627,
+      "fill_rate": 0.0020076686359372688,
+      "has_null_indicator": true
+    },
+    {
+      "name": "insider_net_shares_30d_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "institutional_ownership_pct",
+      "type": "number",
+      "null_count": 60767,
+      "null_rate": 1,
+      "fill_rate": 0,
+      "has_null_indicator": true
+    },
+    {
+      "name": "institutional_ownership_pct_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "eps_surprise_pct",
+      "type": "number",
+      "null_count": 58533,
+      "null_rate": 0.9632366251419356,
+      "fill_rate": 0.03676337485806441,
+      "has_null_indicator": true
+    },
+    {
+      "name": "eps_surprise_pct_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "revenue_surprise_pct",
+      "type": "number",
+      "null_count": 58530,
+      "null_rate": 0.9631872562410518,
+      "fill_rate": 0.036812743758948115,
+      "has_null_indicator": true
+    },
+    {
+      "name": "revenue_surprise_pct_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "earnings_date_proximity_days",
+      "type": "number",
+      "null_count": 58402,
+      "null_rate": 0.9610808498033472,
+      "fill_rate": 0.03891915019665279,
+      "has_null_indicator": true
+    },
+    {
+      "name": "earnings_date_proximity_days_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "analyst_upgrades_30d",
+      "type": "number",
+      "null_count": 41910,
+      "null_rate": 0.6896835453453355,
+      "fill_rate": 0.31031645465466456,
+      "has_null_indicator": true
+    },
+    {
+      "name": "analyst_upgrades_30d_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "analyst_downgrades_30d",
+      "type": "number",
+      "null_count": 41910,
+      "null_rate": 0.6896835453453355,
+      "fill_rate": 0.31031645465466456,
+      "has_null_indicator": true
+    },
+    {
+      "name": "analyst_downgrades_30d_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "price_target_consensus",
+      "type": "number",
+      "null_count": 42007,
+      "null_rate": 0.6912798064739085,
+      "fill_rate": 0.3087201935260915,
+      "has_null_indicator": true
+    },
+    {
+      "name": "price_target_consensus_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "price_target_upside_pct",
+      "type": "number",
+      "null_count": 60767,
+      "null_rate": 1,
+      "fill_rate": 0,
+      "has_null_indicator": true
+    },
+    {
+      "name": "price_target_upside_pct_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "fmp_news_sentiment_avg",
+      "type": "number",
+      "null_count": 8587,
+      "null_rate": 0.1413102506294535,
+      "fill_rate": 0.8586897493705465,
+      "has_null_indicator": true
+    },
+    {
+      "name": "fmp_news_sentiment_avg_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "fmp_news_article_count_7d",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "day_sin",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "day_cos",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "month_sin",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "month_cos",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "primaryCategory_market_structure",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "primaryCategory_sentiment",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "primaryCategory_corporate",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "primaryCategory_macro",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "primaryCategory_technical",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "sector_Technology",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "sector_Healthcare",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "sector_Financials",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "sector_Energy",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "sector_Consumer",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "sector_Industrials",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "sector_Materials",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "sector_Utilities",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "sector_Real_Estate",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "sector_Communication_Services",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "sector_Other",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "confidence_tier_high",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "confidence_tier_medium",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "confidence_tier_low",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "is_null_sample",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
+      "name": "forward_return_1d",
+      "type": "number",
+      "null_count": 32,
+      "null_rate": 0.0005266016094261688,
+      "fill_rate": 0.9994733983905738,
+      "has_null_indicator": false
+    },
+    {
+      "name": "forward_return_1w",
+      "type": "number",
+      "null_count": 473,
+      "null_rate": 0.007783830039330557,
+      "fill_rate": 0.9922161699606694,
+      "has_null_indicator": false
+    },
+    {
+      "name": "forward_return_1m",
+      "type": "number",
+      "null_count": 1820,
+      "null_rate": 0.02995046653611335,
+      "fill_rate": 0.9700495334638867,
+      "has_null_indicator": false
+    },
+    {
+      "name": "max_favorable_excursion_1m",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "max_adverse_excursion_1m",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    }
+  ]
+}

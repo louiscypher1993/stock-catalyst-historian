@@ -1,0 +1,356 @@
+"""
+Prompt 12 -- XGBoost training pipeline.
+
+Trains three models from src/ml/features.csv:
+  Model A - binary classifier: event vs non-event (is_null_sample)
+  Model B - regression: 1-month forward return (forward_return_1m)
+  Model C - regression: max adverse excursion (max_adverse_excursion_1m)
+"""
+
+import json
+import os
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import shap
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    mean_absolute_error,
+    mean_squared_error,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
+from sklearn.model_selection import GridSearchCV, KFold, StratifiedKFold
+from xgboost import XGBClassifier, XGBRegressor
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+FEATURES_CSV = os.path.join(SCRIPT_DIR, "features.csv")
+
+NON_FEATURE_COLS = ["cache_key", "symbol", "date"]
+TARGET_COLS = [
+    "is_null_sample",
+    "forward_return_1d",
+    "forward_return_1w",
+    "forward_return_1m",
+    "max_favorable_excursion_1m",
+    "max_adverse_excursion_1m",
+]
+
+TARGET_A = "is_null_sample"
+TARGET_B = "forward_return_1m"
+TARGET_C = "max_adverse_excursion_1m"
+
+RANDOM_STATE = 42
+SHAP_SAMPLE_SIZE = 2000
+TOP_N_IMPORTANCE = 15
+TOP_N_SHAP = 20
+
+BASE_PARAMS = dict(
+    n_estimators=500,
+    max_depth=6,
+    learning_rate=0.05,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    min_child_weight=5,
+    importance_type="gain",
+    random_state=RANDOM_STATE,
+)
+
+PARAM_GRID = {"max_depth": [4, 6, 8], "learning_rate": [0.03, 0.05, 0.1]}
+SEARCH_N_ESTIMATORS = 100
+
+
+def temporal_stratified_split(df, strat_col, train_frac=0.7, val_frac=0.15):
+    """Split preserving temporal order within each class of strat_col.
+
+    For each value of strat_col, rows are sorted by date and the earliest
+    train_frac/val_frac/remainder are assigned to train/val/test, so the
+    test set always holds the most recent dates for each class.
+    """
+    train_parts, val_parts, test_parts = [], [], []
+    for _, group in df.groupby(strat_col):
+        group = group.sort_values("date")
+        n = len(group)
+        n_train = int(n * train_frac)
+        n_val = int(n * val_frac)
+        train_parts.append(group.iloc[:n_train])
+        val_parts.append(group.iloc[n_train:n_train + n_val])
+        test_parts.append(group.iloc[n_train + n_val:])
+
+    train_df = pd.concat(train_parts).sort_values("date").reset_index(drop=True)
+    val_df = pd.concat(val_parts).sort_values("date").reset_index(drop=True)
+    test_df = pd.concat(test_parts).sort_values("date").reset_index(drop=True)
+    return train_df, val_df, test_df
+
+
+def hyperparam_search(estimator_cls, X, y, scoring, cv, extra_params=None):
+    """Small grid search over max_depth/learning_rate at reduced n_estimators."""
+    extra_params = extra_params or {}
+    params = {**BASE_PARAMS, **extra_params, "n_estimators": SEARCH_N_ESTIMATORS, "n_jobs": 1}
+    grid = GridSearchCV(
+        estimator=estimator_cls(**params),
+        param_grid=PARAM_GRID,
+        scoring=scoring,
+        cv=cv,
+        n_jobs=-1,
+        refit=False,
+    )
+    grid.fit(X, y)
+    return grid.best_params_, grid.best_score_
+
+
+def train_final(estimator_cls, X_train, y_train, best_params, extra_params=None):
+    extra_params = extra_params or {}
+    params = {**BASE_PARAMS, **extra_params, **best_params, "n_jobs": -1}
+    model = estimator_cls(**params)
+    model.fit(X_train, y_train)
+    return model
+
+
+def evaluate_classifier(model, X, y):
+    proba = model.predict_proba(X)[:, 1]
+    pred = model.predict(X)
+    return {
+        "auc_roc": roc_auc_score(y, proba),
+        "precision": precision_score(y, pred, zero_division=0),
+        "recall": recall_score(y, pred, zero_division=0),
+        "f1": f1_score(y, pred, zero_division=0),
+        "accuracy": accuracy_score(y, pred),
+    }
+
+
+def evaluate_regressor(model, X, y):
+    pred = model.predict(X)
+    rmse = float(np.sqrt(mean_squared_error(y, pred)))
+    mae = float(mean_absolute_error(y, pred))
+    return {"rmse": rmse, "mae": mae}
+
+
+def plot_feature_importance(models, feature_cols, out_path):
+    fig, axes = plt.subplots(1, 3, figsize=(20, 8))
+    for ax, (name, model) in zip(axes, models.items()):
+        importances = model.feature_importances_
+        order = np.argsort(importances)[::-1][:TOP_N_IMPORTANCE]
+        top_features = np.array(feature_cols)[order]
+        top_values = importances[order]
+        ax.barh(range(len(top_features)), top_values[::-1])
+        ax.set_yticks(range(len(top_features)))
+        ax.set_yticklabels(top_features[::-1], fontsize=8)
+        ax.set_title(f"{name} - top {TOP_N_IMPORTANCE} features (gain)")
+        ax.set_xlabel("Gain")
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
+def plot_confusion_matrix(y_true, y_pred, out_path):
+    cm = confusion_matrix(y_true, y_pred)
+    fig, ax = plt.subplots(figsize=(5, 4.5))
+    im = ax.imshow(cm, cmap="Blues")
+    ax.set_xticks([0, 1])
+    ax.set_yticks([0, 1])
+    ax.set_xticklabels(["event (0)", "non-event (1)"])
+    ax.set_yticklabels(["event (0)", "non-event (1)"])
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("Actual")
+    ax.set_title("Model A confusion matrix (test set)")
+    for i in range(2):
+        for j in range(2):
+            ax.text(j, i, str(cm[i, j]), ha="center", va="center",
+                    color="white" if cm[i, j] > cm.max() / 2 else "black")
+    fig.colorbar(im, ax=ax)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
+def plot_shap_summary(model, X_sample, out_path, title):
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(X_sample)
+    if isinstance(shap_values, list):
+        shap_values = shap_values[1]
+    fig = plt.figure(figsize=(10, 8))
+    shap.summary_plot(shap_values, X_sample, max_display=TOP_N_SHAP, show=False)
+    plt.title(title)
+    plt.tight_layout()
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+
+def fmt_params(params):
+    return ", ".join(f"{k}={v}" for k, v in sorted(params.items()))
+
+
+def main():
+    df = pd.read_csv(FEATURES_CSV)
+    feature_cols = [c for c in df.columns if c not in NON_FEATURE_COLS + TARGET_COLS]
+
+    train_df, val_df, test_df = temporal_stratified_split(df, TARGET_A)
+
+    X_train, X_val, X_test = train_df[feature_cols], val_df[feature_cols], test_df[feature_cols]
+
+    print(f"Rows -> train: {len(train_df)}, val: {len(val_df)}, test: {len(test_df)}")
+    print(f"Date ranges -> train: {train_df['date'].min()}..{train_df['date'].max()}, "
+          f"val: {val_df['date'].min()}..{val_df['date'].max()}, "
+          f"test: {test_df['date'].min()}..{test_df['date'].max()}")
+
+    report = []
+    report.append("XGBoost Training Pipeline - Evaluation Report")
+    report.append("=" * 50)
+    report.append("")
+    report.append(f"Total rows: {len(df)}  Feature columns: {len(feature_cols)}")
+    report.append(f"Train rows: {len(train_df)} ({train_df['date'].min()} to {train_df['date'].max()})")
+    report.append(f"Val rows:   {len(val_df)} ({val_df['date'].min()} to {val_df['date'].max()})")
+    report.append(f"Test rows:  {len(test_df)} ({test_df['date'].min()} to {test_df['date'].max()})")
+    report.append(f"Base hyperparameters: {fmt_params(BASE_PARAMS)}")
+    report.append(f"Hyperparameter search grid: {PARAM_GRID} (search n_estimators={SEARCH_N_ESTIMATORS})")
+    report.append("")
+
+    models = {}
+
+    # --- Model A: binary classifier (is_null_sample) ---
+    print("\n=== Model A: event vs non-event classifier ===")
+    y_train_a = train_df[TARGET_A]
+    y_val_a = val_df[TARGET_A]
+    y_test_a = test_df[TARGET_A]
+
+    neg, pos = (y_train_a == 0).sum(), (y_train_a == 1).sum()
+    scale_pos_weight = neg / pos
+    print(f"scale_pos_weight (train neg/pos = {neg}/{pos}) = {scale_pos_weight:.4f}")
+
+    cv_a = StratifiedKFold(n_splits=3, shuffle=True, random_state=RANDOM_STATE)
+    best_params_a, best_score_a = hyperparam_search(
+        XGBClassifier, X_train, y_train_a, scoring="roc_auc", cv=cv_a,
+        extra_params={"scale_pos_weight": scale_pos_weight, "eval_metric": "logloss"},
+    )
+    print(f"Best params A: {best_params_a} (cv roc_auc={best_score_a:.4f})")
+
+    model_a = train_final(
+        XGBClassifier, X_train, y_train_a, best_params_a,
+        extra_params={"scale_pos_weight": scale_pos_weight, "eval_metric": "logloss"},
+    )
+    models["Model A (classifier)"] = model_a
+
+    metrics_a_val = evaluate_classifier(model_a, X_val, y_val_a)
+    metrics_a_test = evaluate_classifier(model_a, X_test, y_test_a)
+    print(f"Model A val:  {metrics_a_val}")
+    print(f"Model A test: {metrics_a_test}")
+
+    test_pred_a = model_a.predict(X_test)
+    plot_confusion_matrix(y_test_a, test_pred_a, os.path.join(SCRIPT_DIR, "confusion_matrix_a.png"))
+
+    report.append("Model A - Binary Classifier (is_null_sample: 0=event, 1=non-event)")
+    report.append("-" * 50)
+    report.append(f"scale_pos_weight: {scale_pos_weight:.4f} (train neg={neg}, pos={pos})")
+    report.append(f"Best hyperparameters from CV search: {best_params_a} (cv roc_auc={best_score_a:.4f})")
+    report.append(f"Validation -> AUC-ROC: {metrics_a_val['auc_roc']:.4f}, "
+                   f"Precision: {metrics_a_val['precision']:.4f}, "
+                   f"Recall: {metrics_a_val['recall']:.4f}, "
+                   f"F1: {metrics_a_val['f1']:.4f}, "
+                   f"Accuracy: {metrics_a_val['accuracy']:.4f}")
+    report.append(f"Test       -> AUC-ROC: {metrics_a_test['auc_roc']:.4f}, "
+                   f"Precision: {metrics_a_test['precision']:.4f}, "
+                   f"Recall: {metrics_a_test['recall']:.4f}, "
+                   f"F1: {metrics_a_test['f1']:.4f}, "
+                   f"Accuracy: {metrics_a_test['accuracy']:.4f}")
+    report.append("Confusion matrix (test): saved to confusion_matrix_a.png")
+    report.append("")
+
+    # --- Model B: regression (forward_return_1m) ---
+    print("\n=== Model B: 1-month forward return regressor ===")
+    y_train_b = train_df[TARGET_B]
+    y_val_b = val_df[TARGET_B]
+    y_test_b = test_df[TARGET_B]
+
+    cv_reg = KFold(n_splits=3, shuffle=True, random_state=RANDOM_STATE)
+    best_params_b, best_score_b = hyperparam_search(
+        XGBRegressor, X_train, y_train_b, scoring="neg_root_mean_squared_error", cv=cv_reg,
+    )
+    print(f"Best params B: {best_params_b} (cv rmse={-best_score_b:.4f})")
+
+    model_b = train_final(XGBRegressor, X_train, y_train_b, best_params_b)
+    models["Model B (forward_return_1m)"] = model_b
+
+    metrics_b_val = evaluate_regressor(model_b, X_val, y_val_b)
+    metrics_b_test = evaluate_regressor(model_b, X_test, y_test_b)
+    print(f"Model B val:  {metrics_b_val}")
+    print(f"Model B test: {metrics_b_test}")
+
+    report.append("Model B - Regression (forward_return_1m)")
+    report.append("-" * 50)
+    report.append(f"Best hyperparameters from CV search: {best_params_b} (cv rmse={-best_score_b:.4f})")
+    report.append(f"Validation -> RMSE: {metrics_b_val['rmse']:.6f}, MAE: {metrics_b_val['mae']:.6f}")
+    report.append(f"Test       -> RMSE: {metrics_b_test['rmse']:.6f}, MAE: {metrics_b_test['mae']:.6f}")
+    report.append("")
+
+    # --- Model C: regression (max_adverse_excursion_1m) ---
+    print("\n=== Model C: max adverse excursion regressor ===")
+    y_train_c = train_df[TARGET_C]
+    y_val_c = val_df[TARGET_C]
+    y_test_c = test_df[TARGET_C]
+
+    best_params_c, best_score_c = hyperparam_search(
+        XGBRegressor, X_train, y_train_c, scoring="neg_root_mean_squared_error", cv=cv_reg,
+    )
+    print(f"Best params C: {best_params_c} (cv rmse={-best_score_c:.4f})")
+
+    model_c = train_final(XGBRegressor, X_train, y_train_c, best_params_c)
+    models["Model C (max_adverse_excursion_1m)"] = model_c
+
+    metrics_c_val = evaluate_regressor(model_c, X_val, y_val_c)
+    metrics_c_test = evaluate_regressor(model_c, X_test, y_test_c)
+    print(f"Model C val:  {metrics_c_val}")
+    print(f"Model C test: {metrics_c_test}")
+
+    report.append("Model C - Regression (max_adverse_excursion_1m)")
+    report.append("-" * 50)
+    report.append(f"Best hyperparameters from CV search: {best_params_c} (cv rmse={-best_score_c:.4f})")
+    report.append(f"Validation -> RMSE: {metrics_c_val['rmse']:.6f}, MAE: {metrics_c_val['mae']:.6f}")
+    report.append(f"Test       -> RMSE: {metrics_c_test['rmse']:.6f}, MAE: {metrics_c_test['mae']:.6f}")
+    report.append("")
+
+    # --- Feature importance plot (all 3 models) ---
+    print("\nWriting feature_importance.png ...")
+    plot_feature_importance(models, feature_cols, os.path.join(SCRIPT_DIR, "feature_importance.png"))
+
+    # --- SHAP summary plots (top 20 features, sampled test rows) ---
+    print("Computing SHAP summary plots ...")
+    shap_sample = X_test.sample(n=min(SHAP_SAMPLE_SIZE, len(X_test)), random_state=RANDOM_STATE)
+    plot_shap_summary(model_a, shap_sample, os.path.join(SCRIPT_DIR, "shap_summary_a.png"),
+                       "Model A SHAP summary (top 20 features)")
+    plot_shap_summary(model_b, shap_sample, os.path.join(SCRIPT_DIR, "shap_summary_b.png"),
+                       "Model B SHAP summary (top 20 features)")
+    plot_shap_summary(model_c, shap_sample, os.path.join(SCRIPT_DIR, "shap_summary_c.png"),
+                       "Model C SHAP summary (top 20 features)")
+
+    # --- Save models ---
+    print("Saving model files ...")
+    model_a.save_model(os.path.join(SCRIPT_DIR, "model_a.json"))
+    model_b.save_model(os.path.join(SCRIPT_DIR, "model_b.json"))
+    model_c.save_model(os.path.join(SCRIPT_DIR, "model_c.json"))
+
+    # --- Write evaluation report ---
+    report.append("Outputs")
+    report.append("-" * 50)
+    report.append("feature_importance.png - top feature gains for models A/B/C")
+    report.append("confusion_matrix_a.png - Model A confusion matrix (test set)")
+    report.append("shap_summary_a.png / shap_summary_b.png / shap_summary_c.png - "
+                   f"SHAP summaries (top {TOP_N_SHAP} features, "
+                   f"{len(shap_sample)} sampled test rows)")
+    report.append("model_a.json / model_b.json / model_c.json - trained XGBoost models")
+
+    report_path = os.path.join(SCRIPT_DIR, "evaluation_report.txt")
+    with open(report_path, "w") as f:
+        f.write("\n".join(report) + "\n")
+
+    print(f"\nDone. Report written to {report_path}")
+
+
+if __name__ == "__main__":
+    main()

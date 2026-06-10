@@ -567,6 +567,13 @@ function buildAndSaveFeatureVector(
           fmp_news_article_count_7d: (p as any)._tempFmpNewsArticleCount7d ?? (p.analysis as any)?.fmp_news_article_count_7d ?? null,
           insider_net_shares_30d: (p as any)._tempInsiderNetShares30d ?? (p.analysis as any)?.insider_net_shares_30d ?? null,
           institutional_ownership_pct: (p as any)._tempInstitutionalOwnershipPct ?? (p.analysis as any)?.institutional_ownership_pct ?? null,
+          eps_surprise_pct: (p as any)._tempEpsSurprisePct ?? (p.analysis as any)?.eps_surprise_pct ?? null,
+          revenue_surprise_pct: (p as any)._tempRevenueSurprisePct ?? (p.analysis as any)?.revenue_surprise_pct ?? null,
+          earnings_date_proximity_days: (p as any)._tempEarningsProximityDays ?? (p.analysis as any)?.earnings_date_proximity_days ?? null,
+          analyst_upgrades_30d: (p as any)._tempAnalystUpgrades30d ?? (p.analysis as any)?.analyst_upgrades_30d ?? null,
+          analyst_downgrades_30d: (p as any)._tempAnalystDowngrades30d ?? (p.analysis as any)?.analyst_downgrades_30d ?? null,
+          price_target_consensus: (p as any)._tempPriceTargetConsensus ?? (p.analysis as any)?.price_target_consensus ?? null,
+          price_target_upside_pct: (p as any)._tempPriceTargetUpsidePct ?? (p.analysis as any)?.price_target_upside_pct ?? null,
         };
       })(),
     };
@@ -753,7 +760,7 @@ Is this news item a highly specific, direct corporate catalyst that logically ex
 Reply with JSON containing only a single property "score" (a number between 1 and 100).`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-2.5-flash",
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -2745,7 +2752,7 @@ ${itemsListStr}
 Provide a JSON array containing the results mapping perfectly back using the static date field.`;
 
           const response = await ai.models.generateContent({
-            model: "gemini-3.5-flash",
+            model: "gemini-2.5-flash",
             contents: prompt,
             config: {
               tools: [{ googleSearch: {} }],
@@ -3647,7 +3654,7 @@ ${itemsListStr}
 Provide a JSON array containing the results mapping perfectly back using the static 'symbol' and 'date' fields.`;
 
               const response = await ai.models.generateContent({
-                model: "gemini-3.5-flash",
+                model: "gemini-2.5-flash",
                 contents: prompt,
                 config: {
                   tools: [{ googleSearch: {} }],
@@ -4502,8 +4509,14 @@ Provide a JSON array containing the results mapping perfectly back using the sta
             enrichStatuses.fmp_news = (a.analysis as any).fmp_news_article_count_7d > 0 ? 'hit' : 'skip';
           }
 
+          const isUsListed = !uppercaseSymbol.includes('.') || uppercaseSymbol.endsWith('.NYSE') || uppercaseSymbol.endsWith('.NASDAQ');
+
           // 4.6 FMP Insider Trading (30-day window)
-          if ((a.analysis as any).insider_net_shares_30d === undefined) {
+          if (!isUsListed) {
+            (a as any)._tempInsiderNetShares30d = null;
+            (a as any)._tempInsiderBuyCount30d = 0;
+            (a as any)._tempInsiderSellCount30d = 0;
+          } else if ((a.analysis as any).insider_net_shares_30d === undefined) {
             promises.push(
               (async () => {
                 try {
@@ -4570,7 +4583,11 @@ Provide a JSON array containing the results mapping perfectly back using the sta
           }
 
           // 4.8 FMP Earnings Surprise
-          if ((a.analysis as any).eps_surprise_pct === undefined) {
+          if (!isUsListed) {
+            (a as any)._tempEpsSurprisePct = null;
+            (a as any)._tempRevenueSurprisePct = null;
+            (a as any)._tempEarningsProximityDays = null;
+          } else if ((a.analysis as any).eps_surprise_pct === undefined) {
             promises.push(
               (async () => {
                 try {
@@ -4606,7 +4623,10 @@ Provide a JSON array containing the results mapping perfectly back using the sta
           }
 
           // 4.9 FMP Analyst Grades (30-day window)
-          if ((a.analysis as any).analyst_upgrades_30d === undefined) {
+          if (!isUsListed) {
+            (a as any)._tempAnalystUpgrades30d = null;
+            (a as any)._tempAnalystDowngrades30d = null;
+          } else if ((a.analysis as any).analyst_upgrades_30d === undefined) {
             promises.push(
               (async () => {
                 try {
@@ -4812,7 +4832,6 @@ Provide a JSON array containing the results mapping perfectly back using the sta
           }
 
           // 9. Congressional Net Flow
-          const isUsListed = !uppercaseSymbol.includes('.') || uppercaseSymbol.endsWith('.NYSE') || uppercaseSymbol.endsWith('.NASDAQ');
           if (isUsListed) {
             promises.push(
               (async () => {

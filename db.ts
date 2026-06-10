@@ -510,6 +510,16 @@ try {
       cached_at TEXT NOT NULL,
       PRIMARY KEY (symbol, date)
     );
+    CREATE TABLE IF NOT EXISTS fmp_earnings_history (
+      symbol TEXT PRIMARY KEY,
+      data TEXT NOT NULL,
+      cached_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS fmp_grades_history (
+      symbol TEXT PRIMARY KEY,
+      data TEXT NOT NULL,
+      cached_at TEXT NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS fmp_analyst_grades_cache (
       symbol TEXT,
       date TEXT,
@@ -745,6 +755,40 @@ export function setCachedFmpEarningsSurprise(symbol: string, date: string, epsSu
       cached_at = excluded.cached_at
   `);
   stmt.run(symbol, date, epsSurprisePct, revenueSurprisePct, proximityDays, new Date().toISOString());
+}
+
+export function getCachedEarningsHistory(symbol: string): any[] | null {
+  const row = db.prepare('SELECT data, cached_at FROM fmp_earnings_history WHERE symbol = ?')
+    .get(symbol.toUpperCase()) as { data: string; cached_at: string } | undefined;
+  if (!row) return null;
+  const ageDays = (Date.now() - new Date(row.cached_at).getTime()) / (1000 * 60 * 60 * 24);
+  if (ageDays > 30) return null;
+  try { return JSON.parse(row.data); } catch { return null; }
+}
+
+export function setCachedEarningsHistory(symbol: string, data: any[]): void {
+  db.prepare(`
+    INSERT INTO fmp_earnings_history (symbol, data, cached_at)
+    VALUES (?, ?, ?)
+    ON CONFLICT(symbol) DO UPDATE SET data = excluded.data, cached_at = excluded.cached_at
+  `).run(symbol.toUpperCase(), JSON.stringify(data), new Date().toISOString());
+}
+
+export function getCachedGradesHistory(symbol: string): any[] | null {
+  const row = db.prepare('SELECT data, cached_at FROM fmp_grades_history WHERE symbol = ?')
+    .get(symbol.toUpperCase()) as { data: string; cached_at: string } | undefined;
+  if (!row) return null;
+  const ageDays = (Date.now() - new Date(row.cached_at).getTime()) / (1000 * 60 * 60 * 24);
+  if (ageDays > 30) return null;
+  try { return JSON.parse(row.data); } catch { return null; }
+}
+
+export function setCachedGradesHistory(symbol: string, data: any[]): void {
+  db.prepare(`
+    INSERT INTO fmp_grades_history (symbol, data, cached_at)
+    VALUES (?, ?, ?)
+    ON CONFLICT(symbol) DO UPDATE SET data = excluded.data, cached_at = excluded.cached_at
+  `).run(symbol.toUpperCase(), JSON.stringify(data), new Date().toISOString());
 }
 
 export function getCachedFmpAnalystGrades(symbol: string, date: string): { upgrades: number; downgrades: number; strongBuyCount: number; sellCount: number } | null {

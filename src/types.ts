@@ -578,6 +578,16 @@ export interface EventFeatureVector {
     insider_net_shares_30d: number | null;
     // FMP institutional ownership at the closest quarter before the event
     institutional_ownership_pct: number | null;
+    // FMP earnings surprise in the 30 days before the event
+    eps_surprise_pct?: number | null;
+    revenue_surprise_pct?: number | null;
+    earnings_date_proximity_days?: number | null;
+    // FMP analyst grades in the 30 days before the event
+    analyst_upgrades_30d?: number | null;
+    analyst_downgrades_30d?: number | null;
+    // FMP price target consensus
+    price_target_consensus?: number | null;
+    price_target_upside_pct?: number | null;
   };
 }
 

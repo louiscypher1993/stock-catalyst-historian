@@ -5,6 +5,8 @@ import {
   getFMPInsiderTrading,
   getFMPInstitutionalOwnership,
   getFMPEarningsSurprise,
+  getFMPAnalystGrades,
+  getFMPPriceTargetConsensus,
 } from './FMPService';
 
 const BATCH_SIZE = 500;
@@ -68,7 +70,7 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
               features.fmp_news_sentiment_avg !== undefined &&
               features.insider_net_shares_30d !== undefined &&
               features.institutional_ownership_pct !== undefined &&
-              features.eps_surprise_pct !== undefined &&
+              (features.eps_surprise_pct !== undefined && features.eps_surprise_pct !== null) &&
               features.confidence_tier !== undefined;
             if (allPopulated) {
               state.processed++;
@@ -80,6 +82,7 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
           }
 
           let changed = false;
+          const isUsListed = !row.symbol.includes('.') || row.symbol.endsWith('.NYSE') || row.symbol.endsWith('.NASDAQ');
 
           if (forceAll || features.fmp_news_sentiment_avg === undefined) {
             const result = await getFMPNewsSentiment(row.symbol, row.date);
@@ -95,7 +98,7 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
             }
           }
 
-          if (forceAll || features.insider_net_shares_30d === undefined) {
+          if (isUsListed && (forceAll || features.insider_net_shares_30d === undefined)) {
             const result = await getFMPInsiderTrading(row.symbol, row.date);
             if (result !== null) {
               features.insider_net_shares_30d = result.insider_net_shares_30d;
@@ -120,12 +123,49 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
             }
           }
 
-          if (forceAll || features.eps_surprise_pct === undefined) {
+          if (isUsListed && (forceAll || features.eps_surprise_pct === undefined || features.eps_surprise_pct === null)) {
             const result = await getFMPEarningsSurprise(row.symbol, row.date);
             if (result !== null) {
               features.eps_surprise_pct = result.eps_surprise_pct;
               features.revenue_surprise_pct = result.revenue_surprise_pct;
               features.earnings_date_proximity_days = result.earnings_date_proximity_days;
+              if (features.signal_snapshot) {
+                features.signal_snapshot.eps_surprise_pct = result.eps_surprise_pct;
+                features.signal_snapshot.revenue_surprise_pct = result.revenue_surprise_pct;
+                features.signal_snapshot.earnings_date_proximity_days = result.earnings_date_proximity_days;
+              }
+              changed = true;
+            }
+          }
+
+          if (isUsListed && (forceAll || features.analyst_upgrades_30d === undefined || features.analyst_upgrades_30d === null || features.analyst_upgrades_30d === 0)) {
+            const result = await getFMPAnalystGrades(row.symbol, row.date);
+            if (result !== null) {
+              features.analyst_upgrades_30d = result.upgrades;
+              features.analyst_downgrades_30d = result.downgrades;
+              if (features.signal_snapshot) {
+                features.signal_snapshot.analyst_upgrades_30d = result.upgrades;
+                features.signal_snapshot.analyst_downgrades_30d = result.downgrades;
+              }
+              changed = true;
+            }
+          }
+
+          if (forceAll || features.price_target_consensus === undefined) {
+            const result = await getFMPPriceTargetConsensus(row.symbol, row.date);
+            if (result !== null) {
+              const consensus = result.priceTargetConsensus;
+              // close is not part of EventFeatureVector's type but may be present on stored rows
+              const close = (features as any).close as number | null | undefined;
+              const upside = consensus !== null && close !== null && close !== undefined && close !== 0
+                ? Math.round(((consensus - close) / close) * 10000) / 100
+                : null;
+              features.price_target_consensus = consensus;
+              features.price_target_upside_pct = upside;
+              if (features.signal_snapshot) {
+                features.signal_snapshot.price_target_consensus = consensus;
+                features.signal_snapshot.price_target_upside_pct = upside;
+              }
               changed = true;
             }
           }

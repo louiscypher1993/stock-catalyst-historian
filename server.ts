@@ -544,7 +544,7 @@ ${JSON.stringify(EVENT_TAXONOMY, null, 2)}
 Do not include any search citation brackets (e.g. [1]) inside JSON string values. Output only raw, parsable JSON with no text before or after it.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         systemInstruction: "You are a financial catalyst attribution and narrative analyst. A deterministic engine has ALREADY classified this event. Treat the provided gating verdict as fixed ground truth — never recompute or contradict its fields. Use Google Search grounding to find real-world news surrounding the date. Do NOT output probabilities, action signals, or any numeric verdict field.",
@@ -649,7 +649,7 @@ Instructions:
     }));
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.5-flash",
       contents: [contextTurn, contextAck, ...conversationTurns],
     });
 

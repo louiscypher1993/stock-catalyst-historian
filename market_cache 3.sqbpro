@@ -6,4 +6,48 @@ LIMIT 30;</sql><sql name="SQL 2">SELECT
   SUM(CASE WHEN is_null_sample = 0 THEN 1 ELSE 0 END) as events,
   SUM(CASE WHEN is_null_sample = 1 THEN 1 ELSE 0 END) as non_events,
   COUNT(DISTINCT symbol) as symbols
-FROM event_features;</sql><current_tab id="0"/></tab_sql></sqlb_project>
+FROM event_features;</sql><sql name="SQL 3*">SELECT COUNT(*) as total,
+  SUM(CASE WHEN json_extract(signal_snapshot_json, '$.fmp_social_sentiment_score') IS NOT NULL THEN 1 ELSE 0 END) as has_social,
+  SUM(CASE WHEN json_extract(signal_snapshot_json, '$.insider_net_shares_30d') IS NOT NULL THEN 1 ELSE 0 END) as has_insider
+FROM event_features;</sql><sql name="SQL 4*">SELECT COUNT(*) as total,
+  SUM(CASE WHEN json_extract(signal_snapshot_json, '$.fmp_social_sentiment_score') IS NOT NULL THEN 1 ELSE 0 END) as has_social,
+  SUM(CASE WHEN json_extract(signal_snapshot_json, '$.insider_net_shares_30d') IS NOT NULL THEN 1 ELSE 0 END) as has_insider,
+  SUM(CASE WHEN json_extract(signal_snapshot_json, '$.eps_surprise_pct') IS NOT NULL THEN 1 ELSE 0 END) as has_earnings,
+  SUM(CASE WHEN json_extract(signal_snapshot_json, '$.institutional_ownership_pct') IS NOT NULL THEN 1 ELSE 0 END) as has_institutional
+FROM event_features;</sql><sql name="SQL 5*">SELECT COUNT(*) as total,
+  SUM(CASE WHEN is_null_sample = 1 THEN 1 ELSE 0 END) as null_samples,
+  SUM(CASE WHEN is_null_sample = 0 OR is_null_sample IS NULL THEN 1 ELSE 0 END) as real_events
+FROM event_features;</sql><sql name="SQL 6*">SELECT COUNT(*) as total,
+  SUM(CASE WHEN json_extract(signal_snapshot_json, '$.fmp_news_sentiment_avg') IS NOT NULL THEN 1 ELSE 0 END) as has_news,
+  SUM(CASE WHEN json_extract(signal_snapshot_json, '$.insider_net_shares_30d') IS NOT NULL THEN 1 ELSE 0 END) as has_insider,
+  SUM(CASE WHEN json_extract(signal_snapshot_json, '$.eps_surprise_pct') IS NOT NULL THEN 1 ELSE 0 END) as has_earnings
+FROM event_features;</sql><sql name="SQL 7*">SELECT signal_snapshot_json 
+FROM event_features 
+WHERE signal_snapshot_json LIKE '%eps%' 
+</sql><sql name="SQL 8*">SELECT signal_snapshot_json 
+FROM event_features 
+WHERE signal_snapshot_json IS NOT NULL 
+LIMIT 1;</sql><sql name="SQL 10*">SELECT 
+  -- Core signals (from top-level columns)
+  ROUND(100.0 * SUM(CASE WHEN confidence_tier IS NOT NULL THEN 1 END) / COUNT(*), 1) AS confidence_tier_pct,
+
+  -- Signals from signal_snapshot JSON
+  ROUND(100.0 * SUM(CASE WHEN json_extract(signal_snapshot_json, '$.fmp_news_sentiment_avg') IS NOT NULL THEN 1 END) / COUNT(*), 1) AS news_sentiment_pct,
+
+  ROUND(100.0 * SUM(CASE WHEN json_extract(signal_snapshot_json, '$.short_interest_pct_float') IS NOT NULL THEN 1 END) / COUNT(*), 1) AS short_interest_pct,
+
+  ROUND(100.0 * SUM(CASE WHEN json_extract(signal_snapshot_json, '$.estimate_revision_direction') IS NOT NULL THEN 1 END) / COUNT(*), 1) AS estimate_revision_pct,
+
+  -- Insider (stored in features_json)
+  ROUND(100.0 * SUM(CASE WHEN json_extract(features_json, '$.insider_net_shares_30d') IS NOT NULL THEN 1 END) / COUNT(*), 1) AS insider_pct,
+
+  -- Earnings surprise (missing — confirming zero)
+  ROUND(100.0 * SUM(CASE WHEN json_extract(features_json, '$.eps_surprise_pct') IS NOT NULL THEN 1 END) / COUNT(*), 1) AS eps_surprise_pct,
+  ROUND(100.0 * SUM(CASE WHEN json_extract(features_json, '$.revenue_surprise_pct') IS NOT NULL THEN 1 END) / COUNT(*), 1) AS revenue_surprise_pct,
+
+  -- Analyst grades (confirming zero bug)
+  ROUND(100.0 * SUM(CASE WHEN json_extract(features_json, '$.analyst_upgrades_30d') IS NOT NULL THEN 1 END) / COUNT(*), 1) AS analyst_upgrades_pct,
+  ROUND(100.0 * SUM(CASE WHEN json_extract(features_json, '$.analyst_downgrades_30d') IS NOT NULL THEN 1 END) / COUNT(*), 1) AS analyst_downgrades_pct,
+
+  COUNT(*) AS total_rows
+FROM event_features;</sql><current_tab id="8"/></tab_sql></sqlb_project>

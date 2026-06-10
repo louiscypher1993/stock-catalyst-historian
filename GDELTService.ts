@@ -43,15 +43,29 @@ export async function fetchGDELTToneForDate(
   // Generate target queries
   // Typically an organization name in GDELT GKG could be the exact company name or part of it
   const baseName = companyName
-    .replace(/inc\.?|corp\.?|ltd\.?|plc\.?|company/gi, '')
+    .replace(/inc\.?|corp\.?|ltd\.?|plc\.?|co\.?|company|holdings?|group|technologies?|international|enterprises?|partners?|capital|financial|bancorp|bancshares/gi, '')
+    .replace(/[,\.]/g, '')
     .trim()
     .toUpperCase();
 
-  const queries = [baseName];
-  if (baseName.includes(' ')) {
-    queries.push(baseName.split(' ')[0]);
-  }
+  const queries: string[] = [];
+
+  // Full cleaned name
+  if (baseName.length >= 3) queries.push(baseName);
+
+  // First word only (most reliable GDELT entity match)
+  const words = baseName.split(/\s+/).filter(w => w.length >= 3);
+  if (words[0]) queries.push(words[0]);
+
+  // First two words
+  if (words.length >= 2) queries.push(words.slice(0, 2).join(' '));
+
+  // Symbol itself (fallback — works for tickers that appear as org names in GDELT)
   queries.push(symbol.toUpperCase());
+
+  // Original full company name uppercased (GDELT sometimes stores the legal name)
+  const fullUpper = companyName.toUpperCase().trim();
+  if (fullUpper.length >= 3 && !queries.includes(fullUpper)) queries.push(fullUpper);
 
   // Create unique short queries, 3 chars or more
   const validQueries = Array.from(new Set(queries)).filter(q => q.length >= 3);
@@ -98,8 +112,11 @@ export async function fetchGDELTToneForDate(
         .on('data', row => {
           rowCount++;
 
-          // Column 10: Tone — comma-separated, first value is the overall article tone (-100..+100)
-          const toneField = row[10] ? String(row[10]) : "";
+          // Skip header row
+          if (row[0] === 'DATE') return;
+
+          // Column 7: Tone — comma-separated, first value is the overall article tone (-100..+100)
+          const toneField = row[7] ? String(row[7]) : "";
           if (!toneField) return;
           const tone = parseFloat(toneField.split(',')[0]);
           if (!Number.isFinite(tone)) return;
@@ -109,8 +126,8 @@ export async function fetchGDELTToneForDate(
           globalToneSumSq += tone * tone;
           globalToneCount++;
 
-          // Column 9: Organizations — semicolon-separated organization names extracted from the article
-          const orgsField = row[9] ? String(row[9]).toUpperCase() : "";
+          // Column 6: Organizations — semicolon-separated organization names extracted from the article
+          const orgsField = row[6] ? String(row[6]).toUpperCase() : "";
           if (!orgsField) return;
 
           for (const q of validQueries) {
@@ -122,7 +139,7 @@ export async function fetchGDELTToneForDate(
           }
         })
         .on('end', () => {
-          console.log(`[GDELT] Processed ${rowCount} GKG records for ${fileDate} (${matchedToneCount} mentioned ${symbol})`);
+          console.log(`[GDELT] Processed ${rowCount} GKG records for ${fileDate} (${matchedToneCount} mentioned ${symbol} — queries: ${validQueries.join(' | ')})`);
           resolve();
         });
     });
