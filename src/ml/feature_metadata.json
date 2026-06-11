@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-11T07:50:12.347Z",
+  "generated_at": "2026-06-11T15:40:22.217Z",
   "row_count": 64514,
-  "column_count": 109,
+  "column_count": 113,
   "null_fill_value": 0,
   "null_indicator_threshold": 0.1,
   "columns": [
@@ -826,6 +826,37 @@
       "null_rate": 0,
       "fill_rate": 1,
       "has_null_indicator": false
+    },
+    {
+      "name": "forward_return_3m",
+      "type": "number",
+      "null_count": 2010,
+      "null_rate": 0.031156028148928913,
+      "fill_rate": 0.9688439718510711,
+      "has_null_indicator": false
+    },
+    {
+      "name": "forward_return_6m",
+      "type": "number",
+      "null_count": 4462,
+      "null_rate": 0.06916328238831881,
+      "fill_rate": 0.9308367176116812,
+      "has_null_indicator": false
+    },
+    {
+      "name": "forward_return_12m",
+      "type": "number",
+      "null_count": 7541,
+      "null_rate": 0.11688935734879251,
+      "fill_rate": 0.8831106426512075,
+      "has_null_indicator": true
+    },
+    {
+      "name": "forward_return_12m_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
     }
   ]
 }

@@ -47,6 +47,9 @@ interface ModelScores {
   model_a_confidence: number;
   model_b_return_1m: number;
   model_c_max_drawdown: number;
+  model_d1_return_3m: number;
+  model_d2_return_6m: number;
+  model_e_outperform_12m_prob: number;
 }
 
 interface Recommendation {
@@ -313,13 +316,16 @@ Model outputs:
 - Event confidence: ${(scores.model_a_confidence * 100).toFixed(1)}%
 - Expected 1-month return: ${(scores.model_b_return_1m * 100).toFixed(2)}%
 - Max adverse excursion (1-month): ${(scores.model_c_max_drawdown * 100).toFixed(2)}%
+- Expected 3-month return: ${(scores.model_d1_return_3m * 100).toFixed(2)}%
+- Expected 6-month return: ${(scores.model_d2_return_6m * 100).toFixed(2)}%
+- Probability of >10% return over 12 months: ${(scores.model_e_outperform_12m_prob * 100).toFixed(1)}%
 - Recommendation: ${rec.recommendation}
 - Risk score: ${rec.riskScore}/100
 - Risk/reward ratio: ${rec.riskReward}
 
 Note: a risk/reward ratio below 1.0 is UNFAVOURABLE — it means the expected downside exceeds the expected upside. A ratio above 1.0 is favourable. Always reflect this correctly in the narrative.
 
-Write a concise, professional narrative. No emojis. No investment disclaimers.`;
+Write a concise, professional narrative covering near-term (1-month) positioning as well as the medium-term (3/6-month) and long-term (12-month) outlook implied by the model outputs above. No emojis. No investment disclaimers.`;
 
     const response = await aiClient.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -378,6 +384,9 @@ async function writeResultToSupabase(
       model_a_confidence: scores.model_a_confidence,
       model_b_return_1m: scores.model_b_return_1m,
       model_c_max_drawdown: scores.model_c_max_drawdown,
+      model_d1_return_3m: scores.model_d1_return_3m,
+      model_d2_return_6m: scores.model_d2_return_6m,
+      model_e_outperform_12m_prob: scores.model_e_outperform_12m_prob,
       recommendation: rec.recommendation,
       risk_score: rec.riskScore,
       risk_reward_ratio: rec.riskReward,
@@ -446,18 +455,20 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       const featureVector = buildFeatureVectorForAnomaly(anomaly, enrichment);
       const scores = runInference(featureVector);
       const clampedReturn = Math.max(-0.30, Math.min(0.30, scores.model_b_return_1m));
+      const clampedReturn3m = Math.max(-0.50, Math.min(0.50, scores.model_d1_return_3m));
+      const clampedReturn6m = Math.max(-0.50, Math.min(0.50, scores.model_d2_return_6m));
       const rec = getRecommendation(scores.model_a_confidence, clampedReturn, scores.model_c_max_drawdown);
       console.log(`[LiveInference]   scores=${JSON.stringify(scores)} rec=${JSON.stringify(rec)}`);
 
       let narrative = '';
       if (scores.model_a_confidence >= NARRATIVE_CONFIDENCE_THRESHOLD || rec.recommendation === 'SELL' || rec.recommendation === 'REDUCE') {
         narrative = aiClient
-          ? await generateNarrative(aiClient, anomaly, scores, rec)
+          ? await generateNarrative(aiClient, anomaly, { ...scores, model_b_return_1m: clampedReturn, model_d1_return_3m: clampedReturn3m, model_d2_return_6m: clampedReturn6m }, rec)
           : `${symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence.`;
         narrativeCount++;
       }
 
-      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, { ...scores, model_b_return_1m: clampedReturn }, rec, narrative, computeSignalCompleteness(featureVector));
+      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, { ...scores, model_b_return_1m: clampedReturn, model_d1_return_3m: clampedReturn3m, model_d2_return_6m: clampedReturn6m }, rec, narrative, computeSignalCompleteness(featureVector));
 
       if (rec.recommendation === 'STRONG_BUY' || rec.recommendation === 'BUY') {
         await sendNtfyNotification(symbol, rec.recommendation, scores.model_b_return_1m, rec.riskScore, narrative);

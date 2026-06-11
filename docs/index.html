@@ -220,10 +220,13 @@
     return (x > 0 ? '+' : '') + v + '%';
   }
 
+  function returnClass(v) {
+    return v > 0 ? 'positive' : (v < 0 ? 'negative' : '');
+  }
+
   function renderCard(r) {
     const colorClass = REC_COLOR[r.recommendation] || 'amber';
     const returnVal = r.model_b_return_1m;
-    const returnClass = returnVal > 0 ? 'positive' : (returnVal < 0 ? 'negative' : '');
     const company = r.company_name ? `${r.company_name}${r.exchange ? ' · ' + r.exchange : ''}` : (r.exchange || '');
 
     return `
@@ -238,7 +241,19 @@
         <div class="stats">
           <div class="stat">
             <div class="label">Expected Return (1M)</div>
-            <div class="value ${returnClass}">${pct(returnVal)}</div>
+            <div class="value ${returnClass(returnVal)}">${pct(returnVal)}</div>
+          </div>
+          <div class="stat">
+            <div class="label">Expected Return (3M)</div>
+            <div class="value ${returnClass(r.model_d1_return_3m)}">${pct(r.model_d1_return_3m)}</div>
+          </div>
+          <div class="stat">
+            <div class="label">Expected Return (6M)</div>
+            <div class="value ${returnClass(r.model_d2_return_6m)}">${pct(r.model_d2_return_6m)}</div>
+          </div>
+          <div class="stat">
+            <div class="label">12M Outperform Prob.</div>
+            <div class="value">${r.model_e_outperform_12m_prob != null ? (r.model_e_outperform_12m_prob * 100).toFixed(1) + '%' : '—'}</div>
           </div>
           <div class="stat">
             <div class="label">Risk Score</div>
