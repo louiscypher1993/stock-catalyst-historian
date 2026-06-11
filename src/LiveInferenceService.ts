@@ -317,6 +317,8 @@ Model outputs:
 - Risk score: ${rec.riskScore}/100
 - Risk/reward ratio: ${rec.riskReward}
 
+Note: a risk/reward ratio below 1.0 is UNFAVOURABLE — it means the expected downside exceeds the expected upside. A ratio above 1.0 is favourable. Always reflect this correctly in the narrative.
+
 Write a concise, professional narrative. No emojis. No investment disclaimers.`;
 
     const response = await aiClient.models.generateContent({
@@ -334,13 +336,12 @@ Write a concise, professional narrative. No emojis. No investment disclaimers.`;
 async function sendNtfyNotification(symbol: string, rec: string, modelB: number, riskScore: number, narrative: string): Promise<void> {
   const topic = process.env.NTFY_TOPIC;
   if (!topic) return;
-  const emoji = rec === 'STRONG_BUY' ? '🚀' : '📈';
   await fetch(`https://ntfy.sh/${topic}`, {
     method: 'POST',
     headers: {
-      'Title': `${emoji} ${rec}: ${symbol}`,
+      'Title': `${rec}: ${symbol}`,
       'Priority': rec === 'STRONG_BUY' ? 'high' : 'default',
-      'Tags': 'chart_increasing',
+      'Tags': rec === 'STRONG_BUY' ? 'rocket,chart_increasing' : 'chart_increasing',
       'Content-Type': 'text/plain',
     },
     body: `Expected return: ${(modelB * 100).toFixed(1)}% | Risk score: ${riskScore}/100\n\n${narrative.slice(0, 280)}`,
@@ -444,18 +445,19 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       const enrichment = await getSymbolSnapshot(symbol);
       const featureVector = buildFeatureVectorForAnomaly(anomaly, enrichment);
       const scores = runInference(featureVector);
-      const rec = getRecommendation(scores.model_a_confidence, scores.model_b_return_1m, scores.model_c_max_drawdown);
+      const clampedReturn = Math.max(-0.30, Math.min(0.30, scores.model_b_return_1m));
+      const rec = getRecommendation(scores.model_a_confidence, clampedReturn, scores.model_c_max_drawdown);
       console.log(`[LiveInference]   scores=${JSON.stringify(scores)} rec=${JSON.stringify(rec)}`);
 
       let narrative = '';
-      if (scores.model_a_confidence >= NARRATIVE_CONFIDENCE_THRESHOLD) {
+      if (scores.model_a_confidence >= NARRATIVE_CONFIDENCE_THRESHOLD || rec.recommendation === 'SELL' || rec.recommendation === 'REDUCE') {
         narrative = aiClient
           ? await generateNarrative(aiClient, anomaly, scores, rec)
           : `${symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence.`;
         narrativeCount++;
       }
 
-      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, scores, rec, narrative, computeSignalCompleteness(featureVector));
+      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, { ...scores, model_b_return_1m: clampedReturn }, rec, narrative, computeSignalCompleteness(featureVector));
 
       if (rec.recommendation === 'STRONG_BUY' || rec.recommendation === 'BUY') {
         await sendNtfyNotification(symbol, rec.recommendation, scores.model_b_return_1m, rec.riskScore, narrative);
