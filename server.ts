@@ -1273,7 +1273,8 @@ app.get("/api/enrich-backfill/status", (_req, res) => {
 
 app.post('/api/live-inference/run', async (req, res, next) => {
   try {
-    await runLiveInference();
+    const { symbols } = req.body as { symbols?: string[] };
+    await runLiveInference(symbols);
     res.json({ success: true });
   } catch (err) {
     next(err);

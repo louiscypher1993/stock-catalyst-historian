@@ -27,7 +27,7 @@ interface YahooBar {
   volume: number;
 }
 
-interface AnomalySignal {
+export interface AnomalySignal {
   symbol: string;
   companyName: string;
   date: string;
@@ -43,7 +43,7 @@ interface AnomalySignal {
   kineticEnergy: number;
 }
 
-interface ModelScores {
+export interface ModelScores {
   model_a_confidence: number;
   model_b_return_1m: number;
   model_c_max_drawdown: number;
@@ -52,7 +52,7 @@ interface ModelScores {
   model_e_outperform_12m_prob: number;
 }
 
-interface Recommendation {
+export interface Recommendation {
   recommendation: string;
   riskScore: number;
   riskReward: number;
@@ -261,14 +261,16 @@ function buildFeatureVectorForAnomaly(anomaly: AnomalySignal, enrichment: Symbol
   return buildLiveFeatureVector(features, snap, context);
 }
 
-function runInference(featureVector: Record<string, number>): ModelScores {
+export function runInference(featureVector: Record<string, number>): ModelScores {
   const inferScript = path.join(ML_DIR, 'infer.py');
   const vectorJson = JSON.stringify(featureVector).replace(/"/g, '\\"');
   const output = execSync(`python "${inferScript}" "${vectorJson}"`, { encoding: 'utf-8' });
-  return JSON.parse(output.trim()) as ModelScores;
+  const scores = JSON.parse(output.trim()) as ModelScores;
+  console.log('[INFER DEBUG] raw scores:', JSON.stringify(scores));
+  return scores;
 }
 
-function getRecommendation(modelA: number, modelB: number, modelC: number): Recommendation {
+export function getRecommendation(modelA: number, modelB: number, modelC: number): Recommendation {
   const riskScore = Math.round(Math.min(100, Math.max(0,
     (Math.abs(modelC) * 40) +
     ((1 - modelA) * 30) +
@@ -354,14 +356,14 @@ async function sendNtfyNotification(symbol: string, rec: string, modelB: number,
   });
 }
 
-function computeSignalCompleteness(vector: Record<string, number>): number {
+export function computeSignalCompleteness(vector: Record<string, number>): number {
   const indicatorKeys = Object.keys(vector).filter(k => k.endsWith('_is_null'));
   if (indicatorKeys.length === 0) return 1;
   const nullCount = indicatorKeys.reduce((sum, k) => sum + vector[k], 0);
   return Math.round((1 - nullCount / indicatorKeys.length) * 1000) / 1000;
 }
 
-async function writeResultToSupabase(
+export async function writeResultToSupabase(
   runDate: string,
   anomaly: AnomalySignal,
   sector: string | null,
