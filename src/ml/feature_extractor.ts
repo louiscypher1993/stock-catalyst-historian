@@ -13,6 +13,9 @@ interface EventFeatureRow {
   features_json: string;
   max_favorable_excursion_1m: number | null;
   max_adverse_excursion_1m: number | null;
+  forward_return_3m: number | null;
+  forward_return_6m: number | null;
+  forward_return_12m: number | null;
   is_null_sample: number | null;
   signal_snapshot_json: string | null;
   confidence_tier: string | null;
@@ -154,6 +157,9 @@ const TARGET_ACCESSORS: Record<string, (f: Json, row: EventFeatureRow) => number
   forward_return_1m: (f) => numOrNull(f.forward_return_1m),
   max_favorable_excursion_1m: (f, row) => numOrNull(row.max_favorable_excursion_1m ?? f.max_favorable_excursion_1m),
   max_adverse_excursion_1m: (f, row) => numOrNull(row.max_adverse_excursion_1m ?? f.max_adverse_excursion_1m),
+  forward_return_3m: (f, row) => numOrNull(row.forward_return_3m ?? null),
+  forward_return_6m: (f, row) => numOrNull(row.forward_return_6m ?? null),
+  forward_return_12m: (f, row) => numOrNull(row.forward_return_12m ?? null),
 };
 
 const NUMERIC_FEATURE_NAMES = Object.keys(NUMERIC_ACCESSORS);
@@ -226,6 +232,7 @@ export function extractFeatures(): FeatureExtractionResult {
   const rows = db.prepare(`
     SELECT cache_key, symbol, date, primaryCategory, features_json,
            max_favorable_excursion_1m, max_adverse_excursion_1m,
+           forward_return_3m, forward_return_6m, forward_return_12m,
            is_null_sample, signal_snapshot_json, confidence_tier
     FROM event_features
     WHERE signal_snapshot_json IS NOT NULL

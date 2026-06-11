@@ -10,6 +10,9 @@ CREATE TABLE IF NOT EXISTS inference_results (
   model_a_confidence REAL,
   model_b_return_1m REAL,
   model_c_max_drawdown REAL,
+  model_d1_return_3m REAL,
+  model_d2_return_6m REAL,
+  model_e_outperform_12m_prob REAL,
   recommendation TEXT CHECK (recommendation IN ('STRONG_BUY','BUY','ADD','HOLD','REDUCE','SELL')),
   risk_score INTEGER CHECK (risk_score BETWEEN 0 AND 100),
   risk_reward_ratio REAL,
@@ -35,3 +38,8 @@ CREATE TABLE IF NOT EXISTS symbol_snapshots (
 
 -- Written/read only by the backend pipeline using the publishable key; no end-user access.
 ALTER TABLE symbol_snapshots DISABLE ROW LEVEL SECURITY;
+
+-- Models D1/D2/E (forward_return_3m/6m regressors, 12m-outperform classifier).
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_d1_return_3m REAL;
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_d2_return_6m REAL;
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_e_outperform_12m_prob REAL;

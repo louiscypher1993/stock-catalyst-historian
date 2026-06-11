@@ -431,6 +431,30 @@ try {
 }
 
 try {
+  db.exec("ALTER TABLE event_features ADD COLUMN forward_return_3m REAL;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add forward_return_3m to event_features", e);
+  }
+}
+
+try {
+  db.exec("ALTER TABLE event_features ADD COLUMN forward_return_6m REAL;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add forward_return_6m to event_features", e);
+  }
+}
+
+try {
+  db.exec("ALTER TABLE event_features ADD COLUMN forward_return_12m REAL;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add forward_return_12m to event_features", e);
+  }
+}
+
+try {
   db.exec(`
     UPDATE event_features SET confidence_tier =
       CASE

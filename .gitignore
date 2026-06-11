@@ -17,3 +17,6 @@ firebase-applet-config.json
 
 # Local cache files
 market_ecosystem_cache.json
+
+# Python bytecode cache
+__pycache__/
