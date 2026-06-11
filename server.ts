@@ -22,6 +22,7 @@ import { exportAndUploadToDrive, exportToLocalStream } from "./CSVExportService"
 import { runSignalValidation } from "./SignalValidationService";
 import { BatchScanner } from "./BatchScannerService";
 import { startBackfill, getBackfillStatus } from "./EnrichBackfillService";
+import { runLiveInference } from "./src/LiveInferenceService";
 
 dotenv.config();
 
@@ -1268,6 +1269,15 @@ app.post("/api/enrich-backfill", (req, res) => {
 
 app.get("/api/enrich-backfill/status", (_req, res) => {
   return res.json(getBackfillStatus());
+});
+
+app.post('/api/live-inference/run', async (req, res, next) => {
+  try {
+    await runLiveInference();
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Configure Vite middleware or production build output serving

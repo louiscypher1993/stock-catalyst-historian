@@ -1,0 +1,56 @@
+XGBoost Training Pipeline - Evaluation Report
+==================================================
+
+Total rows: 64514  Feature columns: 100
+Train rows: 45159 (1965-10-01 to 2024-05-09)
+Val rows:   9676 (2022-01-19 to 2025-05-09)
+Test rows:  9679 (2022-12-16 to 2026-06-09)
+Base hyperparameters: colsample_bytree=0.8, importance_type=gain, learning_rate=0.05, max_depth=6, min_child_weight=5, n_estimators=500, random_state=42, subsample=0.8
+Hyperparameter search grid: {'max_depth': [4, 6, 8], 'learning_rate': [0.03, 0.05, 0.1]} (search n_estimators=100)
+
+Model A - Binary Classifier (is_null_sample: 0=event, 1=non-event)
+--------------------------------------------------
+Dropped 27 '_is_null' indicator columns from Model A's feature set (73 features used vs 100 for Models B/C)
+scale_pos_weight: 2.1230 (train neg=30699, pos=14460)
+Best hyperparameters from CV search: {'learning_rate': 0.1, 'max_depth': 8} (cv roc_auc=0.9999)
+Validation -> AUC-ROC: 0.9981, Precision: 0.9932, Recall: 0.8944, F1: 0.9412, Accuracy: 0.9642
+Test       -> AUC-ROC: 0.9967, Precision: 0.9912, Recall: 0.7648, F1: 0.8634, Accuracy: 0.9225
+Top 5 features by importance (gain):
+  primaryCategory_corporate: 0.2393
+  kinetic_energy: 0.2389
+  seismic_magnitude_mw: 0.0853
+  relative_volume_30d: 0.0836
+  yield_curve_spread: 0.0588
+Confusion matrix (test): saved to confusion_matrix_a.png
+
+Model B - Regression (forward_return_1m)
+--------------------------------------------------
+Dropped temporal columns ['day_sin', 'day_cos', 'month_sin', 'month_cos'] from Models B/C feature set (96 features used vs 100 for Model A's base set)
+Best hyperparameters from CV search: {'learning_rate': 0.03, 'max_depth': 4} (cv rmse=7.4009)
+Validation -> RMSE: 0.563148, MAE: 0.152226
+Test       -> RMSE: 0.484393, MAE: 0.136434
+Top 5 features by importance (gain):
+  primaryCategory_market_structure: 0.1532
+  sector_Financials: 0.0960
+  fractal_efficiency_ratio_10d: 0.0632
+  analyst_upgrades_30d_is_null: 0.0620
+  sector_Industrials: 0.0612
+
+Model C - Regression (max_adverse_excursion_1m)
+--------------------------------------------------
+Best hyperparameters from CV search: {'learning_rate': 0.03, 'max_depth': 6} (cv rmse=2.3045)
+Validation -> RMSE: 0.526669, MAE: 0.089417
+Test       -> RMSE: 0.382883, MAE: 0.085053
+Top 5 features by importance (gain):
+  primaryCategory_market_structure: 0.2047
+  fractal_efficiency_ratio_10d: 0.1540
+  sector_Industrials: 0.0801
+  obv_delta_10d: 0.0493
+  amihud_illiquidity_30d: 0.0403
+
+Outputs
+--------------------------------------------------
+feature_importance.png - top feature gains for models A/B/C
+confusion_matrix_a.png - Model A confusion matrix (test set)
+shap_summary_a.png / shap_summary_b.png / shap_summary_c.png - SHAP summaries (top 20 features, 2000 sampled test rows)
+model_a_v3.json / model_b_v3.json / model_c_v3.json - trained XGBoost models (Model A trained without _is_null indicator columns; Models B/C trained without temporal cyclical columns)

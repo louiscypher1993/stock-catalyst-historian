@@ -1,0 +1,41 @@
+name: Live Inference
+
+on:
+  schedule:
+    # 8:00 AM BST (7:00 UTC) — pre-market London open
+    - cron: '0 7 * * 1-5'
+    # 9:00 PM BST (20:00 UTC) — post US market close
+    - cron: '0 20 * * 1-5'
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  infer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install Python dependencies
+        run: pip install xgboost scikit-learn pandas numpy
+
+      - name: Run live inference
+        env:
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: npx tsx src/LiveInferenceService.ts

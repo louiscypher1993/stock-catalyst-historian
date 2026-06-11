@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-10T09:31:38.085Z",
-  "row_count": 60767,
-  "column_count": 108,
+  "generated_at": "2026-06-11T07:50:12.347Z",
+  "row_count": 64514,
+  "column_count": 109,
   "null_fill_value": 0,
   "null_indicator_threshold": 0.1,
   "columns": [
@@ -125,33 +125,40 @@
     {
       "name": "vix_close",
       "type": "number",
-      "null_count": 323,
-      "null_rate": 0.005315384995145392,
-      "fill_rate": 0.9946846150048546,
+      "null_count": 384,
+      "null_rate": 0.005952196422481942,
+      "fill_rate": 0.9940478035775181,
       "has_null_indicator": false
     },
     {
       "name": "vix_regime",
       "type": "number",
-      "null_count": 6043,
-      "null_rate": 0.09944542268007307,
-      "fill_rate": 0.9005545773199269,
-      "has_null_indicator": false
+      "null_count": 6532,
+      "null_rate": 0.10124934122826053,
+      "fill_rate": 0.8987506587717394,
+      "has_null_indicator": true
+    },
+    {
+      "name": "vix_regime_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
     },
     {
       "name": "trend_regime",
       "type": "number",
-      "null_count": 323,
-      "null_rate": 0.005315384995145392,
-      "fill_rate": 0.9946846150048546,
+      "null_count": 384,
+      "null_rate": 0.005952196422481942,
+      "fill_rate": 0.9940478035775181,
       "has_null_indicator": false
     },
     {
       "name": "yield_curve_spread",
       "type": "number",
-      "null_count": 24366,
-      "null_rate": 0.4009742129774384,
-      "fill_rate": 0.5990257870225616,
+      "null_count": 25196,
+      "null_rate": 0.39055088817930994,
+      "fill_rate": 0.6094491118206901,
       "has_null_indicator": true
     },
     {
@@ -164,9 +171,9 @@
     {
       "name": "credit_spread",
       "type": "number",
-      "null_count": 52641,
-      "null_rate": 0.8662761038063422,
-      "fill_rate": 0.13372389619365774,
+      "null_count": 56010,
+      "null_rate": 0.868183650060452,
+      "fill_rate": 0.131816349939548,
       "has_null_indicator": true
     },
     {
@@ -179,9 +186,9 @@
     {
       "name": "economic_policy_uncertainty",
       "type": "number",
-      "null_count": 25197,
-      "null_rate": 0.4146493985222242,
-      "fill_rate": 0.5853506014777757,
+      "null_count": 26094,
+      "null_rate": 0.4044703475214682,
+      "fill_rate": 0.5955296524785318,
       "has_null_indicator": true
     },
     {
@@ -258,9 +265,9 @@
     {
       "name": "gdelt_tone_z",
       "type": "number",
-      "null_count": 60766,
-      "null_rate": 0.9999835436997054,
-      "fill_rate": 0.000016456300294567776,
+      "null_count": 64499,
+      "null_rate": 0.9997674923272468,
+      "fill_rate": 0.00023250767275320085,
       "has_null_indicator": true
     },
     {
@@ -273,9 +280,9 @@
     {
       "name": "stocktwits_virality_z",
       "type": "number",
-      "null_count": 24347,
-      "null_rate": 0.4006615432718416,
-      "fill_rate": 0.5993384567281583,
+      "null_count": 25177,
+      "null_rate": 0.3902563784604892,
+      "fill_rate": 0.6097436215395108,
       "has_null_indicator": true
     },
     {
@@ -288,9 +295,9 @@
     {
       "name": "google_trends_z",
       "type": "number",
-      "null_count": 59805,
-      "null_rate": 0.9841690391166258,
-      "fill_rate": 0.0158309608833742,
+      "null_count": 63281,
+      "null_rate": 0.9808878692996869,
+      "fill_rate": 0.01911213070031311,
       "has_null_indicator": true
     },
     {
@@ -303,9 +310,9 @@
     {
       "name": "wikipedia_spike_z",
       "type": "number",
-      "null_count": 60604,
-      "null_rate": 0.9973176230519855,
-      "fill_rate": 0.0026823769480145473,
+      "null_count": 64347,
+      "null_rate": 0.997411414576681,
+      "fill_rate": 0.0025885854233189697,
       "has_null_indicator": true
     },
     {
@@ -318,7 +325,7 @@
     {
       "name": "news_relevance_z",
       "type": "number",
-      "null_count": 60767,
+      "null_count": 64514,
       "null_rate": 1,
       "fill_rate": 0,
       "has_null_indicator": true
@@ -333,7 +340,7 @@
     {
       "name": "short_interest_pct_float",
       "type": "number",
-      "null_count": 60767,
+      "null_count": 64514,
       "null_rate": 1,
       "fill_rate": 0,
       "has_null_indicator": true
@@ -348,7 +355,7 @@
     {
       "name": "put_call_ratio_t_minus_1",
       "type": "number",
-      "null_count": 60767,
+      "null_count": 64514,
       "null_rate": 1,
       "fill_rate": 0,
       "has_null_indicator": true
@@ -363,7 +370,7 @@
     {
       "name": "dark_pool_index",
       "type": "number",
-      "null_count": 60767,
+      "null_count": 64514,
       "null_rate": 1,
       "fill_rate": 0,
       "has_null_indicator": true
@@ -378,7 +385,7 @@
     {
       "name": "ctb_velocity_7d",
       "type": "number",
-      "null_count": 60767,
+      "null_count": 64514,
       "null_rate": 1,
       "fill_rate": 0,
       "has_null_indicator": true
@@ -393,7 +400,7 @@
     {
       "name": "iv_crush_pct",
       "type": "number",
-      "null_count": 60767,
+      "null_count": 64514,
       "null_rate": 1,
       "fill_rate": 0,
       "has_null_indicator": true
@@ -408,9 +415,9 @@
     {
       "name": "peer_average_return",
       "type": "number",
-      "null_count": 60739,
-      "null_rate": 0.9995392235917521,
-      "fill_rate": 0.0004607764082478977,
+      "null_count": 64485,
+      "null_rate": 0.9995504851660105,
+      "fill_rate": 0.00044951483398952163,
       "has_null_indicator": true
     },
     {
@@ -423,9 +430,9 @@
     {
       "name": "peer_contagion_delta",
       "type": "number",
-      "null_count": 60739,
-      "null_rate": 0.9995392235917521,
-      "fill_rate": 0.0004607764082478977,
+      "null_count": 64485,
+      "null_rate": 0.9995504851660105,
+      "fill_rate": 0.00044951483398952163,
       "has_null_indicator": true
     },
     {
@@ -438,9 +445,9 @@
     {
       "name": "congressional_net_flow_30d",
       "type": "number",
-      "null_count": 49766,
-      "null_rate": 0.8189642404594599,
-      "fill_rate": 0.1810357595405401,
+      "null_count": 52578,
+      "null_rate": 0.8149858945345196,
+      "fill_rate": 0.18501410546548036,
       "has_null_indicator": true
     },
     {
@@ -453,9 +460,9 @@
     {
       "name": "insider_net_shares_30d",
       "type": "number",
-      "null_count": 60645,
-      "null_rate": 0.9979923313640627,
-      "fill_rate": 0.0020076686359372688,
+      "null_count": 64389,
+      "null_rate": 0.99806243606039,
+      "fill_rate": 0.0019375639396100072,
       "has_null_indicator": true
     },
     {
@@ -468,7 +475,7 @@
     {
       "name": "institutional_ownership_pct",
       "type": "number",
-      "null_count": 60767,
+      "null_count": 64514,
       "null_rate": 1,
       "fill_rate": 0,
       "has_null_indicator": true
@@ -483,9 +490,9 @@
     {
       "name": "eps_surprise_pct",
       "type": "number",
-      "null_count": 58533,
-      "null_rate": 0.9632366251419356,
-      "fill_rate": 0.03676337485806441,
+      "null_count": 56725,
+      "null_rate": 0.8792665157950212,
+      "fill_rate": 0.12073348420497876,
       "has_null_indicator": true
     },
     {
@@ -498,9 +505,9 @@
     {
       "name": "revenue_surprise_pct",
       "type": "number",
-      "null_count": 58530,
-      "null_rate": 0.9631872562410518,
-      "fill_rate": 0.036812743758948115,
+      "null_count": 56888,
+      "null_rate": 0.8817930991722727,
+      "fill_rate": 0.11820690082772732,
       "has_null_indicator": true
     },
     {
@@ -513,9 +520,9 @@
     {
       "name": "earnings_date_proximity_days",
       "type": "number",
-      "null_count": 58402,
-      "null_rate": 0.9610808498033472,
-      "fill_rate": 0.03891915019665279,
+      "null_count": 56366,
+      "null_rate": 0.8737018321604613,
+      "fill_rate": 0.1262981678395387,
       "has_null_indicator": true
     },
     {
@@ -528,9 +535,9 @@
     {
       "name": "analyst_upgrades_30d",
       "type": "number",
-      "null_count": 41910,
-      "null_rate": 0.6896835453453355,
-      "fill_rate": 0.31031645465466456,
+      "null_count": 43560,
+      "null_rate": 0.6752022816752953,
+      "fill_rate": 0.3247977183247047,
       "has_null_indicator": true
     },
     {
@@ -543,9 +550,9 @@
     {
       "name": "analyst_downgrades_30d",
       "type": "number",
-      "null_count": 41910,
-      "null_rate": 0.6896835453453355,
-      "fill_rate": 0.31031645465466456,
+      "null_count": 43560,
+      "null_rate": 0.6752022816752953,
+      "fill_rate": 0.3247977183247047,
       "has_null_indicator": true
     },
     {
@@ -558,9 +565,9 @@
     {
       "name": "price_target_consensus",
       "type": "number",
-      "null_count": 42007,
-      "null_rate": 0.6912798064739085,
-      "fill_rate": 0.3087201935260915,
+      "null_count": 44088,
+      "null_rate": 0.683386551756208,
+      "fill_rate": 0.31661344824379206,
       "has_null_indicator": true
     },
     {
@@ -573,9 +580,9 @@
     {
       "name": "price_target_upside_pct",
       "type": "number",
-      "null_count": 60767,
-      "null_rate": 1,
-      "fill_rate": 0,
+      "null_count": 63744,
+      "null_rate": 0.9880646061320023,
+      "fill_rate": 0.011935393867997643,
       "has_null_indicator": true
     },
     {
@@ -588,9 +595,9 @@
     {
       "name": "fmp_news_sentiment_avg",
       "type": "number",
-      "null_count": 8587,
-      "null_rate": 0.1413102506294535,
-      "fill_rate": 0.8586897493705465,
+      "null_count": 10641,
+      "null_rate": 0.1649409430511207,
+      "fill_rate": 0.8350590569488793,
       "has_null_indicator": true
     },
     {
@@ -603,9 +610,9 @@
     {
       "name": "fmp_news_article_count_7d",
       "type": "number",
-      "null_count": 0,
-      "null_rate": 0,
-      "fill_rate": 1,
+      "null_count": 839,
+      "null_rate": 0.013004929162662368,
+      "fill_rate": 0.9869950708373376,
       "has_null_indicator": false
     },
     {
@@ -783,25 +790,25 @@
     {
       "name": "forward_return_1d",
       "type": "number",
-      "null_count": 32,
-      "null_rate": 0.0005266016094261688,
-      "fill_rate": 0.9994733983905738,
+      "null_count": 33,
+      "null_rate": 0.0005115168800570418,
+      "fill_rate": 0.999488483119943,
       "has_null_indicator": false
     },
     {
       "name": "forward_return_1w",
       "type": "number",
-      "null_count": 473,
-      "null_rate": 0.007783830039330557,
-      "fill_rate": 0.9922161699606694,
+      "null_count": 541,
+      "null_rate": 0.008385776730632111,
+      "fill_rate": 0.9916142232693679,
       "has_null_indicator": false
     },
     {
       "name": "forward_return_1m",
       "type": "number",
-      "null_count": 1820,
-      "null_rate": 0.02995046653611335,
-      "fill_rate": 0.9700495334638867,
+      "null_count": 2069,
+      "null_rate": 0.032070558328424835,
+      "fill_rate": 0.9679294416715751,
       "has_null_indicator": false
     },
     {

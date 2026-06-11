@@ -1,0 +1,37 @@
+CREATE TABLE IF NOT EXISTS inference_results (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  run_date DATE NOT NULL,
+  symbol TEXT NOT NULL,
+  company_name TEXT,
+  sector TEXT,
+  exchange TEXT,
+  z_score REAL,
+  excess_return REAL,
+  model_a_confidence REAL,
+  model_b_return_1m REAL,
+  model_c_max_drawdown REAL,
+  recommendation TEXT CHECK (recommendation IN ('STRONG_BUY','BUY','ADD','HOLD','REDUCE','SELL')),
+  risk_score INTEGER CHECK (risk_score BETWEEN 0 AND 100),
+  risk_reward_ratio REAL,
+  position_size_pct REAL,
+  narrative TEXT,
+  signal_completeness_score REAL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE (run_date, symbol)
+);
+
+CREATE INDEX IF NOT EXISTS idx_inference_results_run_date ON inference_results (run_date DESC);
+CREATE INDEX IF NOT EXISTS idx_inference_results_symbol ON inference_results (symbol);
+
+CREATE TABLE IF NOT EXISTS symbol_snapshots (
+  symbol TEXT PRIMARY KEY,
+  company_name TEXT,
+  sector TEXT,
+  exchange TEXT,
+  is_us_listed BOOLEAN,
+  latest_signal_snapshot JSONB,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Written/read only by the backend pipeline using the publishable key; no end-user access.
+ALTER TABLE symbol_snapshots DISABLE ROW LEVEL SECURITY;

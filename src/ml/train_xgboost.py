@@ -132,9 +132,10 @@ def evaluate_regressor(model, X, y):
     return {"rmse": rmse, "mae": mae}
 
 
-def plot_feature_importance(models, feature_cols, out_path):
+def plot_feature_importance(models, model_feature_cols, out_path):
     fig, axes = plt.subplots(1, 3, figsize=(20, 8))
     for ax, (name, model) in zip(axes, models.items()):
+        feature_cols = model_feature_cols[name]
         importances = model.feature_importances_
         order = np.argsort(importances)[::-1][:TOP_N_IMPORTANCE]
         top_features = np.array(feature_cols)[order]
@@ -187,6 +188,13 @@ def fmt_params(params):
     return ", ".join(f"{k}={v}" for k, v in sorted(params.items()))
 
 
+def top_n_features(model, feature_cols, n=5):
+    """Return the top-n (feature_name, importance) pairs sorted by gain, descending."""
+    importances = model.feature_importances_
+    order = np.argsort(importances)[::-1][:n]
+    return [(feature_cols[i], float(importances[i])) for i in order]
+
+
 def main():
     df = pd.read_csv(FEATURES_CSV)
     feature_cols = [c for c in df.columns if c not in NON_FEATURE_COLS + TARGET_COLS]
@@ -213,6 +221,7 @@ def main():
     report.append("")
 
     models = {}
+    model_feature_cols = {}
 
     # --- Model A: binary classifier (is_null_sample) ---
     print("\n=== Model A: event vs non-event classifier ===")
@@ -224,29 +233,40 @@ def main():
     scale_pos_weight = neg / pos
     print(f"scale_pos_weight (train neg/pos = {neg}/{pos}) = {scale_pos_weight:.4f}")
 
+    # Drop _is_null indicator columns for Model A only -- these leak data-availability
+    # patterns rather than genuine market signal (previously inflated AUC to 0.996).
+    is_null_cols = [c for c in X_train.columns if c.endswith('_is_null')]
+    X_train_A = X_train.drop(columns=is_null_cols)
+    X_val_A = X_val.drop(columns=is_null_cols)
+    X_test_A = X_test.drop(columns=is_null_cols)
+    feature_cols_a = [c for c in feature_cols if c not in is_null_cols]
+
     cv_a = StratifiedKFold(n_splits=3, shuffle=True, random_state=RANDOM_STATE)
     best_params_a, best_score_a = hyperparam_search(
-        XGBClassifier, X_train, y_train_a, scoring="roc_auc", cv=cv_a,
+        XGBClassifier, X_train_A, y_train_a, scoring="roc_auc", cv=cv_a,
         extra_params={"scale_pos_weight": scale_pos_weight, "eval_metric": "logloss"},
     )
     print(f"Best params A: {best_params_a} (cv roc_auc={best_score_a:.4f})")
 
     model_a = train_final(
-        XGBClassifier, X_train, y_train_a, best_params_a,
+        XGBClassifier, X_train_A, y_train_a, best_params_a,
         extra_params={"scale_pos_weight": scale_pos_weight, "eval_metric": "logloss"},
     )
     models["Model A (classifier)"] = model_a
+    model_feature_cols["Model A (classifier)"] = feature_cols_a
 
-    metrics_a_val = evaluate_classifier(model_a, X_val, y_val_a)
-    metrics_a_test = evaluate_classifier(model_a, X_test, y_test_a)
+    metrics_a_val = evaluate_classifier(model_a, X_val_A, y_val_a)
+    metrics_a_test = evaluate_classifier(model_a, X_test_A, y_test_a)
     print(f"Model A val:  {metrics_a_val}")
     print(f"Model A test: {metrics_a_test}")
 
-    test_pred_a = model_a.predict(X_test)
+    test_pred_a = model_a.predict(X_test_A)
     plot_confusion_matrix(y_test_a, test_pred_a, os.path.join(SCRIPT_DIR, "confusion_matrix_a.png"))
 
     report.append("Model A - Binary Classifier (is_null_sample: 0=event, 1=non-event)")
     report.append("-" * 50)
+    report.append(f"Dropped {len(is_null_cols)} '_is_null' indicator columns from Model A's feature set "
+                   f"({len(feature_cols_a)} features used vs {len(feature_cols)} for Models B/C)")
     report.append(f"scale_pos_weight: {scale_pos_weight:.4f} (train neg={neg}, pos={pos})")
     report.append(f"Best hyperparameters from CV search: {best_params_a} (cv roc_auc={best_score_a:.4f})")
     report.append(f"Validation -> AUC-ROC: {metrics_a_val['auc_roc']:.4f}, "
@@ -259,8 +279,19 @@ def main():
                    f"Recall: {metrics_a_test['recall']:.4f}, "
                    f"F1: {metrics_a_test['f1']:.4f}, "
                    f"Accuracy: {metrics_a_test['accuracy']:.4f}")
+    top5_a = top_n_features(model_a, feature_cols_a, n=5)
+    report.append("Top 5 features by importance (gain):")
+    for fname, imp in top5_a:
+        report.append(f"  {fname}: {imp:.4f}")
     report.append("Confusion matrix (test): saved to confusion_matrix_a.png")
     report.append("")
+
+    # Drop temporal cyclical columns for Models B and C only.
+    temporal_cols = ['day_sin', 'day_cos', 'month_sin', 'month_cos']
+    X_train_BC = X_train.drop(columns=[c for c in temporal_cols if c in X_train.columns])
+    X_val_BC = X_val.drop(columns=[c for c in temporal_cols if c in X_val.columns])
+    X_test_BC = X_test.drop(columns=[c for c in temporal_cols if c in X_test.columns])
+    feature_cols_bc = [c for c in feature_cols if c not in temporal_cols]
 
     # --- Model B: regression (forward_return_1m) ---
     print("\n=== Model B: 1-month forward return regressor ===")
@@ -270,23 +301,30 @@ def main():
 
     cv_reg = KFold(n_splits=3, shuffle=True, random_state=RANDOM_STATE)
     best_params_b, best_score_b = hyperparam_search(
-        XGBRegressor, X_train, y_train_b, scoring="neg_root_mean_squared_error", cv=cv_reg,
+        XGBRegressor, X_train_BC, y_train_b, scoring="neg_root_mean_squared_error", cv=cv_reg,
     )
     print(f"Best params B: {best_params_b} (cv rmse={-best_score_b:.4f})")
 
-    model_b = train_final(XGBRegressor, X_train, y_train_b, best_params_b)
+    model_b = train_final(XGBRegressor, X_train_BC, y_train_b, best_params_b)
     models["Model B (forward_return_1m)"] = model_b
+    model_feature_cols["Model B (forward_return_1m)"] = feature_cols_bc
 
-    metrics_b_val = evaluate_regressor(model_b, X_val, y_val_b)
-    metrics_b_test = evaluate_regressor(model_b, X_test, y_test_b)
+    metrics_b_val = evaluate_regressor(model_b, X_val_BC, y_val_b)
+    metrics_b_test = evaluate_regressor(model_b, X_test_BC, y_test_b)
     print(f"Model B val:  {metrics_b_val}")
     print(f"Model B test: {metrics_b_test}")
 
     report.append("Model B - Regression (forward_return_1m)")
     report.append("-" * 50)
+    report.append(f"Dropped temporal columns {temporal_cols} from Models B/C feature set "
+                   f"({len(feature_cols_bc)} features used vs {len(feature_cols)} for Model A's base set)")
     report.append(f"Best hyperparameters from CV search: {best_params_b} (cv rmse={-best_score_b:.4f})")
     report.append(f"Validation -> RMSE: {metrics_b_val['rmse']:.6f}, MAE: {metrics_b_val['mae']:.6f}")
     report.append(f"Test       -> RMSE: {metrics_b_test['rmse']:.6f}, MAE: {metrics_b_test['mae']:.6f}")
+    top5_b = top_n_features(model_b, feature_cols_bc, n=5)
+    report.append("Top 5 features by importance (gain):")
+    for fname, imp in top5_b:
+        report.append(f"  {fname}: {imp:.4f}")
     report.append("")
 
     # --- Model C: regression (max_adverse_excursion_1m) ---
@@ -296,15 +334,16 @@ def main():
     y_test_c = test_df[TARGET_C]
 
     best_params_c, best_score_c = hyperparam_search(
-        XGBRegressor, X_train, y_train_c, scoring="neg_root_mean_squared_error", cv=cv_reg,
+        XGBRegressor, X_train_BC, y_train_c, scoring="neg_root_mean_squared_error", cv=cv_reg,
     )
     print(f"Best params C: {best_params_c} (cv rmse={-best_score_c:.4f})")
 
-    model_c = train_final(XGBRegressor, X_train, y_train_c, best_params_c)
+    model_c = train_final(XGBRegressor, X_train_BC, y_train_c, best_params_c)
     models["Model C (max_adverse_excursion_1m)"] = model_c
+    model_feature_cols["Model C (max_adverse_excursion_1m)"] = feature_cols_bc
 
-    metrics_c_val = evaluate_regressor(model_c, X_val, y_val_c)
-    metrics_c_test = evaluate_regressor(model_c, X_test, y_test_c)
+    metrics_c_val = evaluate_regressor(model_c, X_val_BC, y_val_c)
+    metrics_c_test = evaluate_regressor(model_c, X_test_BC, y_test_c)
     print(f"Model C val:  {metrics_c_val}")
     print(f"Model C test: {metrics_c_test}")
 
@@ -313,27 +352,33 @@ def main():
     report.append(f"Best hyperparameters from CV search: {best_params_c} (cv rmse={-best_score_c:.4f})")
     report.append(f"Validation -> RMSE: {metrics_c_val['rmse']:.6f}, MAE: {metrics_c_val['mae']:.6f}")
     report.append(f"Test       -> RMSE: {metrics_c_test['rmse']:.6f}, MAE: {metrics_c_test['mae']:.6f}")
+    top5_c = top_n_features(model_c, feature_cols_bc, n=5)
+    report.append("Top 5 features by importance (gain):")
+    for fname, imp in top5_c:
+        report.append(f"  {fname}: {imp:.4f}")
     report.append("")
 
     # --- Feature importance plot (all 3 models) ---
     print("\nWriting feature_importance.png ...")
-    plot_feature_importance(models, feature_cols, os.path.join(SCRIPT_DIR, "feature_importance.png"))
+    plot_feature_importance(models, model_feature_cols, os.path.join(SCRIPT_DIR, "feature_importance.png"))
 
     # --- SHAP summary plots (top 20 features, sampled test rows) ---
     print("Computing SHAP summary plots ...")
     shap_sample = X_test.sample(n=min(SHAP_SAMPLE_SIZE, len(X_test)), random_state=RANDOM_STATE)
-    plot_shap_summary(model_a, shap_sample, os.path.join(SCRIPT_DIR, "shap_summary_a.png"),
+    shap_sample_a = X_test_A.loc[shap_sample.index]
+    shap_sample_bc = X_test_BC.loc[shap_sample.index]
+    plot_shap_summary(model_a, shap_sample_a, os.path.join(SCRIPT_DIR, "shap_summary_a.png"),
                        "Model A SHAP summary (top 20 features)")
-    plot_shap_summary(model_b, shap_sample, os.path.join(SCRIPT_DIR, "shap_summary_b.png"),
+    plot_shap_summary(model_b, shap_sample_bc, os.path.join(SCRIPT_DIR, "shap_summary_b.png"),
                        "Model B SHAP summary (top 20 features)")
-    plot_shap_summary(model_c, shap_sample, os.path.join(SCRIPT_DIR, "shap_summary_c.png"),
+    plot_shap_summary(model_c, shap_sample_bc, os.path.join(SCRIPT_DIR, "shap_summary_c.png"),
                        "Model C SHAP summary (top 20 features)")
 
     # --- Save models ---
     print("Saving model files ...")
-    model_a.save_model(os.path.join(SCRIPT_DIR, "model_a.json"))
-    model_b.save_model(os.path.join(SCRIPT_DIR, "model_b.json"))
-    model_c.save_model(os.path.join(SCRIPT_DIR, "model_c.json"))
+    model_a.save_model(os.path.join(SCRIPT_DIR, "model_a_v3.json"))
+    model_b.save_model(os.path.join(SCRIPT_DIR, "model_b_v3.json"))
+    model_c.save_model(os.path.join(SCRIPT_DIR, "model_c_v3.json"))
 
     # --- Write evaluation report ---
     report.append("Outputs")
@@ -343,9 +388,11 @@ def main():
     report.append("shap_summary_a.png / shap_summary_b.png / shap_summary_c.png - "
                    f"SHAP summaries (top {TOP_N_SHAP} features, "
                    f"{len(shap_sample)} sampled test rows)")
-    report.append("model_a.json / model_b.json / model_c.json - trained XGBoost models")
+    report.append("model_a_v3.json / model_b_v3.json / model_c_v3.json - trained XGBoost models "
+                   "(Model A trained without _is_null indicator columns; "
+                   "Models B/C trained without temporal cyclical columns)")
 
-    report_path = os.path.join(SCRIPT_DIR, "evaluation_report.txt")
+    report_path = os.path.join(SCRIPT_DIR, "evaluation_report_v3.txt")
     with open(report_path, "w") as f:
         f.write("\n".join(report) + "\n")
 
