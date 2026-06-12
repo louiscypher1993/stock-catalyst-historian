@@ -67,3 +67,4 @@ ALTER TABLE watchlist ADD COLUMN IF NOT EXISTS entry_price REAL;
 -- Live price snapshot on inference results
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS current_price REAL;
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS day_change_pct REAL;
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS trend_alignment TEXT;
