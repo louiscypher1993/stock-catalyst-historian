@@ -12,6 +12,7 @@ import {
   calculateATRMoveNormalization,
 } from './utils/physics';
 import { getRecentFilings as getEdgarFilings } from '../EdgarService';
+import { fetchFREDSeries } from '../FREDService';
 import type { EdgarFiling } from './types';
 
 function isUsListed(exchange: string | null): boolean {
@@ -571,6 +572,87 @@ async function fetchRecentEdgarFilings(
   }
 }
 
+async function fetchMacroEnvironment(runDate: string): Promise<{
+  vix: number | null;
+  yieldCurveSpread: number | null;
+  highYieldOas: number | null;
+  dollarIndex: number | null;
+  fedFundsRate: number | null;
+  epu: number | null;
+}> {
+  const fromDate = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
+    .toISOString().split('T')[0];
+  try {
+    const [vixPts, dgs10Pts, dgs2Pts, oasPts, dollarPts, fedPts, epuPts] =
+      await Promise.all([
+        fetchFREDSeries('VIXCLS', fromDate, runDate),
+        fetchFREDSeries('DGS10', fromDate, runDate),
+        fetchFREDSeries('DGS2', fromDate, runDate),
+        fetchFREDSeries('BAMLH0A0HYM2', fromDate, runDate),
+        fetchFREDSeries('DTWEXBGS', fromDate, runDate),
+        fetchFREDSeries('FEDFUNDS', fromDate, runDate),
+        fetchFREDSeries('USEPUINDXD', fromDate, runDate),
+      ]);
+
+    const last = <T extends { date: string }>(pts: T[]): T | null =>
+      pts.length ? pts[pts.length - 1] : null;
+
+    const vix = last(vixPts)?.value ?? null;
+    const dgs10 = last(dgs10Pts)?.value ?? null;
+    const dgs2 = last(dgs2Pts)?.value ?? null;
+    const yieldCurveSpread = dgs10 != null && dgs2 != null
+      ? Math.round((dgs10 - dgs2) * 100) / 100 : null;
+
+    return {
+      vix: vix != null ? Math.round(vix * 100) / 100 : null,
+      yieldCurveSpread,
+      highYieldOas: last(oasPts)?.value ?? null,
+      dollarIndex: last(dollarPts)?.value ?? null,
+      fedFundsRate: last(fedPts)?.value ?? null,
+      epu: last(epuPts)?.value ?? null,
+    };
+  } catch (err: any) {
+    console.warn('[LiveInference] Macro environment fetch failed:', err.message);
+    return { vix: null, yieldCurveSpread: null, highYieldOas: null,
+             dollarIndex: null, fedFundsRate: null, epu: null };
+  }
+}
+
+async function writeMacroSnapshot(runDate: string, macro: Awaited<ReturnType<typeof fetchMacroEnvironment>>): Promise<void> {
+  try {
+    const { supabase } = await import('./db/supabaseClient');
+
+    const vixRegime = macro.vix == null ? null
+      : macro.vix < 15 ? 'low'
+      : macro.vix < 20 ? 'normal'
+      : macro.vix < 30 ? 'elevated'
+      : 'high';
+
+    const creditRegime = macro.highYieldOas == null ? null
+      : macro.highYieldOas < 3.5 ? 'loose'
+      : macro.highYieldOas < 5.0 ? 'normal'
+      : macro.highYieldOas < 7.0 ? 'tight'
+      : 'stressed';
+
+    const { error } = await supabase.from('macro_snapshots').upsert({
+      run_date: runDate,
+      vix: macro.vix,
+      yield_curve_spread: macro.yieldCurveSpread,
+      high_yield_oas: macro.highYieldOas,
+      dollar_index: macro.dollarIndex,
+      fed_funds_rate: macro.fedFundsRate,
+      economic_policy_uncertainty: macro.epu,
+      vix_regime: vixRegime,
+      credit_regime: creditRegime,
+    }, { onConflict: 'run_date' });
+
+    if (error) console.error('[LiveInference] Macro snapshot write failed:', error.message);
+    else console.log(`[LiveInference] Macro snapshot written — VIX: ${macro.vix}, OAS: ${macro.highYieldOas}, Curve: ${macro.yieldCurveSpread}`);
+  } catch (err: any) {
+    console.error('[LiveInference] Macro snapshot write error:', err.message);
+  }
+}
+
 export async function runLiveInference(symbols?: string[]): Promise<void> {
   console.log('[LiveInference] Starting daily inference run...');
   const runDate = new Date().toISOString().split('T')[0];
@@ -691,6 +773,9 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
   }
 
   console.log(`[LiveInference] Done. Anomalies: ${anomalyCount}, Narratives: ${narrativeCount}, Notifications: ${notificationCount}`);
+
+  const macro = await fetchMacroEnvironment(runDate);
+  await writeMacroSnapshot(runDate, macro);
 }
 
 // Run directly when executed as a script (GitHub Actions)

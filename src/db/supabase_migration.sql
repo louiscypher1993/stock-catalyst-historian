@@ -71,3 +71,18 @@ ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS trend_alignment TEXT;
 
 -- Recent SEC 8-K filing context for narrative generation
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS edgar_8k_items TEXT;
+
+-- Macro environment snapshot per inference run
+CREATE TABLE IF NOT EXISTS macro_snapshots (
+  run_date DATE PRIMARY KEY,
+  vix REAL,
+  yield_curve_spread REAL,
+  high_yield_oas REAL,
+  dollar_index REAL,
+  fed_funds_rate REAL,
+  economic_policy_uncertainty REAL,
+  vix_regime TEXT,
+  credit_regime TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE macro_snapshots DISABLE ROW LEVEL SECURITY;
