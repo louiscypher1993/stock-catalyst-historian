@@ -693,30 +693,6 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "Spotify Technology S.A."
       },
       {
-        "symbol": "SPSX12",
-        "companyName": "Global Enterprise SP 12"
-      },
-      {
-        "symbol": "SPSX24",
-        "companyName": "Global Enterprise SP 24"
-      },
-      {
-        "symbol": "SPSX36",
-        "companyName": "Global Enterprise SP 36"
-      },
-      {
-        "symbol": "SPSX48",
-        "companyName": "Global Enterprise SP 48"
-      },
-      {
-        "symbol": "SPSX60",
-        "companyName": "Global Enterprise SP 60"
-      },
-      {
-        "symbol": "SPSX72",
-        "companyName": "Global Enterprise SP 72"
-      },
-      {
         "symbol": "SQM",
         "companyName": "Sociedad Quimica y Minera"
       },
@@ -1462,34 +1438,6 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "Splunk Inc."
       },
       {
-        "symbol": "SPSX1",
-        "companyName": "Global Enterprise SP 1"
-      },
-      {
-        "symbol": "SPSX13",
-        "companyName": "Global Enterprise SP 13"
-      },
-      {
-        "symbol": "SPSX25",
-        "companyName": "Global Enterprise SP 25"
-      },
-      {
-        "symbol": "SPSX37",
-        "companyName": "Global Enterprise SP 37"
-      },
-      {
-        "symbol": "SPSX49",
-        "companyName": "Global Enterprise SP 49"
-      },
-      {
-        "symbol": "SPSX61",
-        "companyName": "Global Enterprise SP 61"
-      },
-      {
-        "symbol": "SPSX73",
-        "companyName": "Global Enterprise SP 73"
-      },
-      {
         "symbol": "SSNLF",
         "companyName": "Samsung Electronics"
       },
@@ -1797,34 +1745,6 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "603288.SS",
         "companyName": "Foshan Haitian Flavouring & Food"
-      },
-      {
-        "symbol": "SPSX14",
-        "companyName": "Global Enterprise SP 14"
-      },
-      {
-        "symbol": "SPSX2",
-        "companyName": "Global Enterprise SP 2"
-      },
-      {
-        "symbol": "SPSX26",
-        "companyName": "Global Enterprise SP 26"
-      },
-      {
-        "symbol": "SPSX38",
-        "companyName": "Global Enterprise SP 38"
-      },
-      {
-        "symbol": "SPSX50",
-        "companyName": "Global Enterprise SP 50"
-      },
-      {
-        "symbol": "SPSX62",
-        "companyName": "Global Enterprise SP 62"
-      },
-      {
-        "symbol": "SPSX74",
-        "companyName": "Global Enterprise SP 74"
       }
     ]
   },
@@ -2074,34 +1994,6 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "9984.T",
         "companyName": "SoftBank Group Corp."
-      },
-      {
-        "symbol": "SPSX15",
-        "companyName": "Global Enterprise SP 15"
-      },
-      {
-        "symbol": "SPSX27",
-        "companyName": "Global Enterprise SP 27"
-      },
-      {
-        "symbol": "SPSX3",
-        "companyName": "Global Enterprise SP 3"
-      },
-      {
-        "symbol": "SPSX39",
-        "companyName": "Global Enterprise SP 39"
-      },
-      {
-        "symbol": "SPSX51",
-        "companyName": "Global Enterprise SP 51"
-      },
-      {
-        "symbol": "SPSX63",
-        "companyName": "Global Enterprise SP 63"
-      },
-      {
-        "symbol": "SPSX75",
-        "companyName": "Global Enterprise SP 75"
       },
       {
         "symbol": "4661.T",
@@ -2433,34 +2325,6 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "Solvay S.A."
       },
       {
-        "symbol": "SPSX16",
-        "companyName": "Global Enterprise SP 16"
-      },
-      {
-        "symbol": "SPSX28",
-        "companyName": "Global Enterprise SP 28"
-      },
-      {
-        "symbol": "SPSX4",
-        "companyName": "Global Enterprise SP 4"
-      },
-      {
-        "symbol": "SPSX40",
-        "companyName": "Global Enterprise SP 40"
-      },
-      {
-        "symbol": "SPSX52",
-        "companyName": "Global Enterprise SP 52"
-      },
-      {
-        "symbol": "SPSX64",
-        "companyName": "Global Enterprise SP 64"
-      },
-      {
-        "symbol": "SPSX76",
-        "companyName": "Global Enterprise SP 76"
-      },
-      {
         "symbol": "STM.PA",
         "companyName": "STMicroelectronics"
       },
@@ -2788,34 +2652,6 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "300760.SZ",
         "companyName": "Shenzhen Mindray Bio-Medical"
-      },
-      {
-        "symbol": "SPSX17",
-        "companyName": "Global Enterprise SP 17"
-      },
-      {
-        "symbol": "SPSX29",
-        "companyName": "Global Enterprise SP 29"
-      },
-      {
-        "symbol": "SPSX41",
-        "companyName": "Global Enterprise SP 41"
-      },
-      {
-        "symbol": "SPSX5",
-        "companyName": "Global Enterprise SP 5"
-      },
-      {
-        "symbol": "SPSX53",
-        "companyName": "Global Enterprise SP 53"
-      },
-      {
-        "symbol": "SPSX65",
-        "companyName": "Global Enterprise SP 65"
-      },
-      {
-        "symbol": "SPSX77",
-        "companyName": "Global Enterprise SP 77"
       }
     ]
   },
@@ -3027,34 +2863,6 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "Alibaba Group Holding"
       },
       {
-        "symbol": "SPSX18",
-        "companyName": "Global Enterprise SP 18"
-      },
-      {
-        "symbol": "SPSX30",
-        "companyName": "Global Enterprise SP 30"
-      },
-      {
-        "symbol": "SPSX42",
-        "companyName": "Global Enterprise SP 42"
-      },
-      {
-        "symbol": "SPSX54",
-        "companyName": "Global Enterprise SP 54"
-      },
-      {
-        "symbol": "SPSX6",
-        "companyName": "Global Enterprise SP 6"
-      },
-      {
-        "symbol": "SPSX66",
-        "companyName": "Global Enterprise SP 66"
-      },
-      {
-        "symbol": "SPSX78",
-        "companyName": "Global Enterprise SP 78"
-      },
-      {
         "symbol": "2020.HK",
         "companyName": "ANTA Sports Products Limited"
       },
@@ -3254,34 +3062,6 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "SHRIRAMFIN.NS",
         "companyName": "Shriram Finance"
-      },
-      {
-        "symbol": "SPSX19",
-        "companyName": "Global Enterprise SP 19"
-      },
-      {
-        "symbol": "SPSX31",
-        "companyName": "Global Enterprise SP 31"
-      },
-      {
-        "symbol": "SPSX43",
-        "companyName": "Global Enterprise SP 43"
-      },
-      {
-        "symbol": "SPSX55",
-        "companyName": "Global Enterprise SP 55"
-      },
-      {
-        "symbol": "SPSX67",
-        "companyName": "Global Enterprise SP 67"
-      },
-      {
-        "symbol": "SPSX7",
-        "companyName": "Global Enterprise SP 7"
-      },
-      {
-        "symbol": "SPSX79",
-        "companyName": "Global Enterprise SP 79"
       },
       {
         "symbol": "SUNPHARMA.NS",
@@ -3753,30 +3533,6 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "Spectris plc"
       },
       {
-        "symbol": "SPSX20",
-        "companyName": "Global Enterprise SP 20"
-      },
-      {
-        "symbol": "SPSX32",
-        "companyName": "Global Enterprise SP 32"
-      },
-      {
-        "symbol": "SPSX44",
-        "companyName": "Global Enterprise SP 44"
-      },
-      {
-        "symbol": "SPSX56",
-        "companyName": "Global Enterprise SP 56"
-      },
-      {
-        "symbol": "SPSX68",
-        "companyName": "Global Enterprise SP 68"
-      },
-      {
-        "symbol": "SPSX8",
-        "companyName": "Global Enterprise SP 8"
-      },
-      {
         "symbol": "SPX.L",
         "companyName": "Spirax Group plc"
       },
@@ -4020,30 +3776,6 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "533278.BO",
         "companyName": "COAL INDIA LTD (BSE)"
-      },
-      {
-        "symbol": "SPSX21",
-        "companyName": "Global Enterprise SP 21"
-      },
-      {
-        "symbol": "SPSX33",
-        "companyName": "Global Enterprise SP 33"
-      },
-      {
-        "symbol": "SPSX45",
-        "companyName": "Global Enterprise SP 45"
-      },
-      {
-        "symbol": "SPSX57",
-        "companyName": "Global Enterprise SP 57"
-      },
-      {
-        "symbol": "SPSX69",
-        "companyName": "Global Enterprise SP 69"
-      },
-      {
-        "symbol": "SPSX9",
-        "companyName": "Global Enterprise SP 9"
       }
     ]
   },
@@ -4281,30 +4013,6 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "SLF.TO",
         "companyName": "Sun Life Financial"
-      },
-      {
-        "symbol": "SPSX10",
-        "companyName": "Global Enterprise SP 10"
-      },
-      {
-        "symbol": "SPSX22",
-        "companyName": "Global Enterprise SP 22"
-      },
-      {
-        "symbol": "SPSX34",
-        "companyName": "Global Enterprise SP 34"
-      },
-      {
-        "symbol": "SPSX46",
-        "companyName": "Global Enterprise SP 46"
-      },
-      {
-        "symbol": "SPSX58",
-        "companyName": "Global Enterprise SP 58"
-      },
-      {
-        "symbol": "SPSX70",
-        "companyName": "Global Enterprise SP 70"
       },
       {
         "symbol": "SU.TO",
@@ -4554,30 +4262,6 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "SHL.AX",
         "companyName": "Sonic Healthcare"
-      },
-      {
-        "symbol": "SPSX11",
-        "companyName": "Global Enterprise SP 11"
-      },
-      {
-        "symbol": "SPSX23",
-        "companyName": "Global Enterprise SP 23"
-      },
-      {
-        "symbol": "SPSX35",
-        "companyName": "Global Enterprise SP 35"
-      },
-      {
-        "symbol": "SPSX47",
-        "companyName": "Global Enterprise SP 47"
-      },
-      {
-        "symbol": "SPSX59",
-        "companyName": "Global Enterprise SP 59"
-      },
-      {
-        "symbol": "SPSX71",
-        "companyName": "Global Enterprise SP 71"
       },
       {
         "symbol": "STO.AX",
