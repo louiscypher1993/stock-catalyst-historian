@@ -520,6 +520,54 @@
     margin: 0;
   }
 
+  .edgar-filings {
+    border-top: 1px solid #27272a;
+    padding-top: 10px;
+  }
+
+  .edgar-filings-header {
+    color: var(--muted);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+
+  .edgar-filing-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 0.75rem;
+    padding: 2px 0;
+  }
+
+  .edgar-filing-date {
+    color: #a1a1aa;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .edgar-filing-desc {
+    color: #e4e4e7;
+    flex: 1;
+  }
+
+  .edgar-filing-link {
+    color: var(--muted);
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .edgar-filing-link:hover {
+    color: var(--text);
+  }
+
+  .edgar-filing-more {
+    color: #71717a;
+    font-size: 0.75rem;
+    margin-top: 2px;
+  }
+
   footer {
     text-align: center;
     color: var(--muted);
@@ -679,6 +727,34 @@
     `;
   }
 
+  function renderEdgarFilings(result) {
+    if (!result || !result.edgar_8k_items) return '';
+    let filings;
+    try {
+      filings = JSON.parse(result.edgar_8k_items);
+    } catch {
+      return '';
+    }
+    if (!Array.isArray(filings) || filings.length === 0) return '';
+
+    const shown = filings.slice(0, 3);
+    const extra = filings.length - shown.length;
+
+    return `
+      <div class="edgar-filings">
+        <div class="edgar-filings-header">📋 SEC Filings</div>
+        ${shown.map(f => `
+          <div class="edgar-filing-row">
+            <span class="edgar-filing-date">${f.date}</span>
+            <span class="edgar-filing-desc">${f.description}</span>
+            <a class="edgar-filing-link" href="${f.url}" target="_blank" rel="noopener noreferrer" title="View filing">↗</a>
+          </div>
+        `).join('')}
+        ${extra > 0 ? `<div class="edgar-filing-more">+ ${extra} more</div>` : ''}
+      </div>
+    `;
+  }
+
   function renderCard(r) {
     const colorClass = REC_COLOR[r.recommendation] || 'amber';
     const returnVal = r.model_b_return_1m;
@@ -740,6 +816,7 @@
           </div>
         </div>
         ${r.narrative ? `<p class="narrative">${r.narrative}</p>` : ''}
+        ${renderEdgarFilings(r)}
       </div>
     `;
   }
@@ -788,6 +865,7 @@
             <div class="value">${result.trend_alignment ?? '—'}</div>
           </div>
         </div>
+        ${renderEdgarFilings(result)}
       `;
     } else {
       dateBadge = '';
