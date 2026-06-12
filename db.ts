@@ -454,6 +454,80 @@ try {
   }
 }
 
+// Backward trajectory features
+try {
+  db.exec("ALTER TABLE event_features ADD COLUMN pre_return_3d REAL;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add pre_return_3d to event_features", e);
+  }
+}
+
+try {
+  db.exec("ALTER TABLE event_features ADD COLUMN pre_return_5d REAL;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add pre_return_5d to event_features", e);
+  }
+}
+
+try {
+  db.exec("ALTER TABLE event_features ADD COLUMN pre_return_10d REAL;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add pre_return_10d to event_features", e);
+  }
+}
+
+try {
+  db.exec("ALTER TABLE event_features ADD COLUMN pre_return_21d REAL;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add pre_return_21d to event_features", e);
+  }
+}
+
+try {
+  db.exec("ALTER TABLE event_features ADD COLUMN pre_vol_ratio_5d REAL;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add pre_vol_ratio_5d to event_features", e);
+  }
+}
+
+try {
+  db.exec("ALTER TABLE event_features ADD COLUMN pre_vol_ratio_10d REAL;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add pre_vol_ratio_10d to event_features", e);
+  }
+}
+
+// New forward targets
+try {
+  db.exec("ALTER TABLE event_features ADD COLUMN forward_return_2d REAL;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add forward_return_2d to event_features", e);
+  }
+}
+
+try {
+  db.exec("ALTER TABLE event_features ADD COLUMN forward_return_3d REAL;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add forward_return_3d to event_features", e);
+  }
+}
+
+try {
+  db.exec("ALTER TABLE event_features ADD COLUMN forward_return_2w REAL;");
+} catch (e: any) {
+  if (!e.message.includes("duplicate column name")) {
+    console.error("Failed to add forward_return_2w to event_features", e);
+  }
+}
+
 try {
   db.exec(`
     UPDATE event_features SET confidence_tier =
@@ -2763,15 +2837,31 @@ export function resetBatchScanProgress(): void {
 // ---------------------------------------------------------------------------
 
 export interface TrainingRow {
+  cache_key: string;
   symbol: string;
   date: string;
   label: 0 | 1;
   non_event_reason: string | null;
+  is_null_sample: number;
   z_score: number | null;
   price_change_pct: number | null;
   forward_return_1d: number | null;
   forward_return_1w: number | null;
   forward_return_1m: number | null;
+  forward_return_2d: number | null;
+  forward_return_3d: number | null;
+  forward_return_2w: number | null;
+  forward_return_3m: number | null;
+  forward_return_6m: number | null;
+  forward_return_12m: number | null;
+  max_favorable_excursion_1m: number | null;
+  max_adverse_excursion_1m: number | null;
+  pre_return_3d: number | null;
+  pre_return_5d: number | null;
+  pre_return_10d: number | null;
+  pre_return_21d: number | null;
+  pre_vol_ratio_5d: number | null;
+  pre_vol_ratio_10d: number | null;
   signal_snapshot: Record<string, any> | null;
 }
 
@@ -2779,7 +2869,13 @@ export function getTrainingDataset(options?: {
   symbolFilter?: string;
 }): TrainingRow[] {
   let query = `
-    SELECT features_json, signal_snapshot_json
+    SELECT cache_key, features_json, signal_snapshot_json,
+           is_null_sample,
+           forward_return_3m, forward_return_6m, forward_return_12m,
+           max_favorable_excursion_1m, max_adverse_excursion_1m,
+           pre_return_3d, pre_return_5d, pre_return_10d, pre_return_21d,
+           pre_vol_ratio_5d, pre_vol_ratio_10d,
+           forward_return_2d, forward_return_3d, forward_return_2w
     FROM event_features
     WHERE signal_snapshot_json IS NOT NULL
   `;
@@ -2791,16 +2887,33 @@ export function getTrainingDataset(options?: {
   query += ' ORDER BY date ASC';
 
   const rows = db.prepare(query).all(...params) as {
+    cache_key: string;
     features_json: string;
     signal_snapshot_json: string;
+    is_null_sample: number | null;
+    forward_return_3m: number | null;
+    forward_return_6m: number | null;
+    forward_return_12m: number | null;
+    max_favorable_excursion_1m: number | null;
+    max_adverse_excursion_1m: number | null;
+    pre_return_3d: number | null;
+    pre_return_5d: number | null;
+    pre_return_10d: number | null;
+    pre_return_21d: number | null;
+    pre_vol_ratio_5d: number | null;
+    pre_vol_ratio_10d: number | null;
+    forward_return_2d: number | null;
+    forward_return_3d: number | null;
+    forward_return_2w: number | null;
   }[];
 
   const result: TrainingRow[] = [];
   for (const row of rows) {
     try {
       const features = JSON.parse(row.features_json) as EventFeatureVector;
-      const snapshot = JSON.parse(row.signal_snapshot_json);
+      const snapshot = row.features_json ? JSON.parse(row.features_json) : null;
       result.push({
+        cache_key: row.cache_key,
         symbol: features.symbol ?? '',
         date: features.date ?? '',
         label: features.is_null_sample ? 0 : 1,
@@ -2808,11 +2921,26 @@ export function getTrainingDataset(options?: {
           (features as any).nonEventReason ??
           (features as any).gatingVerdict?.suppressed_non_event_reason ??
           null,
+        is_null_sample: row.is_null_sample ?? 0,
         z_score: features.z_score ?? null,
         price_change_pct: (features as any).dailyReturn ?? null,
         forward_return_1d: (features as any).forward_return_1d ?? null,
         forward_return_1w: (features as any).forward_return_1w ?? null,
         forward_return_1m: (features as any).forward_return_1m ?? null,
+        forward_return_2d: row.forward_return_2d,
+        forward_return_3d: row.forward_return_3d,
+        forward_return_2w: row.forward_return_2w,
+        forward_return_3m: row.forward_return_3m,
+        forward_return_6m: row.forward_return_6m,
+        forward_return_12m: row.forward_return_12m,
+        max_favorable_excursion_1m: row.max_favorable_excursion_1m,
+        max_adverse_excursion_1m: row.max_adverse_excursion_1m,
+        pre_return_3d: row.pre_return_3d,
+        pre_return_5d: row.pre_return_5d,
+        pre_return_10d: row.pre_return_10d,
+        pre_return_21d: row.pre_return_21d,
+        pre_vol_ratio_5d: row.pre_vol_ratio_5d,
+        pre_vol_ratio_10d: row.pre_vol_ratio_10d,
         signal_snapshot: snapshot,
       });
     } catch {

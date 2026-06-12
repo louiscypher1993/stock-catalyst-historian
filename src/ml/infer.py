@@ -24,13 +24,11 @@ TEMPORAL_COLS = ["day_sin", "day_cos", "month_sin", "month_cos"]
 
 # Must match the macro_features list used to train Model E in train_xgboost.py.
 MACRO_FEATURES = [
-    'vix_close', 'vix_regime', 'trend_regime', 'yield_curve_spread',
-    'credit_spread', 'z_score', 'excess_return', 'volume_ratio',
-    'shannon_entropy_30d', 'amihud_illiquidity_30d', 'fractal_efficiency_ratio_10d',
-    'sector_relative_z_score', 'primaryCategory_corporate',
-    'primaryCategory_market_structure', 'primaryCategory_macro',
-    'fmp_news_sentiment_avg', 'analyst_upgrades_30d', 'eps_surprise_pct',
-    'kinetic_energy', 'seismic_magnitude_mw',
+    'z_score', 'snap_vix_close', 'snap_excessReturn', 'snap_volumeRatio',
+    'snap_shannon_entropy_30d', 'snap_amihud_illiquidity_30d',
+    'snap_fractal_efficiency_ratio_10d', 'snap_sector_relative_z_score',
+    'snap_fmp_news_sentiment_avg', 'snap_analyst_upgrades_30d', 'snap_eps_surprise_pct',
+    'snap_kinetic_energy', 'snap_seismic_magnitude_mw',
 ]
 
 

@@ -443,7 +443,20 @@ export interface EventFeatureVector {
   forward_return_1d?: number;
   forward_return_1w?: number;
   forward_return_1m?: number;
-  
+
+  // Pre-anomaly backward trajectory (ending T-1, excludes the anomaly day itself)
+  pre_return_3d?: number | null;
+  pre_return_5d?: number | null;
+  pre_return_10d?: number | null;
+  pre_return_21d?: number | null;
+  pre_vol_ratio_5d?: number | null;   // avg volume over 5 days pre-anomaly / 30d avg
+  pre_vol_ratio_10d?: number | null;  // avg volume over 10 days pre-anomaly / 30d avg
+
+  // New short-term forward return targets
+  forward_return_2d?: number | null;
+  forward_return_3d?: number | null;
+  forward_return_2w?: number | null;  // 2-week (~10 trading days)
+
   z_score?: number;
   vix_close?: number;
   /** Statistical confidence of the anomaly severity (0-100) */

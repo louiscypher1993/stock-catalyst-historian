@@ -1,0 +1,12 @@
+﻿import Database from 'better-sqlite3';
+const db = new Database('market_cache.db');
+const total = (db.prepare('SELECT COUNT(*) as n FROM event_features WHERE is_null_sample=0').get() as any).n;
+const r5d = (db.prepare('SELECT COUNT(*) as n FROM event_features WHERE pre_return_5d IS NOT NULL').get() as any).n;
+const r10d = (db.prepare('SELECT COUNT(*) as n FROM event_features WHERE pre_return_10d IS NOT NULL').get() as any).n;
+const r21d = (db.prepare('SELECT COUNT(*) as n FROM event_features WHERE pre_return_21d IS NOT NULL').get() as any).n;
+const rv5d = (db.prepare('SELECT COUNT(*) as n FROM event_features WHERE pre_vol_ratio_5d IS NOT NULL').get() as any).n;
+console.log('total events:', total);
+console.log('pre_return_5d fill:', (r5d/total*100).toFixed(1)+'%');
+console.log('pre_return_10d fill:', (r10d/total*100).toFixed(1)+'%');
+console.log('pre_return_21d fill:', (r21d/total*100).toFixed(1)+'%');
+console.log('pre_vol_ratio_5d fill:', (rv5d/total*100).toFixed(1)+'%');

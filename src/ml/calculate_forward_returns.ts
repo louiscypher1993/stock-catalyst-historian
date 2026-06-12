@@ -50,6 +50,9 @@ async function calculateForwardReturns() {
     WHERE forward_return_3m IS NULL
        OR forward_return_6m IS NULL
        OR forward_return_12m IS NULL
+       OR forward_return_2d IS NULL
+       OR forward_return_3d IS NULL
+       OR forward_return_2w IS NULL
   `).all() as { cache_key: string; symbol: string; date: string; features_json: string }[];
 
   console.log(`[ForwardReturns] Processing ${rows.length} rows across symbols...`);
@@ -65,6 +68,15 @@ async function calculateForwardReturns() {
     UPDATE event_features
     SET forward_return_3m = ?, forward_return_6m = ?, forward_return_12m = ?, features_json = ?
     WHERE cache_key = ?
+  `);
+
+  const updateShortTermStmt = db.prepare(`
+    UPDATE event_features SET
+      forward_return_2d = ?, forward_return_3d = ?, forward_return_2w = ?
+    WHERE cache_key = ?
+      AND forward_return_2d IS NULL
+      AND forward_return_3d IS NULL
+      AND forward_return_2w IS NULL
   `);
 
   let processed = 0;
@@ -89,20 +101,33 @@ async function calculateForwardReturns() {
           const date3m = new Date(eventDate); date3m.setDate(date3m.getDate() + 91);
           const date6m = new Date(eventDate); date6m.setDate(date6m.getDate() + 182);
           const date12m = new Date(eventDate); date12m.setDate(date12m.getDate() + 365);
+          const date2d = new Date(eventDate); date2d.setDate(date2d.getDate() + 2);
+          const date3d = new Date(eventDate); date3d.setDate(date3d.getDate() + 3);
+          const date2w = new Date(eventDate); date2w.setDate(date2w.getDate() + 10);
 
           const price3m = findNearestPrice(priceMap, date3m);
           const price6m = findNearestPrice(priceMap, date6m);
           const price12m = findNearestPrice(priceMap, date12m);
+          const price2d = findNearestPrice(priceMap, date2d);
+          const price3d = findNearestPrice(priceMap, date3d);
+          const price2w = findNearestPrice(priceMap, date2w);
 
           const fr3m = price3m ? (price3m - eventPrice) / eventPrice : null;
           const fr6m = price6m ? (price6m - eventPrice) / eventPrice : null;
           const fr12m = price12m ? (price12m - eventPrice) / eventPrice : null;
+          const fr2d = price2d ? (price2d - eventPrice) / eventPrice : null;
+          const fr3d = price3d ? (price3d - eventPrice) / eventPrice : null;
+          const fr2w = price2w ? (price2w - eventPrice) / eventPrice : null;
 
           features.forward_return_3m = fr3m;
           features.forward_return_6m = fr6m;
           features.forward_return_12m = fr12m;
+          features.forward_return_2d = fr2d;
+          features.forward_return_3d = fr3d;
+          features.forward_return_2w = fr2w;
 
           updateStmt.run(fr3m, fr6m, fr12m, JSON.stringify(features), row.cache_key);
+          updateShortTermStmt.run(fr2d ?? null, fr3d ?? null, fr2w ?? null, row.cache_key);
           processed++;
         }
       });

@@ -359,6 +359,72 @@ export function getVolIndexTicker(symbol: string): string | null {
 }
 
 /**
+ * Computes the pre-anomaly backward trajectory features (returns and volume ratios)
+ * using only bars up to and including T-1, so the anomaly day's own move is excluded.
+ */
+function computePreReturnFeatures(bars: { close: number; volume: number }[], anomalyIdx: number): {
+  pre_return_3d: number | null;
+  pre_return_5d: number | null;
+  pre_return_10d: number | null;
+  pre_return_21d: number | null;
+  pre_vol_ratio_5d: number | null;
+  pre_vol_ratio_10d: number | null;
+} {
+  const dayBefore = bars[anomalyIdx - 1]?.close;
+  if (!dayBefore) return { pre_return_3d: null, pre_return_5d: null, pre_return_10d: null, pre_return_21d: null, pre_vol_ratio_5d: null, pre_vol_ratio_10d: null };
+
+  const ret = (n: number): number | null => {
+    const base = bars[anomalyIdx - 1 - n]?.close;
+    return base ? (dayBefore - base) / base : null;
+  };
+
+  // 30d avg volume using bars before anomaly
+  const vol30Window = bars.slice(Math.max(0, anomalyIdx - 31), anomalyIdx - 1);
+  const vol30Avg = vol30Window.length > 0 ? vol30Window.reduce((s, b) => s + b.volume, 0) / vol30Window.length : null;
+
+  const volRatio = (n: number): number | null => {
+    if (!vol30Avg || vol30Avg === 0) return null;
+    const window = bars.slice(Math.max(0, anomalyIdx - 1 - n), anomalyIdx - 1);
+    if (window.length === 0) return null;
+    const avg = window.reduce((s, b) => s + b.volume, 0) / window.length;
+    return avg / vol30Avg;
+  };
+
+  return {
+    pre_return_3d: ret(3),
+    pre_return_5d: ret(5),
+    pre_return_10d: ret(10),
+    pre_return_21d: ret(21),
+    pre_vol_ratio_5d: volRatio(5),
+    pre_vol_ratio_10d: volRatio(10),
+  };
+}
+
+/**
+ * Computes short-term forward return targets (2d, 3d, 2w) from the anomaly close,
+ * returning null when the required future bar is not yet available (event too recent).
+ */
+function computeForwardReturnFeatures(bars: { close: number }[], anomalyIdx: number): {
+  forward_return_2d: number | null;
+  forward_return_3d: number | null;
+  forward_return_2w: number | null;
+} {
+  const c0 = bars[anomalyIdx]?.close;
+  if (!c0) return { forward_return_2d: null, forward_return_3d: null, forward_return_2w: null };
+
+  const fwd = (n: number): number | null => {
+    const fut = bars[anomalyIdx + n]?.close;
+    return fut !== undefined ? (fut - c0) / c0 : null;
+  };
+
+  return {
+    forward_return_2d: fwd(2),
+    forward_return_3d: fwd(3),
+    forward_return_2w: fwd(10),
+  };
+}
+
+/**
  * Normalizes, scales, and serializes technical daily parameters into an ML-ready EventFeatureVector.
  * Writes output vector to the SQLite cache registry.
  * 
@@ -421,6 +487,9 @@ function buildAndSaveFeatureVector(
       ? triggeredZThreshold >= 2.15 ? 'high' : triggeredZThreshold >= 1.8 ? 'medium' : 'low'
       : null;
 
+    const preReturnFeatures = computePreReturnFeatures(points, i);
+    const forwardReturnFeatures = computeForwardReturnFeatures(points, i);
+
     const features: EventFeatureVector = {
       symbol: symbol,
       date: p.date,
@@ -443,6 +512,15 @@ function buildAndSaveFeatureVector(
       forward_return_1d: div100(p.analysis.return_1d),
       forward_return_1w: div100(p.analysis.return_1w),
       forward_return_1m: div100(p.analysis.return_1m),
+      forward_return_2d: forwardReturnFeatures.forward_return_2d,
+      forward_return_3d: forwardReturnFeatures.forward_return_3d,
+      forward_return_2w: forwardReturnFeatures.forward_return_2w,
+      pre_return_3d: preReturnFeatures.pre_return_3d,
+      pre_return_5d: preReturnFeatures.pre_return_5d,
+      pre_return_10d: preReturnFeatures.pre_return_10d,
+      pre_return_21d: preReturnFeatures.pre_return_21d,
+      pre_vol_ratio_5d: preReturnFeatures.pre_vol_ratio_5d,
+      pre_vol_ratio_10d: preReturnFeatures.pre_vol_ratio_10d,
       z_score: p.zScore,
       vix_close: scaledVix,
       statisticalConfidence: p.analysis.statisticalConfidence ?? 50,
@@ -580,6 +658,36 @@ function buildAndSaveFeatureVector(
 
     const cacheKey = `${symbol}_${p.date}`;
     setEventFeatures(cacheKey, features);
+
+    if (preReturnFeatures) {
+      db.prepare(`
+        UPDATE event_features SET
+          pre_return_3d = ?, pre_return_5d = ?, pre_return_10d = ?,
+          pre_return_21d = ?, pre_vol_ratio_5d = ?, pre_vol_ratio_10d = ?
+        WHERE cache_key = ?
+      `).run(
+        preReturnFeatures.pre_return_3d ?? null,
+        preReturnFeatures.pre_return_5d ?? null,
+        preReturnFeatures.pre_return_10d ?? null,
+        preReturnFeatures.pre_return_21d ?? null,
+        preReturnFeatures.pre_vol_ratio_5d ?? null,
+        preReturnFeatures.pre_vol_ratio_10d ?? null,
+        cacheKey
+      );
+    }
+
+    if (forwardReturnFeatures) {
+      db.prepare(`
+        UPDATE event_features SET
+          forward_return_2d = ?, forward_return_3d = ?, forward_return_2w = ?
+        WHERE cache_key = ?
+      `).run(
+        forwardReturnFeatures.forward_return_2d ?? null,
+        forwardReturnFeatures.forward_return_3d ?? null,
+        forwardReturnFeatures.forward_return_2w ?? null,
+        cacheKey
+      );
+    }
   }
 }
 

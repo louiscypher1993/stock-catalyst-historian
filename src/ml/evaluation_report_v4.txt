@@ -1,7 +1,7 @@
 XGBoost Training Pipeline - Evaluation Report
 ==================================================
 
-Total rows: 64514  Feature columns: 100
+Total rows: 64514  Feature columns: 74
 Train rows: 45159 (1965-10-01 to 2024-05-09)
 Val rows:   9676 (2022-01-19 to 2025-05-09)
 Test rows:  9679 (2022-12-16 to 2026-06-09)
@@ -10,83 +10,123 @@ Hyperparameter search grid: {'max_depth': [4, 6, 8], 'learning_rate': [0.03, 0.0
 
 Model A - Binary Classifier (is_null_sample: 0=event, 1=non-event)
 --------------------------------------------------
-Dropped 27 '_is_null' indicator columns from Model A's feature set (73 features used vs 100 for Models B/C)
+Dropped 0 '_is_null' indicator columns from Model A's feature set (74 features used vs 74 for Models B/C)
 scale_pos_weight: 2.1230 (train neg=30699, pos=14460)
-Best hyperparameters from CV search: {'learning_rate': 0.1, 'max_depth': 8} (cv roc_auc=0.9999)
-Validation -> AUC-ROC: 0.9981, Precision: 0.9932, Recall: 0.8944, F1: 0.9412, Accuracy: 0.9642
-Test       -> AUC-ROC: 0.9967, Precision: 0.9912, Recall: 0.7648, F1: 0.8634, Accuracy: 0.9225
+Best hyperparameters from CV search: {'learning_rate': 0.1, 'max_depth': 8} (cv roc_auc=1.0000)
+Validation -> AUC-ROC: 1.0000, Precision: 0.9971, Recall: 1.0000, F1: 0.9985, Accuracy: 0.9991
+Test       -> AUC-ROC: 1.0000, Precision: 0.9994, Recall: 0.9987, F1: 0.9990, Accuracy: 0.9994
 Top 5 features by importance (gain):
-  primaryCategory_corporate: 0.2393
-  kinetic_energy: 0.2389
-  seismic_magnitude_mw: 0.0853
-  relative_volume_30d: 0.0836
-  yield_curve_spread: 0.0588
+  pre_return_3d: 0.6929
+  pre_return_5d: 0.2688
+  snap_kinetic_energy: 0.0132
+  pre_return_10d: 0.0084
+  snap_seismic_magnitude_mw: 0.0035
 Confusion matrix (test): saved to confusion_matrix_a.png
 
 Model B - Regression (forward_return_1m)
 --------------------------------------------------
-Dropped temporal columns ['day_sin', 'day_cos', 'month_sin', 'month_cos'] from Models B/C feature set (96 features used vs 100 for Model A's base set)
-Best hyperparameters from CV search: {'learning_rate': 0.03, 'max_depth': 4} (cv rmse=7.4009)
-Validation -> RMSE: 0.563148, MAE: 0.152226
-Test       -> RMSE: 0.484393, MAE: 0.136434
+Dropped temporal columns ['day_sin', 'day_cos', 'month_sin', 'month_cos'] from Models B/C feature set (74 features used vs 74 for Model A's base set)
+Rows with non-null target -> train: 44970, val: 9339, test: 8136
+Best hyperparameters from CV search: {'learning_rate': 0.03, 'max_depth': 6} (cv rmse=6.9664)
+Validation -> RMSE: 0.661516, MAE: 0.126892
+Test       -> RMSE: 0.278280, MAE: 0.098462
 Top 5 features by importance (gain):
-  primaryCategory_market_structure: 0.1532
-  sector_Financials: 0.0960
-  fractal_efficiency_ratio_10d: 0.0632
-  analyst_upgrades_30d_is_null: 0.0620
-  sector_Industrials: 0.0612
+  snap_month_sin: 0.0840
+  snap_fractal_efficiency_ratio_10d: 0.0764
+  snap_volatility_contraction_index: 0.0744
+  snap_month_cos: 0.0573
+  snap_economic_policy_uncertainty: 0.0566
 
 Model D1 - Regression (forward_return_3m)
 --------------------------------------------------
-Same feature set as Model B (96 features); rows with non-null target -> train: 44565, val: 9660, test: 8138
-Best hyperparameters from CV search: {'learning_rate': 0.03, 'max_depth': 8} (cv rmse=9.9170)
-Validation -> RMSE: 1.735535, MAE: 0.227773
-Test       -> RMSE: 3.754555, MAE: 0.276259
+Same feature set as Model B (74 features); rows with non-null target -> train: 44564, val: 9660, test: 8139
+Best hyperparameters from CV search: {'learning_rate': 0.03, 'max_depth': 6} (cv rmse=10.3797)
+Validation -> RMSE: 1.564978, MAE: 0.223349
+Test       -> RMSE: 3.432706, MAE: 0.232007
 Top 5 features by importance (gain):
-  obv_delta_10d: 0.1277
-  dist_sma_50: 0.0793
-  sector_Industrials: 0.0767
-  atr_shock_score: 0.0623
-  shannon_entropy_30d: 0.0609
+  pre_return_10d: 0.1376
+  snap_atrShockScore: 0.0785
+  snap_z_score: 0.0775
+  pre_vol_ratio_10d: 0.0584
+  snap_obv_delta_10d: 0.0499
 
 Model D2 - Regression (forward_return_6m)
 --------------------------------------------------
-Same feature set as Model B (96 features); rows with non-null target -> train: 44616, val: 9664, test: 5691
-Best hyperparameters from CV search: {'learning_rate': 0.1, 'max_depth': 8} (cv rmse=0.2052)
-Validation -> RMSE: 0.222703, MAE: 0.170210
-Test       -> RMSE: 0.232693, MAE: 0.178440
+Same feature set as Model B (74 features); rows with non-null target -> train: 44615, val: 9664, test: 5691
+Best hyperparameters from CV search: {'learning_rate': 0.1, 'max_depth': 8} (cv rmse=0.2020)
+Validation -> RMSE: 0.222205, MAE: 0.168415
+Test       -> RMSE: 0.229413, MAE: 0.176076
 Top 5 features by importance (gain):
-  excess_return: 0.0687
-  sector_Energy: 0.0461
-  sector_Other: 0.0271
-  stocktwits_virality_z_is_null: 0.0269
-  fmp_news_article_count_7d: 0.0247
+  snap_excessReturn: 0.1284
+  snap_confidence_tier_medium: 0.0469
+  snap_confidence_tier_high: 0.0453
+  snap_zScore: 0.0439
+  snap_triggered_z_score_threshold: 0.0374
+
+Model D3 - Regression (forward_return_2d)
+--------------------------------------------------
+Same feature set as Model B (74 features); rows with non-null target -> train: 40360, val: 9388, test: 9372
+Best hyperparameters from CV search: {'learning_rate': 0.1, 'max_depth': 8} (cv rmse=0.0360)
+Validation -> RMSE: 0.043731, MAE: 0.030266
+Test       -> RMSE: 0.036875, MAE: 0.025631
+Top 5 features by importance (gain):
+  snap_excessReturn: 0.0677
+  snap_analyst_upgrades_30d: 0.0329
+  snap_zScore: 0.0303
+  snap_price_target_upside_pct: 0.0301
+  snap_day_cos: 0.0284
+
+Model D4 - Regression (forward_return_3d)
+--------------------------------------------------
+Same feature set as Model B (74 features); rows with non-null target -> train: 43235, val: 9575, test: 9574
+Best hyperparameters from CV search: {'learning_rate': 0.1, 'max_depth': 8} (cv rmse=0.0414)
+Validation -> RMSE: 0.048908, MAE: 0.033786
+Test       -> RMSE: 0.041097, MAE: 0.028547
+Top 5 features by importance (gain):
+  snap_excessReturn: 0.0816
+  snap_day_cos: 0.0403
+  snap_triggered_z_score_threshold: 0.0354
+  snap_zScore: 0.0339
+  snap_analyst_downgrades_30d: 0.0313
+
+Model D5 - Regression (forward_return_2w)
+--------------------------------------------------
+Same feature set as Model B (74 features); rows with non-null target -> train: 44241, val: 9631, test: 9548
+Best hyperparameters from CV search: {'learning_rate': 0.1, 'max_depth': 8} (cv rmse=0.0632)
+Validation -> RMSE: 0.070758, MAE: 0.050345
+Test       -> RMSE: 0.062684, MAE: 0.044595
+Top 5 features by importance (gain):
+  snap_excessReturn: 0.1916
+  snap_zScore: 0.0646
+  snap_confidence_tier_high: 0.0510
+  snap_triggered_z_score_threshold: 0.0411
+  snap_atrShockScore: 0.0297
 
 Model E - Binary Classifier (target_12m_outperform: forward_return_12m > 0.10)
 --------------------------------------------------
-Macro/structural feature set (20 features): vix_close, vix_regime, trend_regime, yield_curve_spread, credit_spread, z_score, excess_return, volume_ratio, shannon_entropy_30d, amihud_illiquidity_30d, fractal_efficiency_ratio_10d, sector_relative_z_score, primaryCategory_corporate, primaryCategory_market_structure, primaryCategory_macro, fmp_news_sentiment_avg, analyst_upgrades_30d, eps_surprise_pct, kinetic_energy, seismic_magnitude_mw
-Class distribution -> outperform (1): 23742, underperform (0): 33231 (scale_pos_weight=1.3997)
-Best hyperparameters from CV search: {'learning_rate': 0.1, 'max_depth': 4} (cv roc_auc=0.5844)
-Purged TimeSeriesSplit CV (5 folds, gap=365) mean -> AUC-ROC: 0.5793, Precision: 0.4828, Recall: 0.3464, F1: 0.3960, Accuracy: 0.6206
-Final model trained on full target-available dataset: 56973 rows
+Macro/structural feature set (13 features): z_score, snap_vix_close, snap_excessReturn, snap_volumeRatio, snap_shannon_entropy_30d, snap_amihud_illiquidity_30d, snap_fractal_efficiency_ratio_10d, snap_sector_relative_z_score, snap_fmp_news_sentiment_avg, snap_analyst_upgrades_30d, snap_eps_surprise_pct, snap_kinetic_energy, snap_seismic_magnitude_mw
+Class distribution -> outperform (1): 23738, underperform (0): 33184 (scale_pos_weight=1.3979)
+Best hyperparameters from CV search: {'learning_rate': 0.03, 'max_depth': 8} (cv roc_auc=0.5828)
+Purged TimeSeriesSplit CV (5 folds, gap=365) mean -> AUC-ROC: 0.5775, Precision: 0.4857, Recall: 0.3119, F1: 0.3627, Accuracy: 0.6183
+Final model trained on full target-available dataset: 56922 rows
 Top 5 features by importance (gain):
-  excess_return: 0.1464
-  trend_regime: 0.1226
-  yield_curve_spread: 0.0779
-  primaryCategory_macro: 0.0639
-  z_score: 0.0532
+  snap_excessReturn: 0.1854
+  z_score: 0.0791
+  snap_seismic_magnitude_mw: 0.0767
+  snap_vix_close: 0.0756
+  snap_fmp_news_sentiment_avg: 0.0751
 
 Model C - Regression (max_adverse_excursion_1m)
 --------------------------------------------------
-Best hyperparameters from CV search: {'learning_rate': 0.03, 'max_depth': 6} (cv rmse=2.3045)
-Validation -> RMSE: 0.526669, MAE: 0.089417
-Test       -> RMSE: 0.382883, MAE: 0.085053
+Best hyperparameters from CV search: {'learning_rate': 0.03, 'max_depth': 6} (cv rmse=2.3448)
+Validation -> RMSE: 0.491716, MAE: 0.077568
+Test       -> RMSE: 0.189697, MAE: 0.073589
 Top 5 features by importance (gain):
-  primaryCategory_market_structure: 0.2047
-  fractal_efficiency_ratio_10d: 0.1540
-  sector_Industrials: 0.0801
-  obv_delta_10d: 0.0493
-  amihud_illiquidity_30d: 0.0403
+  snap_fractal_efficiency_ratio_10d: 0.2468
+  snap_obv_delta_10d: 0.1025
+  snap_volume_price_clustering: 0.0766
+  snap_volumeRatio: 0.0678
+  snap_orbital_escape_velocity: 0.0614
 
 Outputs
 --------------------------------------------------
@@ -94,5 +134,5 @@ feature_importance.png - top feature gains for models A/B/C
 confusion_matrix_a.png - Model A confusion matrix (test set)
 shap_summary_a.png / shap_summary_b.png / shap_summary_c.png - SHAP summaries (top 20 features, 2000 sampled test rows)
 model_a_v3.json / model_b_v3.json / model_c_v3.json - trained XGBoost models (Model A trained without _is_null indicator columns; Models B/C trained without temporal cyclical columns)
-model_d1_v1.json / model_d2_v2.json - trained XGBoost regressors (forward_return_3m / forward_return_6m, same feature set as Model B)
+model_d1_v1.json / model_d2_v2.json / model_d3_v1.json / model_d4_v1.json / model_d5_v1.json - trained XGBoost regressors (forward_return_3m / 6m / 2d / 3d / 2w, same feature set as Model B)
 model_e_v1.json - trained XGBoost classifier (target_12m_outperform: forward_return_12m > 0.10, macro/structural features only, purged TimeSeriesSplit CV)

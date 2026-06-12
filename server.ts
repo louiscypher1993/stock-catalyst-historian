@@ -1161,14 +1161,13 @@ app.get("/api/export-training-data", (req, res, next) => {
       return res.json(rows);
     }
 
-    // CSV — collect all snap keys from the first row that has a snapshot
+    // CSV — collect the union of all snap keys across all rows
     const snapKeys: string[] = [];
     for (const row of rows) {
       if (row.signal_snapshot && typeof row.signal_snapshot === "object") {
         for (const k of Object.keys(row.signal_snapshot)) {
           if (!snapKeys.includes(k)) snapKeys.push(k);
         }
-        break;
       }
     }
 
@@ -1182,9 +1181,14 @@ app.get("/api/export-training-data", (req, res, next) => {
     };
 
     const baseHeaders = [
-      "symbol", "date", "label", "non_event_reason",
+      "cache_key", "symbol", "date", "is_null_sample",
       "z_score", "price_change_pct",
       "forward_return_1d", "forward_return_1w", "forward_return_1m",
+      "forward_return_2d", "forward_return_3d", "forward_return_2w",
+      "forward_return_3m", "forward_return_6m", "forward_return_12m",
+      "max_favorable_excursion_1m", "max_adverse_excursion_1m",
+      "pre_return_3d", "pre_return_5d", "pre_return_10d", "pre_return_21d",
+      "pre_vol_ratio_5d", "pre_vol_ratio_10d",
       ...snapKeys.map(k => `snap_${k}`),
     ];
 
@@ -1195,15 +1199,29 @@ app.get("/api/export-training-data", (req, res, next) => {
     for (const row of rows) {
       const snap = row.signal_snapshot ?? {};
       const cells = [
+        escCsv(row.cache_key),
         escCsv(row.symbol),
         escCsv(row.date),
-        escCsv(row.label),
-        escCsv(row.non_event_reason ?? ""),
+        row.is_null_sample ?? 0,
         row.z_score != null ? row.z_score.toFixed(4) : "",
         row.price_change_pct != null ? row.price_change_pct.toFixed(4) : "",
         row.forward_return_1d != null ? row.forward_return_1d.toFixed(4) : "",
         row.forward_return_1w != null ? row.forward_return_1w.toFixed(4) : "",
         row.forward_return_1m != null ? row.forward_return_1m.toFixed(4) : "",
+        row.forward_return_2d != null ? row.forward_return_2d.toFixed(4) : "",
+        row.forward_return_3d != null ? row.forward_return_3d.toFixed(4) : "",
+        row.forward_return_2w != null ? row.forward_return_2w.toFixed(4) : "",
+        row.forward_return_3m != null ? row.forward_return_3m.toFixed(4) : "",
+        row.forward_return_6m != null ? row.forward_return_6m.toFixed(4) : "",
+        row.forward_return_12m != null ? row.forward_return_12m.toFixed(4) : "",
+        row.max_favorable_excursion_1m != null ? row.max_favorable_excursion_1m.toFixed(4) : "",
+        row.max_adverse_excursion_1m != null ? row.max_adverse_excursion_1m.toFixed(4) : "",
+        row.pre_return_3d != null ? row.pre_return_3d.toFixed(4) : "",
+        row.pre_return_5d != null ? row.pre_return_5d.toFixed(4) : "",
+        row.pre_return_10d != null ? row.pre_return_10d.toFixed(4) : "",
+        row.pre_return_21d != null ? row.pre_return_21d.toFixed(4) : "",
+        row.pre_vol_ratio_5d != null ? row.pre_vol_ratio_5d.toFixed(4) : "",
+        row.pre_vol_ratio_10d != null ? row.pre_vol_ratio_10d.toFixed(4) : "",
         ...snapKeys.map(k => {
           const v = (snap as any)[k];
           if (v === null || v === undefined) return "";
@@ -1269,6 +1287,11 @@ app.post("/api/enrich-backfill", (req, res) => {
 
 app.get("/api/enrich-backfill/status", (_req, res) => {
   return res.json(getBackfillStatus());
+});
+
+app.post('/api/backfill-pre-returns', async (req, res) => {
+  import('./src/scripts/backfillPreReturns').then(m => m.main().catch(console.error));
+  return res.json({ started: true });
 });
 
 app.post('/api/live-inference/run', async (req, res, next) => {
