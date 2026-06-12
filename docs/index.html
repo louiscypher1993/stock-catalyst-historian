@@ -69,6 +69,81 @@
     white-space: nowrap;
   }
 
+  .header-right-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .run-now-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .run-now-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--indigo-bg);
+    color: var(--indigo);
+    border: 1px solid var(--indigo);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .run-now-btn:hover:not(:disabled) {
+    background: var(--indigo);
+    color: #fff;
+  }
+
+  .run-now-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .run-now-label {
+    color: #71717a;
+    font-size: 10px;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid var(--green);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    z-index: 1000;
+  }
+
+  .toast.hidden {
+    display: none;
+  }
+
   main {
     padding: 24px;
     max-width: 1400px;
@@ -93,6 +168,22 @@
     font-size: 1.15rem;
     font-weight: 700;
     letter-spacing: -0.01em;
+  }
+
+  .dedup-toggle {
+    background: var(--panel);
+    color: var(--muted);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .dedup-toggle:hover {
+    border-color: var(--indigo);
+    color: var(--indigo);
   }
 
   .watchlist-form {
@@ -208,6 +299,42 @@
     margin: 0;
   }
 
+  .quality-banner,
+  .offline-banner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .quality-banner {
+    background: rgba(120, 53, 15, 0.3);
+    border: 1px solid #92400e;
+    color: #fbbf24;
+  }
+
+  .offline-banner {
+    background: var(--red-bg);
+    border: 1px solid var(--red);
+    color: var(--red-400);
+  }
+
+  .dismiss-btn {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+  }
+
   .watchlist-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -284,6 +411,12 @@
     font-size: 0.85rem;
     font-style: italic;
     margin: 0;
+  }
+
+  .quiet-day-badge {
+    color: #a1a1aa;
+    font-size: 0.75rem;
+    margin-top: 4px;
   }
 
   #results {
@@ -413,10 +546,18 @@
       <h1>Catalyst Historian</h1>
       <p class="subtitle">AI-generated trading signals — updated pre-market &amp; post-close</p>
     </div>
-    <div id="last-updated">Last updated: —</div>
+    <div class="header-right-controls">
+      <div id="last-updated">Last updated: —</div>
+      <div class="run-now-wrap">
+        <button id="run-now-btn" class="run-now-btn"><span id="run-now-text">⚡ Run Now</span></button>
+        <div class="run-now-label">Local server only</div>
+      </div>
+    </div>
   </header>
 
   <main>
+    <div id="server-offline-banner"></div>
+
     <section class="panel-section" id="watchlist-section">
       <div class="section-header">
         <h2>📋 Watchlist</h2>
@@ -430,6 +571,8 @@
           <button type="submit">Add</button>
         </form>
       </div>
+
+      <div id="quality-banner"></div>
 
       <div class="watchlist-group">
         <h3 class="section-subheader">📊 Holdings <span class="count-badge" id="holdings-count">0</span></h3>
@@ -446,10 +589,18 @@
       </div>
     </section>
 
-    <div id="results">
-      <p class="empty">Loading signals…</p>
-    </div>
+    <section class="panel-section" id="signals-section">
+      <div class="section-header">
+        <h2>📡 Live Signals</h2>
+        <button id="dedup-toggle" class="dedup-toggle">Latest per symbol</button>
+      </div>
+      <div id="results">
+        <p class="empty">Loading signals…</p>
+      </div>
+    </section>
   </main>
+
+  <div id="toast" class="toast hidden"></div>
 
   <footer>
     Automated model output for research purposes only. Not financial advice.
@@ -501,7 +652,7 @@
     return `${prefix}${price.toFixed(2)}`;
   }
 
-  function renderPriceBlock(r) {
+  function renderPriceBlock(r, entry) {
     if (r.current_price === null || r.current_price === undefined) return '';
     const priceStr = formatPrice(r.symbol, r.current_price);
     let changeLine = '';
@@ -511,10 +662,19 @@
       const sign = positive ? '+' : '−';
       changeLine = `<div class="price-line2 ${positive ? 'price-up' : 'price-down'}">${arrow} ${sign}${Math.abs(r.day_change_pct * 100).toFixed(1)}%</div>`;
     }
+    let pnlLine = '';
+    if (entry && entry.list_type === 'holding' && entry.entry_price !== null && entry.entry_price !== undefined) {
+      const pnlPct = ((r.current_price - entry.entry_price) / entry.entry_price) * 100;
+      const positive = pnlPct >= 0;
+      const arrow = positive ? '▲' : '▼';
+      const sign = positive ? '+' : '−';
+      pnlLine = `<div class="price-line2 ${positive ? 'price-up' : 'price-down'}">P&amp;L ${arrow} ${sign}${Math.abs(pnlPct).toFixed(2)}%</div>`;
+    }
     return `
       <div class="price-block">
         <div class="price-line1">${priceStr}</div>
         ${changeLine}
+        ${pnlLine}
       </div>
     `;
   }
@@ -592,11 +752,15 @@
     if (result) {
       stale = isStale(result.run_date);
       dateBadge = `<div class="date-badge">${formatDateBadge(result.run_date)}</div>`;
-      priceBlock = renderPriceBlock(result);
+      priceBlock = renderPriceBlock(result, entry);
       const colorClass = REC_COLOR[result.recommendation] || 'amber';
+      const isQuietDay = result.is_watchlist === true && Math.abs(result.z_score ?? 0) < 2.15;
       body = `
         <div class="card-header">
-          <div class="badge ${colorClass}">${result.recommendation.replace('_', ' ')}</div>
+          <div>
+            <div class="badge ${colorClass}">${result.recommendation.replace('_', ' ')}</div>
+            ${isQuietDay ? `<div class="quiet-day-badge">〰 No anomaly · Directional only</div>` : ''}
+          </div>
         </div>
         <div class="stats">
           <div class="stat">
@@ -758,6 +922,48 @@
     }
   });
 
+  let allResults = [];
+  let dedupMode = true;
+
+  function renderResults() {
+    const container = document.getElementById('results');
+    if (allResults.length === 0) {
+      container.innerHTML = `<p class="empty">No signals detected in the last 7 days</p>`;
+      return;
+    }
+
+    let rows = allResults;
+    if (dedupMode) {
+      const seen = new Set();
+      rows = allResults.filter(r => {
+        if (seen.has(r.symbol)) return false;
+        seen.add(r.symbol);
+        return true;
+      });
+    }
+
+    container.innerHTML = rows.map(renderCard).join('');
+  }
+
+  function updateQualityBanner(avgCompleteness) {
+    const container = document.getElementById('quality-banner');
+    if (avgCompleteness >= 0.45) {
+      container.innerHTML = '';
+      return;
+    }
+
+    const pctStr = (avgCompleteness * 100).toFixed(0);
+    container.innerHTML = `
+      <div class="quality-banner">
+        <div>⚠️ Signal quality degraded (avg completeness: ${pctStr}%) — FMP or enrichment data may be unavailable. Model outputs are less reliable until resolved.</div>
+        <button class="dismiss-btn" id="quality-banner-dismiss">×</button>
+      </div>
+    `;
+    document.getElementById('quality-banner-dismiss').addEventListener('click', () => {
+      container.innerHTML = '';
+    });
+  }
+
   async function loadResults() {
     const container = document.getElementById('results');
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -775,13 +981,80 @@
       return;
     }
 
-    if (!data || data.length === 0) {
-      container.innerHTML = `<p class="empty">No signals detected in the last 7 days</p>`;
-      return;
-    }
+    allResults = data || [];
+    renderResults();
 
-    container.innerHTML = data.map(renderCard).join('');
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const { data: recentResults } = await sb
+      .from('inference_results')
+      .select('signal_completeness_score')
+      .gte('run_date', threeDaysAgo)
+      .order('run_date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    const recentScores = (recentResults || []).slice(0, 20)
+      .map(r => r.signal_completeness_score)
+      .filter(s => s != null);
+    const avgCompleteness = recentScores.length > 0
+      ? recentScores.reduce((a, b) => a + b, 0) / recentScores.length
+      : 1;
+
+    updateQualityBanner(avgCompleteness);
   }
+
+  document.getElementById('dedup-toggle').addEventListener('click', () => {
+    dedupMode = !dedupMode;
+    document.getElementById('dedup-toggle').textContent = dedupMode ? 'Latest per symbol' : 'All signals';
+    renderResults();
+  });
+
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 3000);
+  }
+
+  function showOfflineBanner() {
+    const container = document.getElementById('server-offline-banner');
+    container.innerHTML = `
+      <div class="offline-banner">
+        <span>Local server offline — trigger via GitHub Actions instead</span>
+        <button class="dismiss-btn" id="offline-banner-dismiss">×</button>
+      </div>
+    `;
+    document.getElementById('offline-banner-dismiss').addEventListener('click', () => {
+      container.innerHTML = '';
+    });
+  }
+
+  document.getElementById('run-now-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('run-now-btn');
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span> Running…`;
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 300000);
+      const response = await fetch('http://localhost:3000/api/live-inference/run', {
+        method: 'POST',
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      await Promise.all([loadResults(), loadWatchlist()]);
+      showToast('✓ Run complete');
+    } catch (err) {
+      showOfflineBanner();
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+    }
+  });
 
   document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()}`;
   loadWatchlist();
