@@ -13,12 +13,20 @@
     --text: #e6edf3;
     --muted: #8b949e;
     --green: #22c55e;
+    --green-rgb: 34, 197, 94;
     --green-bg: rgba(34, 197, 94, 0.12);
+    --green-400: #4ade80;
+    --green-700: #15803d;
+    --green-700-rgb: 21, 128, 61;
     --amber: #f59e0b;
+    --amber-rgb: 245, 158, 11;
     --amber-bg: rgba(245, 158, 11, 0.12);
     --red: #ef4444;
+    --red-rgb: 239, 68, 68;
     --red-bg: rgba(239, 68, 68, 0.12);
+    --red-400: #f87171;
     --indigo: #6366f1;
+    --indigo-rgb: 99, 102, 241;
     --indigo-bg: rgba(99, 102, 241, 0.12);
   }
 
@@ -102,7 +110,8 @@
     width: 160px;
   }
 
-  .watchlist-form input:focus {
+  .watchlist-form input:focus,
+  .entry-price-input:focus {
     outline: none;
     border-color: var(--indigo);
   }
@@ -123,15 +132,134 @@
     color: #fff;
   }
 
-  #watchlist-results {
+  .list-type-toggle {
+    display: flex;
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .toggle-option {
+    background: var(--panel);
+    color: var(--muted);
+    border: none;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .toggle-option + .toggle-option {
+    border-left: 1px solid var(--panel-border);
+  }
+
+  .toggle-option.active {
+    background: var(--indigo-bg);
+    color: var(--indigo);
+  }
+
+  .entry-price-input {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-size: 0.9rem;
+    width: 160px;
+  }
+
+  .entry-price-input.hidden {
+    display: none;
+  }
+
+  .watchlist-group {
+    margin-bottom: 24px;
+  }
+
+  .watchlist-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .section-subheader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .count-badge {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+
+  .placeholder-empty {
+    color: var(--muted);
+    opacity: 0.5;
+    font-size: 0.85rem;
+    font-style: italic;
+    padding: 16px;
+    margin: 0;
+  }
+
+  .watchlist-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 16px;
   }
 
-  .card.watchlist-card {
+  .card.holding-card {
+    border-left-color: var(--green-700);
+  }
+
+  .card.watching-card {
     border-left-color: var(--indigo);
   }
+
+  .card.green.stale  { border-left-color: rgba(var(--green-rgb), 0.7); }
+  .card.amber.stale  { border-left-color: rgba(var(--amber-rgb), 0.7); }
+  .card.red.stale    { border-left-color: rgba(var(--red-rgb), 0.7); }
+  .card.holding-card.stale  { border-left-color: rgba(var(--green-700-rgb), 0.7); }
+  .card.watching-card.stale { border-left-color: rgba(var(--indigo-rgb), 0.7); }
+
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .date-badge {
+    font-size: 0.7rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .price-block {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .price-line1 {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .price-line2 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .price-line2.price-up   { color: var(--green-400); }
+  .price-line2.price-down { color: var(--red-400); }
 
   .remove-btn {
     flex-shrink: 0;
@@ -270,8 +398,12 @@
     header { padding: 16px 16px 12px; }
     main { padding: 16px; }
     #results { grid-template-columns: 1fr; }
-    #watchlist-results { grid-template-columns: 1fr; }
-    .watchlist-form input { width: 100%; }
+    .watchlist-grid { grid-template-columns: 1fr; }
+    .watchlist-form { flex-wrap: wrap; }
+    .watchlist-form input,
+    .entry-price-input { width: 100%; }
+    .list-type-toggle { width: 100%; }
+    .toggle-option { flex: 1; }
   }
 </style>
 </head>
@@ -285,16 +417,32 @@
   </header>
 
   <main>
-    <section class="panel-section">
+    <section class="panel-section" id="watchlist-section">
       <div class="section-header">
         <h2>📋 Watchlist</h2>
         <form id="watchlist-form" class="watchlist-form">
           <input type="text" id="watchlist-input" placeholder="Add symbol (e.g. AAPL)" autocomplete="off" required>
+          <div class="list-type-toggle" id="list-type-toggle">
+            <button type="button" class="toggle-option active" data-value="watching">👁 Watching</button>
+            <button type="button" class="toggle-option" data-value="holding">📊 Holding</button>
+          </div>
+          <input type="number" id="entry-price-input" class="entry-price-input hidden" placeholder="Entry price (optional)" step="0.01" min="0">
           <button type="submit">Add</button>
         </form>
       </div>
-      <div id="watchlist-results">
-        <p class="empty">Loading watchlist…</p>
+
+      <div class="watchlist-group">
+        <h3 class="section-subheader">📊 Holdings <span class="count-badge" id="holdings-count">0</span></h3>
+        <div id="holdings-results" class="watchlist-grid">
+          <p class="placeholder-empty">Loading…</p>
+        </div>
+      </div>
+
+      <div class="watchlist-group">
+        <h3 class="section-subheader">👁 Watching <span class="count-badge" id="watching-count">0</span></h3>
+        <div id="watching-results" class="watchlist-grid">
+          <p class="placeholder-empty">Loading…</p>
+        </div>
       </div>
     </section>
 
@@ -332,19 +480,62 @@
     return v > 0 ? 'positive' : (v < 0 ? 'negative' : '');
   }
 
+  function formatDateBadge(runDate) {
+    const today = new Date().toISOString().split('T')[0];
+    const diffDays = Math.round((Date.parse(today) - Date.parse(runDate)) / 86400000);
+    if (diffDays <= 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    return `${diffDays}d ago`;
+  }
+
+  function isStale(runDate) {
+    const today = new Date().toISOString().split('T')[0];
+    const diffDays = Math.round((Date.parse(today) - Date.parse(runDate)) / 86400000);
+    return diffDays > 3;
+  }
+
+  function formatPrice(symbol, price) {
+    let prefix = '$';
+    if (symbol.endsWith('.L')) prefix = '£';
+    else if (['.PA', '.AS', '.DE', '.MI', '.MC'].some(suffix => symbol.endsWith(suffix))) prefix = '€';
+    return `${prefix}${price.toFixed(2)}`;
+  }
+
+  function renderPriceBlock(r) {
+    if (r.current_price === null || r.current_price === undefined) return '';
+    const priceStr = formatPrice(r.symbol, r.current_price);
+    let changeLine = '';
+    if (r.day_change_pct !== null && r.day_change_pct !== undefined) {
+      const positive = r.day_change_pct >= 0;
+      const arrow = positive ? '▲' : '▼';
+      const sign = positive ? '+' : '−';
+      changeLine = `<div class="price-line2 ${positive ? 'price-up' : 'price-down'}">${arrow} ${sign}${Math.abs(r.day_change_pct * 100).toFixed(1)}%</div>`;
+    }
+    return `
+      <div class="price-block">
+        <div class="price-line1">${priceStr}</div>
+        ${changeLine}
+      </div>
+    `;
+  }
+
   function renderCard(r) {
     const colorClass = REC_COLOR[r.recommendation] || 'amber';
     const returnVal = r.model_b_return_1m;
     const company = r.company_name ? `${r.company_name}${r.exchange ? ' · ' + r.exchange : ''}` : (r.exchange || '');
+    const stale = isStale(r.run_date);
 
     return `
-      <div class="card ${colorClass}">
+      <div class="card ${colorClass}${stale ? ' stale' : ''}">
         <div class="card-header">
           <div class="symbol-block">
             <div class="symbol">${r.symbol}</div>
             ${company ? `<div class="company">${company}</div>` : ''}
           </div>
-          <div class="badge ${colorClass}">${r.recommendation.replace('_', ' ')}</div>
+          <div class="header-right">
+            <div class="badge ${colorClass}">${r.recommendation.replace('_', ' ')}</div>
+            <div class="date-badge">${formatDateBadge(r.run_date)}</div>
+          </div>
         </div>
         <div class="stats">
           <div class="stat">
@@ -395,9 +586,13 @@
 
   function renderWatchlistCard(entry, result) {
     const company = entry.company_name ? `${entry.company_name}${entry.exchange ? ' · ' + entry.exchange : ''}` : (entry.exchange || '');
+    const cardTypeClass = entry.list_type === 'holding' ? 'holding-card' : 'watching-card';
 
-    let body;
+    let body, dateBadge, priceBlock, stale = false;
     if (result) {
+      stale = isStale(result.run_date);
+      dateBadge = `<div class="date-badge">${formatDateBadge(result.run_date)}</div>`;
+      priceBlock = renderPriceBlock(result);
       const colorClass = REC_COLOR[result.recommendation] || 'amber';
       body = `
         <div class="card-header">
@@ -431,17 +626,23 @@
         </div>
       `;
     } else {
-      body = `<p class="pending">Pending next run</p>`;
+      dateBadge = '';
+      priceBlock = '';
+      body = `<p class="pending">No recent signal</p>`;
     }
 
     return `
-      <div class="card watchlist-card">
+      <div class="card ${cardTypeClass}${stale ? ' stale' : ''}">
         <div class="card-header">
           <div class="symbol-block">
             <div class="symbol">${entry.symbol}</div>
             ${company ? `<div class="company">${company}</div>` : ''}
           </div>
-          <button class="remove-btn" data-symbol="${entry.symbol}" title="Remove from watchlist">✕</button>
+          <div class="header-right">
+            ${priceBlock}
+            ${dateBadge}
+            <button class="remove-btn" data-symbol="${entry.symbol}" title="Remove from watchlist">✕</button>
+          </div>
         </div>
         ${body}
       </div>
@@ -449,40 +650,71 @@
   }
 
   async function loadWatchlist() {
-    const container = document.getElementById('watchlist-results');
+    const holdingsContainer = document.getElementById('holdings-results');
+    const watchingContainer = document.getElementById('watching-results');
+    const holdingsCount = document.getElementById('holdings-count');
+    const watchingCount = document.getElementById('watching-count');
 
-    let entries;
-    try {
-      const res = await fetch('/api/watchlist');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      entries = await res.json();
-    } catch (err) {
-      container.innerHTML = `<p class="empty">Error loading watchlist: ${err.message}</p>`;
+    const { data: entries, error } = await sb
+      .from('watchlist')
+      .select('*')
+      .order('added_date', { ascending: false });
+
+    if (error) {
+      holdingsContainer.innerHTML = `<p class="empty">Error loading watchlist: ${error.message}</p>`;
+      watchingContainer.innerHTML = '';
+      holdingsCount.textContent = '0';
+      watchingCount.textContent = '0';
       return;
     }
 
-    if (!entries || entries.length === 0) {
-      container.innerHTML = `<p class="empty">No symbols on watchlist yet</p>`;
-      return;
-    }
+    const holdings = (entries || []).filter(e => e.list_type === 'holding');
+    const watching = (entries || []).filter(e => e.list_type !== 'holding');
 
-    const today = new Date().toISOString().split('T')[0];
-    const symbols = entries.map(e => e.symbol);
+    holdingsCount.textContent = String(holdings.length);
+    watchingCount.textContent = String(watching.length);
 
     const resultsBySymbol = {};
-    const { data, error } = await sb
-      .from('inference_results')
-      .select('*')
-      .eq('run_date', today)
-      .eq('is_watchlist', true)
-      .in('symbol', symbols);
+    const symbols = (entries || []).map(e => e.symbol);
+    if (symbols.length > 0) {
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const { data: results, error: resultsError } = await sb
+        .from('inference_results')
+        .select('*')
+        .in('symbol', symbols)
+        .gte('run_date', sevenDaysAgo)
+        .order('run_date', { ascending: false });
 
-    if (!error && data) {
-      data.forEach(r => { resultsBySymbol[r.symbol] = r; });
+      if (!resultsError && results) {
+        results.forEach(r => {
+          if (!resultsBySymbol[r.symbol]) resultsBySymbol[r.symbol] = r;
+        });
+      }
     }
 
-    container.innerHTML = entries.map(entry => renderWatchlistCard(entry, resultsBySymbol[entry.symbol])).join('');
+    holdingsContainer.innerHTML = holdings.length > 0
+      ? holdings.map(entry => renderWatchlistCard(entry, resultsBySymbol[entry.symbol])).join('')
+      : `<p class="placeholder-empty">Nothing added yet</p>`;
+
+    watchingContainer.innerHTML = watching.length > 0
+      ? watching.map(entry => renderWatchlistCard(entry, resultsBySymbol[entry.symbol])).join('')
+      : `<p class="placeholder-empty">Nothing added yet</p>`;
   }
+
+  document.getElementById('list-type-toggle').addEventListener('click', (e) => {
+    const btn = e.target.closest('.toggle-option');
+    if (!btn) return;
+    document.querySelectorAll('#list-type-toggle .toggle-option').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const entryPriceInput = document.getElementById('entry-price-input');
+    if (btn.dataset.value === 'holding') {
+      entryPriceInput.classList.remove('hidden');
+    } else {
+      entryPriceInput.classList.add('hidden');
+      entryPriceInput.value = '';
+    }
+  });
 
   document.getElementById('watchlist-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -490,34 +722,36 @@
     const symbol = input.value.trim().toUpperCase();
     if (!symbol) return;
 
+    const listType = document.querySelector('#list-type-toggle .toggle-option.active').dataset.value;
+    const entryPriceInput = document.getElementById('entry-price-input');
+    const entryPrice = listType === 'holding' && entryPriceInput.value !== '' ? parseFloat(entryPriceInput.value) : null;
+
     try {
-      const res = await fetch('/api/watchlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol, company_name: symbol }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `HTTP ${res.status}`);
-      }
+      const { error } = await sb
+        .from('watchlist')
+        .upsert(
+          { symbol, company_name: symbol, list_type: listType, entry_price: entryPrice },
+          { onConflict: 'symbol' }
+        )
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
       input.value = '';
+      entryPriceInput.value = '';
       await loadWatchlist();
     } catch (err) {
       alert(`Error adding ${symbol}: ${err.message}`);
     }
   });
 
-  document.getElementById('watchlist-results').addEventListener('click', async (e) => {
+  document.getElementById('watchlist-section').addEventListener('click', async (e) => {
     const btn = e.target.closest('.remove-btn');
     if (!btn) return;
     const symbol = btn.dataset.symbol;
 
     try {
-      const res = await fetch(`/api/watchlist/${symbol}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `HTTP ${res.status}`);
-      }
+      const { error } = await sb.from('watchlist').delete().eq('symbol', symbol);
+      if (error) throw new Error(error.message);
       await loadWatchlist();
     } catch (err) {
       alert(`Error removing ${symbol}: ${err.message}`);
@@ -526,13 +760,15 @@
 
   async function loadResults() {
     const container = document.getElementById('results');
-    const today = new Date().toISOString().split('T')[0];
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     const { data, error } = await sb
       .from('inference_results')
       .select('*')
-      .eq('run_date', today)
-      .order('model_a_confidence', { ascending: false });
+      .gte('run_date', sevenDaysAgo)
+      .order('run_date', { ascending: false })
+      .order('model_a_confidence', { ascending: false })
+      .limit(150);
 
     if (error) {
       container.innerHTML = `<p class="empty">Error loading signals: ${error.message}</p>`;
@@ -540,7 +776,7 @@
     }
 
     if (!data || data.length === 0) {
-      container.innerHTML = `<p class="empty">No signals detected today</p>`;
+      container.innerHTML = `<p class="empty">No signals detected in the last 7 days</p>`;
       return;
     }
 
