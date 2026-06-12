@@ -448,18 +448,29 @@ Write a concise, professional narrative covering near-term (1-month) positioning
   }
 }
 
+function sanitiseForHttp(text: string): string {
+  // Remove characters outside the Basic Multilingual Plane (emoji, surrogates)
+  // which cause ByteString errors in fetch headers/body
+  return Array.from(text)
+    .filter((ch) => {
+      const code = ch.codePointAt(0)!;
+      return code <= 0xffff && (code < 0xd800 || code > 0xdfff);
+    })
+    .join('');
+}
+
 async function sendNtfyNotification(symbol: string, rec: string, modelB: number, riskScore: number, narrative: string): Promise<void> {
   const topic = process.env.NTFY_TOPIC;
   if (!topic) return;
   await fetch(`https://ntfy.sh/${topic}`, {
     method: 'POST',
     headers: {
-      'Title': `${rec}: ${symbol}`,
+      'Title': sanitiseForHttp(`${rec}: ${symbol}`),
       'Priority': rec === 'STRONG_BUY' ? 'high' : 'default',
       'Tags': rec === 'STRONG_BUY' ? 'rocket,chart_increasing' : 'chart_increasing',
       'Content-Type': 'text/plain',
     },
-    body: `Expected return: ${(modelB * 100).toFixed(1)}% | Risk score: ${riskScore}/100\n\n${narrative.slice(0, 280)}`,
+    body: sanitiseForHttp(`Expected return: ${(modelB * 100).toFixed(1)}% | Risk score: ${riskScore}/100\n\n${narrative.slice(0, 280)}`),
   });
 }
 
