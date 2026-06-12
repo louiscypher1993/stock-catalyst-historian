@@ -144,6 +144,54 @@
     display: none;
   }
 
+  .macro-strip {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #27272a;
+  }
+
+  .macro-pills {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .macro-pill {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 0.85rem;
+  }
+
+  .macro-pill-label {
+    color: var(--muted);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .macro-pill-value {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .macro-pill-value.green-400 { color: #4ade80; }
+  .macro-pill-value.amber-400 { color: #fbbf24; }
+  .macro-pill-value.red-400   { color: #f87171; }
+  .macro-pill-value.zinc-200  { color: #e4e4e7; }
+  .macro-pill-value.zinc-600  { color: #52525b; }
+
+  .macro-strip-date {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
   main {
     padding: 24px;
     max-width: 1400px;
@@ -603,6 +651,8 @@
     </div>
   </header>
 
+  <div class="macro-strip" id="macro-strip"></div>
+
   <main>
     <div id="server-offline-banner"></div>
 
@@ -1042,6 +1092,85 @@
     });
   }
 
+  function macroPill(label, value, colorClass) {
+    return `
+      <div class="macro-pill">
+        <span class="macro-pill-label">${label}</span>
+        <span class="macro-pill-value ${colorClass}">${value}</span>
+      </div>
+    `;
+  }
+
+  function renderMacroStrip(macro) {
+    const container = document.getElementById('macro-strip');
+    if (!container) return;
+
+    let vix = '—', vixColor = 'zinc-600';
+    let oas = '—', oasColor = 'zinc-600';
+    let curve = '—', curveColor = 'zinc-600';
+    let dxy = '—', dxyColor = 'zinc-600';
+    let fedFunds = '—', fedFundsColor = 'zinc-600';
+    let dateStr = '—';
+
+    if (macro) {
+      if (macro.vix != null) {
+        vix = macro.vix.toFixed(1);
+        vixColor = macro.vix_regime === 'low' ? 'green-400'
+          : macro.vix_regime === 'normal' ? 'zinc-200'
+          : macro.vix_regime === 'elevated' ? 'amber-400'
+          : macro.vix_regime === 'high' ? 'red-400'
+          : 'zinc-600';
+      }
+      if (macro.high_yield_oas != null) {
+        oas = `${macro.high_yield_oas.toFixed(2)}%`;
+        oasColor = macro.credit_regime === 'loose' ? 'green-400'
+          : macro.credit_regime === 'normal' ? 'zinc-200'
+          : macro.credit_regime === 'tight' ? 'amber-400'
+          : macro.credit_regime === 'stressed' ? 'red-400'
+          : 'zinc-600';
+      }
+      if (macro.yield_curve_spread != null) {
+        const v = macro.yield_curve_spread;
+        curve = (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+        curveColor = v >= 0 ? 'green-400' : 'amber-400';
+      }
+      if (macro.dollar_index != null) {
+        dxy = macro.dollar_index.toFixed(1);
+        dxyColor = 'zinc-200';
+      }
+      if (macro.fed_funds_rate != null) {
+        fedFunds = `${macro.fed_funds_rate.toFixed(2)}%`;
+        fedFundsColor = 'zinc-200';
+      }
+      if (macro.run_date) {
+        dateStr = macro.run_date;
+      }
+    }
+
+    container.innerHTML = `
+      <div class="macro-pills">
+        ${macroPill('VIX', vix, vixColor)}
+        ${macroPill('HY OAS', oas, oasColor)}
+        ${macroPill('2s10s', curve, curveColor)}
+        ${macroPill('DXY', dxy, dxyColor)}
+        ${macroPill('Fed Funds', fedFunds, fedFundsColor)}
+      </div>
+      <div class="macro-strip-date">as of ${dateStr}</div>
+    `;
+  }
+
+  async function loadMacroStrip() {
+    const { data: macroData } = await sb
+      .from('macro_snapshots')
+      .select('*')
+      .order('run_date', { ascending: false })
+      .limit(1)
+      .single();
+
+    const macro = macroData ?? null;
+    renderMacroStrip(macro);
+  }
+
   async function loadResults() {
     const container = document.getElementById('results');
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -1137,6 +1266,7 @@
   document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()}`;
   loadWatchlist();
   loadResults();
+  loadMacroStrip();
 </script>
 </body>
 </html>
