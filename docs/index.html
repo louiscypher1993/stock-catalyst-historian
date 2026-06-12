@@ -18,6 +18,8 @@
     --amber-bg: rgba(245, 158, 11, 0.12);
     --red: #ef4444;
     --red-bg: rgba(239, 68, 68, 0.12);
+    --indigo: #6366f1;
+    --indigo-bg: rgba(99, 102, 241, 0.12);
   }
 
   * { box-sizing: border-box; }
@@ -63,6 +65,97 @@
     padding: 24px;
     max-width: 1400px;
     margin: 0 auto;
+  }
+
+  .panel-section {
+    margin-bottom: 32px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .section-header h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .watchlist-form {
+    display: flex;
+    gap: 8px;
+  }
+
+  .watchlist-form input {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-size: 0.9rem;
+    width: 160px;
+  }
+
+  .watchlist-form input:focus {
+    outline: none;
+    border-color: var(--indigo);
+  }
+
+  .watchlist-form button {
+    background: var(--indigo-bg);
+    color: var(--indigo);
+    border: 1px solid var(--indigo);
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .watchlist-form button:hover {
+    background: var(--indigo);
+    color: #fff;
+  }
+
+  #watchlist-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .card.watchlist-card {
+    border-left-color: var(--indigo);
+  }
+
+  .remove-btn {
+    flex-shrink: 0;
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--muted);
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .remove-btn:hover {
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  .pending {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin: 0;
   }
 
   #results {
@@ -177,6 +270,8 @@
     header { padding: 16px 16px 12px; }
     main { padding: 16px; }
     #results { grid-template-columns: 1fr; }
+    #watchlist-results { grid-template-columns: 1fr; }
+    .watchlist-form input { width: 100%; }
   }
 </style>
 </head>
@@ -190,6 +285,19 @@
   </header>
 
   <main>
+    <section class="panel-section">
+      <div class="section-header">
+        <h2>📋 Watchlist</h2>
+        <form id="watchlist-form" class="watchlist-form">
+          <input type="text" id="watchlist-input" placeholder="Add symbol (e.g. AAPL)" autocomplete="off" required>
+          <button type="submit">Add</button>
+        </form>
+      </div>
+      <div id="watchlist-results">
+        <p class="empty">Loading watchlist…</p>
+      </div>
+    </section>
+
     <div id="results">
       <p class="empty">Loading signals…</p>
     </div>
@@ -285,6 +393,137 @@
     `;
   }
 
+  function renderWatchlistCard(entry, result) {
+    const company = entry.company_name ? `${entry.company_name}${entry.exchange ? ' · ' + entry.exchange : ''}` : (entry.exchange || '');
+
+    let body;
+    if (result) {
+      const colorClass = REC_COLOR[result.recommendation] || 'amber';
+      body = `
+        <div class="card-header">
+          <div class="badge ${colorClass}">${result.recommendation.replace('_', ' ')}</div>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="label">2D</div>
+            <div class="value ${returnClass(result.model_d3_return_2d)}">${pct(result.model_d3_return_2d)}</div>
+          </div>
+          <div class="stat">
+            <div class="label">3D</div>
+            <div class="value ${returnClass(result.model_d4_return_3d)}">${pct(result.model_d4_return_3d)}</div>
+          </div>
+          <div class="stat">
+            <div class="label">2W</div>
+            <div class="value ${returnClass(result.model_d5_return_2w)}">${pct(result.model_d5_return_2w)}</div>
+          </div>
+          <div class="stat">
+            <div class="label">1M</div>
+            <div class="value ${returnClass(result.model_b_return_1m)}">${pct(result.model_b_return_1m)}</div>
+          </div>
+          <div class="stat">
+            <div class="label">Risk Score</div>
+            <div class="value">${result.risk_score ?? '—'} / 100</div>
+          </div>
+          <div class="stat">
+            <div class="label">Trend</div>
+            <div class="value">${result.trend_alignment ?? '—'}</div>
+          </div>
+        </div>
+      `;
+    } else {
+      body = `<p class="pending">Pending next run</p>`;
+    }
+
+    return `
+      <div class="card watchlist-card">
+        <div class="card-header">
+          <div class="symbol-block">
+            <div class="symbol">${entry.symbol}</div>
+            ${company ? `<div class="company">${company}</div>` : ''}
+          </div>
+          <button class="remove-btn" data-symbol="${entry.symbol}" title="Remove from watchlist">✕</button>
+        </div>
+        ${body}
+      </div>
+    `;
+  }
+
+  async function loadWatchlist() {
+    const container = document.getElementById('watchlist-results');
+
+    let entries;
+    try {
+      const res = await fetch('/api/watchlist');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      entries = await res.json();
+    } catch (err) {
+      container.innerHTML = `<p class="empty">Error loading watchlist: ${err.message}</p>`;
+      return;
+    }
+
+    if (!entries || entries.length === 0) {
+      container.innerHTML = `<p class="empty">No symbols on watchlist yet</p>`;
+      return;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const symbols = entries.map(e => e.symbol);
+
+    const resultsBySymbol = {};
+    const { data, error } = await sb
+      .from('inference_results')
+      .select('*')
+      .eq('run_date', today)
+      .eq('is_watchlist', true)
+      .in('symbol', symbols);
+
+    if (!error && data) {
+      data.forEach(r => { resultsBySymbol[r.symbol] = r; });
+    }
+
+    container.innerHTML = entries.map(entry => renderWatchlistCard(entry, resultsBySymbol[entry.symbol])).join('');
+  }
+
+  document.getElementById('watchlist-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('watchlist-input');
+    const symbol = input.value.trim().toUpperCase();
+    if (!symbol) return;
+
+    try {
+      const res = await fetch('/api/watchlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol, company_name: symbol }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+      input.value = '';
+      await loadWatchlist();
+    } catch (err) {
+      alert(`Error adding ${symbol}: ${err.message}`);
+    }
+  });
+
+  document.getElementById('watchlist-results').addEventListener('click', async (e) => {
+    const btn = e.target.closest('.remove-btn');
+    if (!btn) return;
+    const symbol = btn.dataset.symbol;
+
+    try {
+      const res = await fetch(`/api/watchlist/${symbol}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+      await loadWatchlist();
+    } catch (err) {
+      alert(`Error removing ${symbol}: ${err.message}`);
+    }
+  });
+
   async function loadResults() {
     const container = document.getElementById('results');
     const today = new Date().toISOString().split('T')[0];
@@ -309,6 +548,7 @@
   }
 
   document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()}`;
+  loadWatchlist();
   loadResults();
 </script>
 </body>
