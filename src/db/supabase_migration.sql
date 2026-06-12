@@ -43,3 +43,8 @@ ALTER TABLE symbol_snapshots DISABLE ROW LEVEL SECURITY;
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_d1_return_3m REAL;
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_d2_return_6m REAL;
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_e_outperform_12m_prob REAL;
+
+-- Models D3/D4/D5 (forward_return_2d/3d/2w regressors).
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_d3_return_2d REAL;
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_d4_return_3d REAL;
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_d5_return_2w REAL;

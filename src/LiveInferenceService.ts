@@ -49,6 +49,9 @@ export interface ModelScores {
   model_c_max_drawdown: number;
   model_d1_return_3m: number;
   model_d2_return_6m: number;
+  model_d3_return_2d: number;
+  model_d4_return_3d: number;
+  model_d5_return_2w: number;
   model_e_outperform_12m_prob: number;
 }
 
@@ -277,7 +280,7 @@ async function getSymbolSnapshot(symbol: string): Promise<SymbolEnrichment> {
   return { snap: null, primaryCategory: null, companyName: null, sector: null, exchange: null };
 }
 
-function buildFeatureVectorForAnomaly(anomaly: AnomalySignal, enrichment: SymbolEnrichment): Record<string, number> {
+function buildFeatureVectorForAnomaly(bars: YahooBar[], anomaly: AnomalySignal, enrichment: SymbolEnrichment): Record<string, number> {
   const { snap, primaryCategory } = enrichment;
   const temporal = getTemporalFeatures(anomaly.date);
 
@@ -302,7 +305,30 @@ function buildFeatureVectorForAnomaly(anomaly: AnomalySignal, enrichment: Symbol
     confidence_tier: 'high',
   };
 
-  return buildLiveFeatureVector(features, snap, context);
+  // Pre-anomaly backward trajectory (ending T-1, excludes the anomaly day itself) -
+  // mirrors the pre_return_*/pre_vol_ratio_* columns computed by backfillPreReturns.ts.
+  const n = bars.length;
+  const dayBefore = bars[n - 2]?.close ?? 0;
+  const preRet = (offset: number): number => {
+    const base = bars[n - 2 - offset]?.close;
+    return dayBefore && base ? (dayBefore - base) / base : 0;
+  };
+  const vol30 = bars.slice(Math.max(0, n - 32), n - 1);
+  const vol30Avg = vol30.length > 0 ? vol30.reduce((s, b) => s + b.volume, 0) / vol30.length : 1;
+  const volRatio = (offset: number): number => {
+    const w = bars.slice(Math.max(0, n - 1 - offset), n - 1);
+    return vol30Avg > 0 && w.length > 0 ? (w.reduce((s, b) => s + b.volume, 0) / w.length) / vol30Avg : 0;
+  };
+
+  return {
+    ...buildLiveFeatureVector(features, snap, context),
+    pre_return_3d: preRet(3),
+    pre_return_5d: preRet(5),
+    pre_return_10d: preRet(10),
+    pre_return_21d: preRet(21),
+    pre_vol_ratio_5d: volRatio(5),
+    pre_vol_ratio_10d: volRatio(10),
+  };
 }
 
 export function runInference(featureVector: Record<string, number>): ModelScores {
@@ -394,6 +420,9 @@ ${trendSection}
 
 Model outputs:
 - Event confidence: ${(scores.model_a_confidence * 100).toFixed(1)}%
+- Expected 2-day return: ${(scores.model_d3_return_2d * 100).toFixed(2)}%
+- Expected 3-day return: ${(scores.model_d4_return_3d * 100).toFixed(2)}%
+- Expected 2-week return: ${(scores.model_d5_return_2w * 100).toFixed(2)}%
 - Expected 1-month return: ${(scores.model_b_return_1m * 100).toFixed(2)}%
 - Max adverse excursion (1-month): ${(scores.model_c_max_drawdown * 100).toFixed(2)}%
 - Expected 3-month return: ${(scores.model_d1_return_3m * 100).toFixed(2)}%
@@ -466,6 +495,9 @@ export async function writeResultToSupabase(
       model_c_max_drawdown: scores.model_c_max_drawdown,
       model_d1_return_3m: scores.model_d1_return_3m,
       model_d2_return_6m: scores.model_d2_return_6m,
+      model_d3_return_2d: scores.model_d3_return_2d,
+      model_d4_return_3d: scores.model_d4_return_3d,
+      model_d5_return_2w: scores.model_d5_return_2w,
       model_e_outperform_12m_prob: scores.model_e_outperform_12m_prob,
       recommendation: rec.recommendation,
       risk_score: rec.riskScore,
@@ -534,23 +566,36 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       console.log(`[LiveInference] Anomaly detected: ${symbol} z=${anomaly.zScore.toFixed(2)} trend=${trendContext.trendAlignment} (10d: ${(trendContext.pre_return_10d * 100).toFixed(1)}%)`);
 
       const enrichment = await getSymbolSnapshot(symbol);
-      const featureVector = buildFeatureVectorForAnomaly(anomaly, enrichment);
+      const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, enrichment);
       const scores = runInference(featureVector);
       const clampedReturn = Math.max(-0.30, Math.min(0.30, scores.model_b_return_1m));
       const clampedReturn3m = Math.max(-0.50, Math.min(0.50, scores.model_d1_return_3m));
       const clampedReturn6m = Math.max(-0.40, Math.min(0.40, scores.model_d2_return_6m));
+      const clampedReturn2d = Math.max(-0.20, Math.min(0.20, scores.model_d3_return_2d));
+      const clampedReturn3d = Math.max(-0.25, Math.min(0.25, scores.model_d4_return_3d));
+      const clampedReturn2w = Math.max(-0.35, Math.min(0.35, scores.model_d5_return_2w));
       const rec = getRecommendation(scores.model_a_confidence, clampedReturn, scores.model_c_max_drawdown, trendContext);
       console.log(`[LiveInference]   scores=${JSON.stringify(scores)} rec=${JSON.stringify(rec)}`);
+
+      const clampedScores = {
+        ...scores,
+        model_b_return_1m: clampedReturn,
+        model_d1_return_3m: clampedReturn3m,
+        model_d2_return_6m: clampedReturn6m,
+        model_d3_return_2d: clampedReturn2d,
+        model_d4_return_3d: clampedReturn3d,
+        model_d5_return_2w: clampedReturn2w,
+      };
 
       let narrative = '';
       if (scores.model_a_confidence >= NARRATIVE_CONFIDENCE_THRESHOLD || rec.recommendation === 'SELL' || rec.recommendation === 'REDUCE') {
         narrative = aiClient
-          ? await generateNarrative(aiClient, anomaly, { ...scores, model_b_return_1m: clampedReturn, model_d1_return_3m: clampedReturn3m, model_d2_return_6m: clampedReturn6m }, rec, trendContext)
+          ? await generateNarrative(aiClient, anomaly, clampedScores, rec, trendContext)
           : `${symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence.`;
         narrativeCount++;
       }
 
-      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, { ...scores, model_b_return_1m: clampedReturn, model_d1_return_3m: clampedReturn3m, model_d2_return_6m: clampedReturn6m }, rec, narrative, computeSignalCompleteness(featureVector));
+      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector));
 
       if (rec.recommendation === 'STRONG_BUY' || rec.recommendation === 'BUY') {
         await sendNtfyNotification(symbol, rec.recommendation, scores.model_b_return_1m, rec.riskScore, narrative);

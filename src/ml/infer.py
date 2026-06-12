@@ -13,6 +13,9 @@ TARGET_COLS = [
     "forward_return_1d",
     "forward_return_1w",
     "forward_return_1m",
+    "forward_return_2d",
+    "forward_return_3d",
+    "forward_return_2w",
     "max_favorable_excursion_1m",
     "max_adverse_excursion_1m",
     "forward_return_3m",
@@ -43,13 +46,19 @@ def load_models():
     model_d1.load_model(ML_DIR / 'model_d1_v1.json')
     model_d2 = xgb.XGBRegressor()
     model_d2.load_model(ML_DIR / 'model_d2_v2.json')
+    model_d3 = xgb.XGBRegressor()
+    model_d3.load_model(ML_DIR / 'model_d3_v1.json')
+    model_d4 = xgb.XGBRegressor()
+    model_d4.load_model(ML_DIR / 'model_d4_v1.json')
+    model_d5 = xgb.XGBRegressor()
+    model_d5.load_model(ML_DIR / 'model_d5_v1.json')
     model_e = xgb.XGBClassifier()
     model_e.load_model(ML_DIR / 'model_e_v1.json')
-    return model_a, model_b, model_c, model_d1, model_d2, model_e
+    return model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e
 
 
 def infer(feature_vector: dict) -> dict:
-    model_a, model_b, model_c, model_d1, model_d2, model_e = load_models()
+    model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e = load_models()
 
     with open(ML_DIR / 'feature_metadata.json') as f:
         metadata = json.load(f)
@@ -71,6 +80,9 @@ def infer(feature_vector: dict) -> dict:
     pred_drawdown = float(model_c.predict(build_df(model_bc_cols))[0])
     pred_return_3m = float(model_d1.predict(build_df(model_bc_cols))[0])
     pred_return_6m = float(model_d2.predict(build_df(model_bc_cols))[0])
+    pred_return_2d = float(model_d3.predict(build_df(model_bc_cols))[0])
+    pred_return_3d = float(model_d4.predict(build_df(model_bc_cols))[0])
+    pred_return_2w = float(model_d5.predict(build_df(model_bc_cols))[0])
     pred_outperform_12m = float(model_e.predict_proba(build_df(model_e_cols))[0][1])
 
     return {
@@ -79,6 +91,9 @@ def infer(feature_vector: dict) -> dict:
         'model_c_max_drawdown': round(pred_drawdown, 4),
         'model_d1_return_3m': round(pred_return_3m, 4),
         'model_d2_return_6m': round(pred_return_6m, 4),
+        'model_d3_return_2d': round(pred_return_2d, 4),
+        'model_d4_return_3d': round(pred_return_3d, 4),
+        'model_d5_return_2w': round(pred_return_2w, 4),
         'model_e_outperform_12m_prob': round(pred_outperform_12m, 4),
     }
 
