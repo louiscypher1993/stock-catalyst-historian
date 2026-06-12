@@ -458,7 +458,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       const scores = runInference(featureVector);
       const clampedReturn = Math.max(-0.30, Math.min(0.30, scores.model_b_return_1m));
       const clampedReturn3m = Math.max(-0.50, Math.min(0.50, scores.model_d1_return_3m));
-      const clampedReturn6m = Math.max(-0.50, Math.min(0.50, scores.model_d2_return_6m));
+      const clampedReturn6m = Math.max(-0.40, Math.min(0.40, scores.model_d2_return_6m));
       const rec = getRecommendation(scores.model_a_confidence, clampedReturn, scores.model_c_max_drawdown);
       console.log(`[LiveInference]   scores=${JSON.stringify(scores)} rec=${JSON.stringify(rec)}`);
 

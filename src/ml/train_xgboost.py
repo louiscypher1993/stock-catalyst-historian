@@ -391,12 +391,18 @@ def main():
     X_test_d2 = X_test_BC[test_mask_d2]
     y_test_d2 = test_df.loc[test_mask_d2, TARGET_D2]
 
+    CLIP_6M = 0.60  # ±60% winsorisation for 6-month target
+    y_train_d2 = y_train_d2.clip(-CLIP_6M, CLIP_6M)
+    y_val_d2 = y_val_d2.clip(-CLIP_6M, CLIP_6M)
+    y_test_d2 = y_test_d2.clip(-CLIP_6M, CLIP_6M)
+
     best_params_d2, best_score_d2 = hyperparam_search(
         XGBRegressor, X_train_d2, y_train_d2, scoring="neg_root_mean_squared_error", cv=cv_reg,
+        extra_params={"reg_lambda": 2.0},
     )
     print(f"Best params D2: {best_params_d2} (cv rmse={-best_score_d2:.4f})")
 
-    model_d2 = train_final(XGBRegressor, X_train_d2, y_train_d2, best_params_d2)
+    model_d2 = train_final(XGBRegressor, X_train_d2, y_train_d2, best_params_d2, extra_params={"reg_lambda": 2.0})
 
     metrics_d2_val = evaluate_regressor(model_d2, X_val_d2, y_val_d2)
     metrics_d2_test = evaluate_regressor(model_d2, X_test_d2, y_test_d2)
@@ -543,7 +549,7 @@ def main():
     model_b.save_model(os.path.join(SCRIPT_DIR, "model_b_v3.json"))
     model_c.save_model(os.path.join(SCRIPT_DIR, "model_c_v3.json"))
     model_d1.save_model(os.path.join(SCRIPT_DIR, "model_d1_v1.json"))
-    model_d2.save_model(os.path.join(SCRIPT_DIR, "model_d2_v1.json"))
+    model_d2.save_model(os.path.join(SCRIPT_DIR, "model_d2_v2.json"))
     model_e.save_model(os.path.join(SCRIPT_DIR, "model_e_v1.json"))
 
     # --- Write evaluation report ---
@@ -557,7 +563,7 @@ def main():
     report.append("model_a_v3.json / model_b_v3.json / model_c_v3.json - trained XGBoost models "
                    "(Model A trained without _is_null indicator columns; "
                    "Models B/C trained without temporal cyclical columns)")
-    report.append("model_d1_v1.json / model_d2_v1.json - trained XGBoost regressors "
+    report.append("model_d1_v1.json / model_d2_v2.json - trained XGBoost regressors "
                    "(forward_return_3m / forward_return_6m, same feature set as Model B)")
     report.append("model_e_v1.json - trained XGBoost classifier "
                    "(target_12m_outperform: forward_return_12m > 0.10, macro/structural features only, "

@@ -44,7 +44,7 @@ def load_models():
     model_d1 = xgb.XGBRegressor()
     model_d1.load_model(ML_DIR / 'model_d1_v1.json')
     model_d2 = xgb.XGBRegressor()
-    model_d2.load_model(ML_DIR / 'model_d2_v1.json')
+    model_d2.load_model(ML_DIR / 'model_d2_v2.json')
     model_e = xgb.XGBClassifier()
     model_e.load_model(ML_DIR / 'model_e_v1.json')
     return model_a, model_b, model_c, model_d1, model_d2, model_e

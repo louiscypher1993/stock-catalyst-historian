@@ -52,15 +52,15 @@ Top 5 features by importance (gain):
 Model D2 - Regression (forward_return_6m)
 --------------------------------------------------
 Same feature set as Model B (96 features); rows with non-null target -> train: 44616, val: 9664, test: 5691
-Best hyperparameters from CV search: {'learning_rate': 0.03, 'max_depth': 4} (cv rmse=11.0535)
-Validation -> RMSE: 1.848291, MAE: 0.275836
-Test       -> RMSE: 4.699042, MAE: 0.327807
+Best hyperparameters from CV search: {'learning_rate': 0.1, 'max_depth': 8} (cv rmse=0.2052)
+Validation -> RMSE: 0.222703, MAE: 0.170210
+Test       -> RMSE: 0.232693, MAE: 0.178440
 Top 5 features by importance (gain):
-  obv_delta_10d: 0.1287
-  atr_shock_score: 0.0843
-  yield_curve_spread: 0.0722
-  sector_Industrials: 0.0549
-  economic_policy_uncertainty: 0.0513
+  excess_return: 0.0687
+  sector_Energy: 0.0461
+  sector_Other: 0.0271
+  stocktwits_virality_z_is_null: 0.0269
+  fmp_news_article_count_7d: 0.0247
 
 Model E - Binary Classifier (target_12m_outperform: forward_return_12m > 0.10)
 --------------------------------------------------
@@ -94,5 +94,5 @@ feature_importance.png - top feature gains for models A/B/C
 confusion_matrix_a.png - Model A confusion matrix (test set)
 shap_summary_a.png / shap_summary_b.png / shap_summary_c.png - SHAP summaries (top 20 features, 2000 sampled test rows)
 model_a_v3.json / model_b_v3.json / model_c_v3.json - trained XGBoost models (Model A trained without _is_null indicator columns; Models B/C trained without temporal cyclical columns)
-model_d1_v1.json / model_d2_v1.json - trained XGBoost regressors (forward_return_3m / forward_return_6m, same feature set as Model B)
+model_d1_v1.json / model_d2_v2.json - trained XGBoost regressors (forward_return_3m / forward_return_6m, same feature set as Model B)
 model_e_v1.json - trained XGBoost classifier (target_12m_outperform: forward_return_12m > 0.10, macro/structural features only, purged TimeSeriesSplit CV)
