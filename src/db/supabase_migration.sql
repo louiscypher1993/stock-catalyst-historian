@@ -58,3 +58,12 @@ CREATE TABLE IF NOT EXISTS watchlist (
 );
 ALTER TABLE watchlist DISABLE ROW LEVEL SECURITY;
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS is_watchlist BOOLEAN DEFAULT FALSE;
+
+-- Watchlist enhancements
+ALTER TABLE watchlist ADD COLUMN IF NOT EXISTS list_type TEXT NOT NULL DEFAULT 'watching'
+  CHECK (list_type IN ('holding', 'watching'));
+ALTER TABLE watchlist ADD COLUMN IF NOT EXISTS entry_price REAL;
+
+-- Live price snapshot on inference results
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS current_price REAL;
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS day_change_pct REAL;
