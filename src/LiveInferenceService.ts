@@ -41,6 +41,7 @@ export interface AnomalySignal {
   overnightGapPct: number;
   volumePriceClustering: number;
   kineticEnergy: number;
+  dayChangePct: number;
 }
 
 export interface ModelScores {
@@ -169,6 +170,7 @@ function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], sp
     overnightGapPct,
     volumePriceClustering,
     kineticEnergy,
+    dayChangePct: dailyReturn,
   };
 }
 
@@ -490,7 +492,8 @@ export async function writeResultToSupabase(
   rec: Recommendation,
   narrative: string,
   signalCompletenessScore: number,
-  isWatchlist: boolean
+  isWatchlist: boolean,
+  trendContext: TrendContext | null
 ): Promise<void> {
   try {
     const { supabase } = await import('./db/supabaseClient');
@@ -502,6 +505,9 @@ export async function writeResultToSupabase(
       exchange,
       z_score: anomaly.zScore,
       excess_return: anomaly.excessReturn,
+      current_price: anomaly.close,
+      day_change_pct: anomaly.dayChangePct,
+      trend_alignment: trendContext?.trendAlignment ?? null,
       model_a_confidence: scores.model_a_confidence,
       model_b_return_1m: scores.model_b_return_1m,
       model_c_max_drawdown: scores.model_c_max_drawdown,
@@ -621,7 +627,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
         narrativeCount++;
       }
 
-      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted);
+      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted, trendContext);
 
       const shouldNotify = rec.recommendation === 'STRONG_BUY' || rec.recommendation === 'BUY';
       if (shouldNotify && (isActualAnomaly || isWatchlisted)) {
