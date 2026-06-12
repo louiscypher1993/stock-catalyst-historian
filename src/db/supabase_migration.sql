@@ -68,3 +68,6 @@ ALTER TABLE watchlist ADD COLUMN IF NOT EXISTS entry_price REAL;
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS current_price REAL;
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS day_change_pct REAL;
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS trend_alignment TEXT;
+
+-- Recent SEC 8-K filing context for narrative generation
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS edgar_8k_items TEXT;

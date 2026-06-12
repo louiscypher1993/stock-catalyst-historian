@@ -11,6 +11,14 @@ import {
   calculateExcessReturn,
   calculateATRMoveNormalization,
 } from './utils/physics';
+import { getRecentFilings as getEdgarFilings } from '../EdgarService';
+import type { EdgarFiling } from './types';
+
+function isUsListed(exchange: string | null): boolean {
+  if (!exchange) return false;
+  const ex = exchange.toLowerCase();
+  return ex.includes('nyse') || ex.includes('nasdaq') || ex.includes('otc');
+}
 
 const Z_SCORE_THRESHOLD = 2.15;
 const ROLLING_WINDOW = 90;
@@ -391,7 +399,8 @@ async function generateNarrative(
   anomaly: AnomalySignal,
   scores: ModelScores,
   rec: Recommendation,
-  trendContext: TrendContext
+  trendContext: TrendContext,
+  edgarFilings: EdgarFiling[]
 ): Promise<string> {
   const fallback = `${anomaly.symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence. Pre-anomaly trend: ${trendContext.trendAlignment}. Expected 1M return ${(scores.model_b_return_1m * 100).toFixed(2)}% and max drawdown ${(scores.model_c_max_drawdown * 100).toFixed(2)}%.`;
 
@@ -411,6 +420,12 @@ Pre-anomaly price trajectory:
 - 21-day return (pre-anomaly): ${(trendContext.pre_return_21d * 100).toFixed(1)}%
 - Volume trend (recent 5d vs prior 5d): ${trendContext.pre_volume_trend > 0 ? 'building' : 'declining'} (${(trendContext.pre_volume_trend * 100).toFixed(1)}%)
 - Trend alignment: ${trendLabel}`;
+
+    const edgarSection = edgarFilings.length > 0
+      ? `\nRecent SEC 8-K filings (last 7 days):\n${edgarFilings
+          .map(f => `- ${f.filedAt}: ${f.description}`)
+          .join('\n')}`
+      : '';
 
     const prompt = `You are a senior institutional equity analyst. Summarize the investment case for ${anomaly.symbol} (${anomaly.companyName}) in 2-3 sentences.
 
@@ -435,6 +450,7 @@ Model outputs:
 - Risk/reward ratio: ${rec.riskReward}
 
 Note: a risk/reward ratio below 1.0 is UNFAVOURABLE — it means the expected downside exceeds the expected upside. A ratio above 1.0 is favourable. Always reflect this correctly in the narrative.
+${edgarSection}
 
 Write a concise, professional narrative covering near-term (1-month) positioning as well as the medium-term (3/6-month) and long-term (12-month) outlook implied by the model outputs above. No emojis. No investment disclaimers. If the pre-anomaly trend is OPPOSING, explicitly note this as a risk factor and reflect it in your conviction level.`;
 
@@ -493,7 +509,8 @@ export async function writeResultToSupabase(
   narrative: string,
   signalCompletenessScore: number,
   isWatchlist: boolean,
-  trendContext: TrendContext | null
+  trendContext: TrendContext | null,
+  edgarSummary: string | null
 ): Promise<void> {
   try {
     const { supabase } = await import('./db/supabaseClient');
@@ -524,6 +541,7 @@ export async function writeResultToSupabase(
       narrative,
       signal_completeness_score: signalCompletenessScore,
       is_watchlist: isWatchlist,
+      edgar_8k_items: edgarSummary,
     }, { onConflict: 'run_date,symbol' });
 
     if (error) {
@@ -531,6 +549,25 @@ export async function writeResultToSupabase(
     }
   } catch (err: any) {
     console.error(`[LiveInference] Supabase client unavailable, skipping write for ${anomaly.symbol}:`, err.message);
+  }
+}
+
+async function fetchRecentEdgarFilings(
+  symbol: string,
+  exchange: string | null,
+  runDate: string
+): Promise<EdgarFiling[]> {
+  if (!isUsListed(exchange)) return [];
+  try {
+    const fromDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      .toISOString().split('T')[0];
+    const filings = await getEdgarFilings(symbol, fromDate, runDate);
+    return filings
+      .filter(f => f.form === '8-K')
+      .slice(0, 5);
+  } catch (err: any) {
+    console.warn(`[LiveInference] EDGAR fetch failed for ${symbol}:`, err.message);
+    return [];
   }
 }
 
@@ -619,15 +656,28 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
         model_d5_return_2w: clampedReturn2w,
       };
 
+      const edgarFilings = await fetchRecentEdgarFilings(symbol, exchange, runDate);
+      if (edgarFilings.length > 0) {
+        console.log(`[LiveInference] ${symbol}: ${edgarFilings.length} recent 8-K(s) — ${edgarFilings.map(f => f.description).join(' | ')}`);
+      }
+
       let narrative = '';
       if ((isActualAnomaly && scores.model_a_confidence >= NARRATIVE_CONFIDENCE_THRESHOLD) || rec.recommendation === 'SELL' || rec.recommendation === 'REDUCE') {
         narrative = aiClient
-          ? await generateNarrative(aiClient, anomaly, clampedScores, rec, trendContext)
+          ? await generateNarrative(aiClient, anomaly, clampedScores, rec, trendContext, edgarFilings)
           : `${symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence.`;
         narrativeCount++;
       }
 
-      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted, trendContext);
+      const edgarSummary = edgarFilings.length > 0
+        ? JSON.stringify(edgarFilings.map(f => ({
+            date: f.filedAt,
+            description: f.description,
+            url: f.filingUrl
+          })))
+        : null;
+
+      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted, trendContext, edgarSummary);
 
       const shouldNotify = rec.recommendation === 'STRONG_BUY' || rec.recommendation === 'BUY';
       if (shouldNotify && (isActualAnomaly || isWatchlisted)) {
