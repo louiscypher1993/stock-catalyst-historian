@@ -1322,14 +1322,14 @@ app.get('/api/watchlist', async (req, res, next) => {
 // POST /api/watchlist — add a symbol
 app.post('/api/watchlist', async (req, res, next) => {
   try {
-    const { symbol, company_name, exchange } = req.body as { symbol: string; company_name?: string; exchange?: string };
+    const { symbol, company_name, exchange, list_type, entry_price } = req.body as { symbol: string; company_name?: string; exchange?: string; list_type?: 'holding' | 'watching'; entry_price?: number };
     if (!symbol || typeof symbol !== 'string') return res.status(400).json({ error: 'symbol is required' });
     const upperSymbol = symbol.toUpperCase().trim();
     if (!isValidSymbol(upperSymbol)) return res.status(400).json({ error: 'Invalid symbol format' });
     const { supabase } = await import('./src/db/supabaseClient');
     const { data, error } = await supabase
       .from('watchlist')
-      .upsert({ symbol: upperSymbol, company_name: company_name ?? upperSymbol, exchange: exchange ?? null },
+      .upsert({ symbol: upperSymbol, company_name: company_name ?? upperSymbol, exchange: exchange ?? null, list_type: list_type ?? 'watching', entry_price: entry_price ?? null },
                { onConflict: 'symbol' })
       .select()
       .single();
