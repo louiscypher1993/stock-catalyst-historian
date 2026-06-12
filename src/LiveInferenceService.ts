@@ -22,7 +22,7 @@ function isUsListed(exchange: string | null): boolean {
 
 const Z_SCORE_THRESHOLD = 2.15;
 const ROLLING_WINDOW = 90;
-const NARRATIVE_CONFIDENCE_THRESHOLD = 0.65;
+const NARRATIVE_CONFIDENCE_THRESHOLD = 0.30;
 const ML_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'ml');
 const YAHOO_REQUEST_DELAY_MS = 75;
 
@@ -662,7 +662,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       }
 
       let narrative = '';
-      if ((isActualAnomaly && scores.model_a_confidence >= NARRATIVE_CONFIDENCE_THRESHOLD) || rec.recommendation === 'SELL' || rec.recommendation === 'REDUCE') {
+      if (isActualAnomaly || rec.recommendation === 'SELL' || rec.recommendation === 'REDUCE') {
         narrative = aiClient
           ? await generateNarrative(aiClient, anomaly, clampedScores, rec, trendContext, edgarFilings)
           : `${symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence.`;
