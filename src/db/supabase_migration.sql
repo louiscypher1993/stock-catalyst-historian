@@ -48,3 +48,13 @@ ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_e_outperform_12m_pr
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_d3_return_2d REAL;
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_d4_return_3d REAL;
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_d5_return_2w REAL;
+
+-- Watchlist feature
+CREATE TABLE IF NOT EXISTS watchlist (
+  symbol TEXT PRIMARY KEY,
+  company_name TEXT,
+  exchange TEXT,
+  added_date DATE DEFAULT CURRENT_DATE
+);
+ALTER TABLE watchlist DISABLE ROW LEVEL SECURITY;
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS is_watchlist BOOLEAN DEFAULT FALSE;
