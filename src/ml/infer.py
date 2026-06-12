@@ -57,7 +57,75 @@ def load_models():
     return model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e
 
 
+def remap_vector(v: dict) -> dict:
+    """
+    Translate live inference flat feature names to the snap_* training schema.
+    Features with no equivalent are left as 0 by build_df's .get() fallback.
+    """
+    RENAME = {
+        'excess_return':              'snap_excessReturn',
+        'atr_shock_score':            'snap_atrShockScore',
+        'volume_ratio':               'snap_volumeRatio',
+        'body_to_range_ratio':        'snap_body_to_range_ratio',
+        'overnight_gap_pct':          'snap_overnight_gap_pct',
+        'gap_fill_ratio':             'snap_gap_fill_ratio',
+        'obv_delta_10d':              'snap_obv_delta_10d',
+        'dist_sma_50':                'snap_dist_sma_50',
+        'dist_sma_200':               'snap_dist_sma_200',
+        'rsi_14':                     'snap_rsi_14',
+        'relative_volume_30d':        'snap_relative_volume_30d',
+        'kinetic_energy':             'snap_kinetic_energy',
+        'vix_close':                  'snap_vix_close',
+        'economic_policy_uncertainty':'snap_economic_policy_uncertainty',
+        'day_sin':                    'snap_day_sin',
+        'day_cos':                    'snap_day_cos',
+        'month_sin':                  'snap_month_sin',
+        'month_cos':                  'snap_month_cos',
+        'shannon_entropy_30d':        'snap_shannon_entropy_30d',
+        'amihud_illiquidity_30d':     'snap_amihud_illiquidity_30d',
+        'fractal_efficiency_ratio_10d':'snap_fractal_efficiency_ratio_10d',
+        'market_reynolds_number':     'snap_market_reynolds_number',
+        'seismic_magnitude_mw':       'snap_seismic_magnitude_mw',
+        'barycenter_stretch_20d':     'snap_barycenter_stretch_20d',
+        'sector_relative_z_score':    'snap_sector_relative_z_score',
+        'fmp_news_sentiment_avg':     'snap_fmp_news_sentiment_avg',
+        'fmp_news_article_count_7d':  'snap_fmp_news_article_count_7d',
+        'put_call_ratio_t_minus_1':   'snap_put_call_ratio_t_minus_1',
+        'dark_pool_index':            'snap_dark_pool_index',
+        'ctb_velocity_7d':            'snap_ctb_velocity_7d',
+        'iv_crush_pct':               'snap_iv_crush_pct',
+        'peer_average_return':        'snap_peer_average_return',
+        'peer_contagion_delta':       'snap_peer_contagion_delta',
+        'congressional_net_flow_30d': 'snap_congressional_net_flow_30d',
+        'insider_net_shares_30d':     'snap_insider_net_shares_30d',
+        'institutional_ownership_pct':'snap_institutional_ownership_pct',
+        'analyst_upgrades_30d':       'snap_analyst_upgrades_30d',
+        'analyst_downgrades_30d':     'snap_analyst_downgrades_30d',
+        'price_target_consensus':     'snap_price_target_consensus',
+        'price_target_upside_pct':    'snap_price_target_upside_pct',
+        'eps_surprise_pct':           'snap_eps_surprise_pct',
+        'revenue_surprise_pct':       'snap_revenue_surprise_pct',
+        'earnings_date_proximity_days':'snap_earnings_date_proximity_days',
+        'confidence_tier_high':       'snap_confidence_tier_high',
+        'confidence_tier_medium':     'snap_confidence_tier_medium',
+        'confidence_tier_low':        'snap_confidence_tier_low',
+        'google_trends_z':            'snap_google_trends_shock_ratio',
+    }
+    result = dict(v)
+    for flat, snap in RENAME.items():
+        if flat in result:
+            result[snap] = result[flat]
+    # Aliases: model expects these under multiple names
+    result['snap_zScore']      = result.get('z_score', 0)
+    result['snap_z_score']     = result.get('z_score', 0)
+    result['snap_vixAtEvent']  = result.get('vix_close', 0)
+    result['price_change_pct'] = result.get('excess_return', 0)
+    return result
+
+
 def infer(feature_vector: dict) -> dict:
+    feature_vector = remap_vector(feature_vector)
+
     model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e = load_models()
 
     with open(ML_DIR / 'feature_metadata.json') as f:
