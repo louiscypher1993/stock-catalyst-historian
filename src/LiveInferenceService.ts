@@ -108,7 +108,7 @@ async function fetchYahooDailyHistory(symbol: string, range: string = '1y'): Pro
 // Mirrors HistoricalEngine.ts's idiosyncratic-return z-score: a 90-day rolling window of
 // SPY-excess returns establishes the baseline mean/stddev, and an anomaly is any day whose
 // excess return deviates from that baseline by more than Z_SCORE_THRESHOLD standard deviations.
-function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], spyReturn: number): AnomalySignal | null {
+function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], spyReturn: number, forceSignal: boolean = false): AnomalySignal | null {
   if (bars.length < 12) return null;
 
   const last = bars[bars.length - 1];
@@ -130,7 +130,7 @@ function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], sp
   const rollingStd = Math.sqrt(sumSquaredDiffs / Math.max(1, windowReturns.length - 1));
 
   const zScore = calculatePriceZScore(excessReturn, rollingMean, rollingStd);
-  if (Math.abs(zScore) <= Z_SCORE_THRESHOLD) return null;
+  if (Math.abs(zScore) <= Z_SCORE_THRESHOLD && !forceSignal) return null;
 
   const vol20Window = bars.slice(-21, -1);
   const vol20Avg = vol20Window.reduce((sum, b) => sum + b.volume, 0) / Math.max(1, vol20Window.length);
@@ -489,7 +489,8 @@ export async function writeResultToSupabase(
   scores: ModelScores,
   rec: Recommendation,
   narrative: string,
-  signalCompletenessScore: number
+  signalCompletenessScore: number,
+  isWatchlist: boolean
 ): Promise<void> {
   try {
     const { supabase } = await import('./db/supabaseClient');
@@ -516,6 +517,7 @@ export async function writeResultToSupabase(
       position_size_pct: rec.positionSizePct,
       narrative,
       signal_completeness_score: signalCompletenessScore,
+      is_watchlist: isWatchlist,
     }, { onConflict: 'run_date,symbol' });
 
     if (error) {
@@ -555,6 +557,16 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
   }
   console.log(`[LiveInference] SPY benchmark return: ${(spyReturn * 100).toFixed(3)}%`);
 
+  const watchlistSymbols = new Set<string>();
+  try {
+    const { supabase } = await import('./db/supabaseClient');
+    const { data } = await supabase.from('watchlist').select('symbol');
+    if (data) data.forEach(r => watchlistSymbols.add(r.symbol.toUpperCase()));
+    console.log(`[LiveInference] Watchlist: ${watchlistSymbols.size} symbols`);
+  } catch (err: any) {
+    console.warn('[LiveInference] Could not fetch watchlist:', err.message);
+  }
+
   const aiClient = process.env.GEMINI_API_KEY
     ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
     : null;
@@ -568,13 +580,16 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       const bars = await fetchYahooDailyHistory(symbol, '1y');
       await sleep(YAHOO_REQUEST_DELAY_MS);
 
-      const anomaly = detectAnomaly(symbol, companyName, bars, spyReturn);
+      const isWatchlisted = watchlistSymbols.has(symbol.toUpperCase());
+      const anomaly = detectAnomaly(symbol, companyName, bars, spyReturn, isWatchlisted);
       if (!anomaly) continue;
+
+      const isActualAnomaly = Math.abs(anomaly.zScore) > Z_SCORE_THRESHOLD;
 
       const trendContext = computeTrendContext(bars, anomaly.zScore);
 
       anomalyCount++;
-      console.log(`[LiveInference] Anomaly detected: ${symbol} z=${anomaly.zScore.toFixed(2)} trend=${trendContext.trendAlignment} (10d: ${(trendContext.pre_return_10d * 100).toFixed(1)}%)`);
+      console.log(`[LiveInference] ${isWatchlisted && !isActualAnomaly ? 'Watchlist' : 'Anomaly'} detected: ${symbol} z=${anomaly.zScore.toFixed(2)} trend=${trendContext.trendAlignment} (10d: ${(trendContext.pre_return_10d * 100).toFixed(1)}%)`);
 
       const enrichment = await getSymbolSnapshot(symbol);
       const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, enrichment);
@@ -599,17 +614,19 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       };
 
       let narrative = '';
-      if (scores.model_a_confidence >= NARRATIVE_CONFIDENCE_THRESHOLD || rec.recommendation === 'SELL' || rec.recommendation === 'REDUCE') {
+      if ((isActualAnomaly && scores.model_a_confidence >= NARRATIVE_CONFIDENCE_THRESHOLD) || rec.recommendation === 'SELL' || rec.recommendation === 'REDUCE') {
         narrative = aiClient
           ? await generateNarrative(aiClient, anomaly, clampedScores, rec, trendContext)
           : `${symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence.`;
         narrativeCount++;
       }
 
-      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector));
+      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted);
 
-      if (rec.recommendation === 'STRONG_BUY' || rec.recommendation === 'BUY') {
-        await sendNtfyNotification(symbol, rec.recommendation, scores.model_b_return_1m, rec.riskScore, narrative);
+      const shouldNotify = rec.recommendation === 'STRONG_BUY' || rec.recommendation === 'BUY';
+      if (shouldNotify && (isActualAnomaly || isWatchlisted)) {
+        const titlePrefix = isWatchlisted && !isActualAnomaly ? 'WATCHLIST' : rec.recommendation;
+        await sendNtfyNotification(symbol, titlePrefix, clampedReturn, rec.riskScore, narrative);
         notificationCount++;
       }
     } catch (err: any) {
