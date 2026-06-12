@@ -59,6 +59,15 @@ export interface Recommendation {
   positionSizePct: number;
 }
 
+interface TrendContext {
+  pre_return_5d: number;
+  pre_return_10d: number;
+  pre_return_21d: number;
+  pre_volume_trend: number;  // positive = volume building, negative = declining
+  trendAlignment: 'ALIGNED' | 'OPPOSING' | 'NEUTRAL';
+  trendStrength: number;  // 0.0 to 1.0
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -158,6 +167,41 @@ function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], sp
     volumePriceClustering,
     kineticEnergy,
   };
+}
+
+function computeTrendContext(bars: YahooBar[], anomalyZScore: number): TrendContext {
+  const n = bars.length;
+
+  // Returns are computed up to the day BEFORE the anomaly (bars[-2])
+  // so we don't contaminate the trend with the anomaly move itself.
+  const dayBefore = bars[n - 2].close;
+  const pre5d  = n >= 7  ? bars[n - 7].close  : null;
+  const pre10d = n >= 12 ? bars[n - 12].close : null;
+  const pre21d = n >= 23 ? bars[n - 23].close : null;
+
+  const pre_return_5d  = pre5d  ? (dayBefore - pre5d)  / pre5d  : 0;
+  const pre_return_10d = pre10d ? (dayBefore - pre10d) / pre10d : 0;
+  const pre_return_21d = pre21d ? (dayBefore - pre21d) / pre21d : 0;
+
+  // Volume trend: average of 5 bars immediately before anomaly vs 5 bars before that
+  const recent5 = bars.slice(n - 6, n - 1);
+  const prior5  = bars.slice(n - 11, n - 6);
+  const recent5VolAvg = recent5.length > 0 ? recent5.reduce((s, b) => s + b.volume, 0) / recent5.length : 0;
+  const prior5VolAvg  = prior5.length  > 0 ? prior5.reduce((s, b)  => s + b.volume, 0) / prior5.length  : 1;
+  const pre_volume_trend = prior5VolAvg > 0 ? (recent5VolAvg - prior5VolAvg) / prior5VolAvg : 0;
+
+  // Trend alignment: does the pre-anomaly direction match the anomaly direction?
+  const TREND_THRESHOLD = 0.03; // 3% move to qualify as a trend
+  let trendAlignment: 'ALIGNED' | 'OPPOSING' | 'NEUTRAL' = 'NEUTRAL';
+  if (Math.abs(pre_return_10d) >= TREND_THRESHOLD) {
+    const trendUp = pre_return_10d > 0;
+    const anomalyUp = anomalyZScore > 0;
+    trendAlignment = trendUp === anomalyUp ? 'ALIGNED' : 'OPPOSING';
+  }
+
+  const trendStrength = Math.min(1, Math.abs(pre_return_10d) / 0.10);
+
+  return { pre_return_5d, pre_return_10d, pre_return_21d, pre_volume_trend, trendAlignment, trendStrength };
 }
 
 function getTemporalFeatures(dateStr: string): { day_sin: number; day_cos: number; month_sin: number; month_cos: number } {
@@ -266,11 +310,15 @@ export function runInference(featureVector: Record<string, number>): ModelScores
   const vectorJson = JSON.stringify(featureVector).replace(/"/g, '\\"');
   const output = execSync(`python "${inferScript}" "${vectorJson}"`, { encoding: 'utf-8' });
   const scores = JSON.parse(output.trim()) as ModelScores;
-  console.log('[INFER DEBUG] raw scores:', JSON.stringify(scores));
   return scores;
 }
 
-export function getRecommendation(modelA: number, modelB: number, modelC: number): Recommendation {
+export function getRecommendation(
+  modelA: number,
+  modelB: number,
+  modelC: number,
+  trendContext: TrendContext
+): Recommendation {
   const riskScore = Math.round(Math.min(100, Math.max(0,
     (Math.abs(modelC) * 40) +
     ((1 - modelA) * 30) +
@@ -285,6 +333,13 @@ export function getRecommendation(modelA: number, modelB: number, modelC: number
     Math.min(10, Math.max(1, modelA * 10 * (1 - riskScore / 100))) * 10
   ) / 10;
 
+  // Reduce position size when anomaly opposes the recent trend (potential dead cat / reversal)
+  let trendAdjustedPositionSize = positionSizePct;
+  if (trendContext.trendAlignment === 'OPPOSING') {
+    const haircut = trendContext.trendStrength > 0.5 ? 0.50 : 0.75;
+    trendAdjustedPositionSize = Math.round(positionSizePct * haircut * 10) / 10;
+  }
+
   let recommendation: string;
   if (modelA >= 0.80 && modelB >= 0.05 && riskScore <= 40) recommendation = 'STRONG_BUY';
   else if (modelA >= 0.70 && modelB >= 0.03 && riskScore <= 55) recommendation = 'BUY';
@@ -293,26 +348,49 @@ export function getRecommendation(modelA: number, modelB: number, modelC: number
   else if (modelB < -0.02) recommendation = 'REDUCE';
   else recommendation = 'HOLD';
 
-  return { recommendation, riskScore, riskReward, positionSizePct };
+  // Downgrade recommendation one level when strongly opposing the trend
+  if (trendContext.trendAlignment === 'OPPOSING' && trendContext.trendStrength > 0.6) {
+    if (recommendation === 'STRONG_BUY') recommendation = 'BUY';
+    else if (recommendation === 'BUY') recommendation = 'ADD';
+    else if (recommendation === 'ADD') recommendation = 'HOLD';
+  }
+
+  return { recommendation, riskScore, riskReward, positionSizePct: trendAdjustedPositionSize };
 }
 
 async function generateNarrative(
   aiClient: GoogleGenAI,
   anomaly: AnomalySignal,
   scores: ModelScores,
-  rec: Recommendation
+  rec: Recommendation,
+  trendContext: TrendContext
 ): Promise<string> {
-  const fallback = `${anomaly.symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence, expected 1M return ${(scores.model_b_return_1m * 100).toFixed(2)}% and max drawdown ${(scores.model_c_max_drawdown * 100).toFixed(2)}%.`;
+  const fallback = `${anomaly.symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence. Pre-anomaly trend: ${trendContext.trendAlignment}. Expected 1M return ${(scores.model_b_return_1m * 100).toFixed(2)}% and max drawdown ${(scores.model_c_max_drawdown * 100).toFixed(2)}%.`;
 
   if (!process.env.GEMINI_API_KEY) return fallback;
 
   try {
+    const trendLabel = trendContext.trendAlignment === 'ALIGNED'
+      ? `${trendContext.trendAlignment} with anomaly (supports the move)`
+      : trendContext.trendAlignment === 'OPPOSING'
+      ? `${trendContext.trendAlignment} with anomaly (caution — potential dead cat / reversal)`
+      : 'NEUTRAL (no clear pre-anomaly trend)';
+
+    const trendSection = `
+Pre-anomaly price trajectory:
+- 5-day return (pre-anomaly): ${(trendContext.pre_return_5d * 100).toFixed(1)}%
+- 10-day return (pre-anomaly): ${(trendContext.pre_return_10d * 100).toFixed(1)}%
+- 21-day return (pre-anomaly): ${(trendContext.pre_return_21d * 100).toFixed(1)}%
+- Volume trend (recent 5d vs prior 5d): ${trendContext.pre_volume_trend > 0 ? 'building' : 'declining'} (${(trendContext.pre_volume_trend * 100).toFixed(1)}%)
+- Trend alignment: ${trendLabel}`;
+
     const prompt = `You are a senior institutional equity analyst. Summarize the investment case for ${anomaly.symbol} (${anomaly.companyName}) in 2-3 sentences.
 
 Today's price: $${anomaly.close.toFixed(2)}
 Z-score (idiosyncratic move): ${anomaly.zScore.toFixed(2)}
 Excess return vs market: ${(anomaly.excessReturn * 100).toFixed(2)}%
 Volume ratio: ${anomaly.volumeRatio.toFixed(2)}x
+${trendSection}
 
 Model outputs:
 - Event confidence: ${(scores.model_a_confidence * 100).toFixed(1)}%
@@ -327,7 +405,7 @@ Model outputs:
 
 Note: a risk/reward ratio below 1.0 is UNFAVOURABLE — it means the expected downside exceeds the expected upside. A ratio above 1.0 is favourable. Always reflect this correctly in the narrative.
 
-Write a concise, professional narrative covering near-term (1-month) positioning as well as the medium-term (3/6-month) and long-term (12-month) outlook implied by the model outputs above. No emojis. No investment disclaimers.`;
+Write a concise, professional narrative covering near-term (1-month) positioning as well as the medium-term (3/6-month) and long-term (12-month) outlook implied by the model outputs above. No emojis. No investment disclaimers. If the pre-anomaly trend is OPPOSING, explicitly note this as a risk factor and reflect it in your conviction level.`;
 
     const response = await aiClient.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -450,8 +528,10 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       const anomaly = detectAnomaly(symbol, companyName, bars, spyReturn);
       if (!anomaly) continue;
 
+      const trendContext = computeTrendContext(bars, anomaly.zScore);
+
       anomalyCount++;
-      console.log(`[LiveInference] Anomaly detected: ${symbol} z=${anomaly.zScore.toFixed(2)}`);
+      console.log(`[LiveInference] Anomaly detected: ${symbol} z=${anomaly.zScore.toFixed(2)} trend=${trendContext.trendAlignment} (10d: ${(trendContext.pre_return_10d * 100).toFixed(1)}%)`);
 
       const enrichment = await getSymbolSnapshot(symbol);
       const featureVector = buildFeatureVectorForAnomaly(anomaly, enrichment);
@@ -459,13 +539,13 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       const clampedReturn = Math.max(-0.30, Math.min(0.30, scores.model_b_return_1m));
       const clampedReturn3m = Math.max(-0.50, Math.min(0.50, scores.model_d1_return_3m));
       const clampedReturn6m = Math.max(-0.40, Math.min(0.40, scores.model_d2_return_6m));
-      const rec = getRecommendation(scores.model_a_confidence, clampedReturn, scores.model_c_max_drawdown);
+      const rec = getRecommendation(scores.model_a_confidence, clampedReturn, scores.model_c_max_drawdown, trendContext);
       console.log(`[LiveInference]   scores=${JSON.stringify(scores)} rec=${JSON.stringify(rec)}`);
 
       let narrative = '';
       if (scores.model_a_confidence >= NARRATIVE_CONFIDENCE_THRESHOLD || rec.recommendation === 'SELL' || rec.recommendation === 'REDUCE') {
         narrative = aiClient
-          ? await generateNarrative(aiClient, anomaly, { ...scores, model_b_return_1m: clampedReturn, model_d1_return_3m: clampedReturn3m, model_d2_return_6m: clampedReturn6m }, rec)
+          ? await generateNarrative(aiClient, anomaly, { ...scores, model_b_return_1m: clampedReturn, model_d1_return_3m: clampedReturn3m, model_d2_return_6m: clampedReturn6m }, rec, trendContext)
           : `${symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence.`;
         narrativeCount++;
       }
