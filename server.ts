@@ -1304,6 +1304,56 @@ app.post('/api/live-inference/run', async (req, res, next) => {
   }
 });
 
+// GET /api/watchlist — fetch all watchlist entries
+app.get('/api/watchlist', async (req, res, next) => {
+  try {
+    const { supabase } = await import('./src/db/supabaseClient');
+    const { data, error } = await supabase
+      .from('watchlist')
+      .select('*')
+      .order('added_date', { ascending: false });
+    if (error) throw new Error(error.message);
+    res.json(data ?? []);
+  } catch (err: any) {
+    next(err);
+  }
+});
+
+// POST /api/watchlist — add a symbol
+app.post('/api/watchlist', async (req, res, next) => {
+  try {
+    const { symbol, company_name, exchange } = req.body as { symbol: string; company_name?: string; exchange?: string };
+    if (!symbol || typeof symbol !== 'string') return res.status(400).json({ error: 'symbol is required' });
+    const upperSymbol = symbol.toUpperCase().trim();
+    if (!isValidSymbol(upperSymbol)) return res.status(400).json({ error: 'Invalid symbol format' });
+    const { supabase } = await import('./src/db/supabaseClient');
+    const { data, error } = await supabase
+      .from('watchlist')
+      .upsert({ symbol: upperSymbol, company_name: company_name ?? upperSymbol, exchange: exchange ?? null },
+               { onConflict: 'symbol' })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    res.json(data);
+  } catch (err: any) {
+    next(err);
+  }
+});
+
+// DELETE /api/watchlist/:symbol — remove a symbol
+app.delete('/api/watchlist/:symbol', async (req, res, next) => {
+  try {
+    const symbol = req.params.symbol.toUpperCase().trim();
+    if (!isValidSymbol(symbol)) return res.status(400).json({ error: 'Invalid symbol format' });
+    const { supabase } = await import('./src/db/supabaseClient');
+    const { error } = await supabase.from('watchlist').delete().eq('symbol', symbol);
+    if (error) throw new Error(error.message);
+    res.json({ deleted: symbol });
+  } catch (err: any) {
+    next(err);
+  }
+});
+
 // Configure Vite middleware or production build output serving
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
