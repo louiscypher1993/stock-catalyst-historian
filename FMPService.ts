@@ -3,11 +3,15 @@ import { CompanyProfile, CompanyFinancialRatios, EarningsEvent } from "./src/typ
 
 export let fmpDailyRequestCount = 0;
 export let fmpDailyResetDate = new Date().toISOString().split('T')[0];
-export const FMP_DAILY_BUDGET = 10000000;
+export const FMP_DAILY_BUDGET = Number(process.env.FMP_DAILY_BUDGET ?? 250);
+
+export function isFmpPremium(): boolean {
+  return (process.env.FMP_TIER ?? 'free') === 'premium';
+}
 
 let fmpMinuteRequestCount = 0;
 let fmpMinuteResetTime = Date.now() + 60000;
-const FMP_MINUTE_LIMIT = 700;
+const FMP_MINUTE_LIMIT = Number(process.env.FMP_MINUTE_LIMIT ?? 5);
 
 export function checkAndIncrementFmpBudget(): boolean {
   const today = new Date().toISOString().split('T')[0];
@@ -532,6 +536,7 @@ import {
 } from "./db";
 
 export async function getHistoricalDarkPoolVolume(symbol: string, date: string): Promise<number | null> {
+  if (!isFmpPremium()) return null;
   if (!checkAndIncrementFmpBudget()) return null;
   const uppercaseSymbol = symbol.toUpperCase().trim();
   const startTime = Date.now();
@@ -552,6 +557,7 @@ export async function getHistoricalDarkPoolVolume(symbol: string, date: string):
 }
 
 export async function getHistoricalBorrowRate(symbol: string, date: string): Promise<number | null> {
+  if (!isFmpPremium()) return null;
   if (!checkAndIncrementFmpBudget()) return null;
   const uppercaseSymbol = symbol.toUpperCase().trim();
   const startTime = Date.now();
@@ -850,6 +856,7 @@ export async function getEstimateRevisions(
  */
 export async function getSocialSentiment(symbol: string, date: string): Promise<{ fmp_social_sentiment_score: number | null, fmp_social_post_volume: number | null }> {
   const NULL_RESULT = { fmp_social_sentiment_score: null, fmp_social_post_volume: null };
+  if (!isFmpPremium()) return NULL_RESULT;
   if (!checkAndIncrementFmpBudget()) return NULL_RESULT;
   if (isSourceRateLimited('fmp')) return NULL_RESULT;
   const uppercaseSymbol = symbol.toUpperCase().trim();
@@ -1114,6 +1121,7 @@ export async function getFMPInstitutionalOwnership(
   symbol: string,
   date: string
 ): Promise<{ institutional_ownership_pct: number | null; institutional_ownership_change_qoq: number | null } | null> {
+  if (!isFmpPremium()) return { institutional_ownership_pct: null, institutional_ownership_change_qoq: null };
   if (_institutionalOwnershipUnavailable) return null;
   if (!checkAndIncrementFmpBudget()) return null;
   if (isSourceRateLimited('fmp')) return null;
