@@ -733,8 +733,12 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
   const watchlistSymbols = new Set<string>();
   try {
     const { supabase } = await import('./db/supabaseClient');
-    const { data } = await supabase.from('watchlist').select('symbol');
-    if (data) data.forEach(r => watchlistSymbols.add(r.symbol.toUpperCase()));
+    const { data, error } = await supabase.from('watchlist').select('symbol');
+    if (error) {
+      console.warn('[LiveInference] Watchlist fetch error:', error.message);
+    } else if (data) {
+      data.forEach(r => watchlistSymbols.add(r.symbol.toUpperCase()));
+    }
     console.log(`[LiveInference] Watchlist: ${watchlistSymbols.size} symbols`);
   } catch (err: any) {
     console.warn('[LiveInference] Could not fetch watchlist:', err.message);
