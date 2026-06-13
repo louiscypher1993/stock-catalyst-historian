@@ -14,11 +14,40 @@ import {
 import { getRecentFilings as getEdgarFilings } from '../EdgarService';
 import { fetchFREDSeries } from '../FREDService';
 import type { EdgarFiling } from './types';
+import { getEarningsTranscript, isFmpPremium } from '../FMPService';
+import { scoreManagementConfidence } from '../EarningsSentimentService';
 
 function isUsListed(exchange: string | null): boolean {
   if (!exchange) return false;
   const ex = exchange.toLowerCase();
   return ex.includes('nyse') || ex.includes('nasdaq') || ex.includes('otc');
+}
+
+function getMostRecentEarningsQuarter(runDate: string): { year: number; quarter: number } {
+  const d = new Date(runDate);
+  const month = d.getMonth() + 1; // 1-12
+  const year = d.getFullYear();
+  if (month <= 3) return { year: year - 1, quarter: 4 };
+  if (month <= 6) return { year, quarter: 1 };
+  if (month <= 9) return { year, quarter: 2 };
+  return { year, quarter: 3 };
+}
+
+function computeDigitalExhaustVelocity(snap: Record<string, any> | null): number | null {
+  const wn = (key: string): number | null => {
+    const v = snap?.[key];
+    return typeof v === 'number' && Number.isFinite(v) ? v : null;
+  };
+  const inputs = [
+    { v: wn('stocktwits_virality_z'), w: 0.35 },
+    { v: wn('google_trends_z'),       w: 0.30 },
+    { v: wn('wikipedia_spike_z'),     w: 0.20 },
+  ];
+  const avail = inputs.filter(i => i.v !== null);
+  if (avail.length < 2) return null;
+  const totalW = avail.reduce((sum, i) => sum + i.w, 0);
+  const raw    = avail.reduce((sum, i) => sum + i.v! * i.w, 0) / totalW;
+  return Math.max(-3, Math.min(3, raw));
 }
 
 const Z_SCORE_THRESHOLD = 2.15;
@@ -401,7 +430,8 @@ async function generateNarrative(
   scores: ModelScores,
   rec: Recommendation,
   trendContext: TrendContext,
-  edgarFilings: EdgarFiling[]
+  edgarFilings: EdgarFiling[],
+  managementScore: { confidence_score: number; primary_concern: string } | null
 ): Promise<string> {
   const fallback = `${anomaly.symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence. Pre-anomaly trend: ${trendContext.trendAlignment}. Expected 1M return ${(scores.model_b_return_1m * 100).toFixed(2)}% and max drawdown ${(scores.model_c_max_drawdown * 100).toFixed(2)}%.`;
 
@@ -428,6 +458,10 @@ Pre-anomaly price trajectory:
           .join('\n')}`
       : '';
 
+    const managementSection = managementScore
+      ? `\nManagement confidence score (most recent earnings call): ${managementScore.confidence_score}/100\nPrimary concern: ${managementScore.primary_concern}`
+      : '';
+
     const prompt = `You are a senior institutional equity analyst. Summarize the investment case for ${anomaly.symbol} (${anomaly.companyName}) in 2-3 sentences.
 
 Today's price: $${anomaly.close.toFixed(2)}
@@ -452,6 +486,7 @@ Model outputs:
 
 Note: a risk/reward ratio below 1.0 is UNFAVOURABLE — it means the expected downside exceeds the expected upside. A ratio above 1.0 is favourable. Always reflect this correctly in the narrative.
 ${edgarSection}
+${managementSection}
 
 Write a concise, professional narrative covering near-term (1-month) positioning as well as the medium-term (3/6-month) and long-term (12-month) outlook implied by the model outputs above. No emojis. No investment disclaimers. If the pre-anomaly trend is OPPOSING, explicitly note this as a risk factor and reflect it in your conviction level.`;
 
@@ -511,7 +546,9 @@ export async function writeResultToSupabase(
   signalCompletenessScore: number,
   isWatchlist: boolean,
   trendContext: TrendContext | null,
-  edgarSummary: string | null
+  edgarSummary: string | null,
+  managementScore: { confidence_score: number; primary_concern: string } | null,
+  digitalExhaustVelocity: number | null
 ): Promise<void> {
   try {
     const { supabase } = await import('./db/supabaseClient');
@@ -543,6 +580,9 @@ export async function writeResultToSupabase(
       signal_completeness_score: signalCompletenessScore,
       is_watchlist: isWatchlist,
       edgar_8k_items: edgarSummary,
+      management_confidence_score: managementScore?.confidence_score ?? null,
+      earnings_primary_concern: managementScore?.primary_concern ?? null,
+      digital_exhaust_velocity_14d: digitalExhaustVelocity,
     }, { onConflict: 'run_date,symbol' });
 
     if (error) {
@@ -718,6 +758,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
 
       const enrichment = await getSymbolSnapshot(symbol);
       const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, enrichment);
+      const digitalExhaust = computeDigitalExhaustVelocity(enrichment.snap);
       const scores = runInference(featureVector);
       const clampedReturn = Math.max(-0.30, Math.min(0.30, scores.model_b_return_1m));
       const clampedReturn3m = Math.max(-0.50, Math.min(0.50, scores.model_d1_return_3m));
@@ -743,10 +784,22 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
         console.log(`[LiveInference] ${symbol}: ${edgarFilings.length} recent 8-K(s) — ${edgarFilings.map(f => f.description).join(' | ')}`);
       }
 
+      let managementScore: { confidence_score: number; primary_concern: string } | null = null;
+      if (isUsListed(exchange) && process.env.GEMINI_API_KEY && isFmpPremium()) {
+        const { year, quarter } = getMostRecentEarningsQuarter(runDate);
+        const transcript = await getEarningsTranscript(symbol, year, quarter);
+        if (transcript) {
+          managementScore = await scoreManagementConfidence(transcript);
+          if (managementScore) {
+            console.log(`[LiveInference] ${symbol} management confidence: ${managementScore.confidence_score}/100 — ${managementScore.primary_concern}`);
+          }
+        }
+      }
+
       let narrative = '';
       if ((isActualAnomaly && scores.model_a_confidence >= NARRATIVE_CONFIDENCE_THRESHOLD) || rec.recommendation === 'SELL' || rec.recommendation === 'REDUCE') {
         narrative = aiClient
-          ? await generateNarrative(aiClient, anomaly, clampedScores, rec, trendContext, edgarFilings)
+          ? await generateNarrative(aiClient, anomaly, clampedScores, rec, trendContext, edgarFilings, managementScore)
           : `${symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence.`;
         narrativeCount++;
       }
@@ -759,7 +812,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
           })))
         : null;
 
-      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted, trendContext, edgarSummary);
+      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted, trendContext, edgarSummary, managementScore, digitalExhaust);
 
       const shouldNotify = rec.recommendation === 'STRONG_BUY' || rec.recommendation === 'BUY';
       if (shouldNotify && (isActualAnomaly || isWatchlisted)) {

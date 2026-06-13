@@ -1,9 +1,8 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 export async function scoreManagementConfidence(transcriptText: string): Promise<{ confidence_score: number, primary_concern: string } | null> {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
     const responseSchema: Schema = {
       type: Type.OBJECT,
       properties: {

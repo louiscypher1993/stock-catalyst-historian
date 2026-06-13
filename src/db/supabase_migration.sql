@@ -86,3 +86,10 @@ CREATE TABLE IF NOT EXISTS macro_snapshots (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 ALTER TABLE macro_snapshots DISABLE ROW LEVEL SECURITY;
+
+-- Earnings call management sentiment (EarningsSentimentService + Gemini)
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS management_confidence_score INTEGER;
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS earnings_primary_concern TEXT;
+
+-- Digital exhaust velocity composite (StockTwits + Google Trends + Wikipedia z-scores)
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS digital_exhaust_velocity_14d REAL;

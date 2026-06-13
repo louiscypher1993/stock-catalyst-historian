@@ -89,6 +89,7 @@ def remap_vector(v: dict) -> dict:
         'confidence_tier_medium':     'snap_confidence_tier_medium',
         'confidence_tier_low':        'snap_confidence_tier_low',
         'google_trends_z':            'snap_google_trends_shock_ratio',
+        'digital_exhaust_velocity_14d': 'snap_digital_exhaust_velocity_14d',
     }
     result = dict(v)
     for flat, snap in RENAME.items():

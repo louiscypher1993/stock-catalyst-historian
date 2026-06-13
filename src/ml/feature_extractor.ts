@@ -142,6 +142,21 @@ const NUMERIC_ACCESSORS: Record<string, (f: Json, snap: Json | null) => number |
   price_target_upside_pct: (f, s) => numOrNull(f.price_target_upside_pct ?? s?.price_target_upside_pct),
   fmp_news_sentiment_avg: (f, s) => numOrNull(f.fmp_news_sentiment_avg ?? s?.fmp_news_sentiment_avg),
   fmp_news_article_count_7d: (f, s) => numOrNull(f.fmp_news_article_count_7d ?? s?.fmp_news_article_count_7d),
+  digital_exhaust_velocity_14d: (f, s) => {
+    const stocktwitsZ = numOrNull(s?.stocktwits_virality_z);
+    const googleZ     = numOrNull(s?.google_trends_z);
+    const wikiZ       = numOrNull(s?.wikipedia_spike_z);
+    const inputs = [
+      { v: stocktwitsZ, w: 0.35 },
+      { v: googleZ,     w: 0.30 },
+      { v: wikiZ,       w: 0.20 },
+    ];
+    const avail = inputs.filter(i => i.v !== null);
+    if (avail.length < 2) return null;
+    const totalW = avail.reduce((sum, i) => sum + i.w, 0);
+    const raw    = avail.reduce((sum, i) => sum + i.v! * i.w, 0) / totalW;
+    return Math.max(-3, Math.min(3, raw));
+  },
 
   // Temporal features
   day_sin: (f) => numOrNull(f.day_sin),
