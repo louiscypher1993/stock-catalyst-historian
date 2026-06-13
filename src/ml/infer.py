@@ -7,53 +7,32 @@ from pathlib import Path
 
 ML_DIR = Path(__file__).parent
 
-NON_FEATURE_COLS = ["cache_key", "symbol", "date"]
-TARGET_COLS = [
-    "is_null_sample",
-    "forward_return_1d",
-    "forward_return_1w",
-    "forward_return_1m",
-    "forward_return_2d",
-    "forward_return_3d",
-    "forward_return_2w",
-    "max_favorable_excursion_1m",
-    "max_adverse_excursion_1m",
-    "forward_return_3m",
-    "forward_return_6m",
-    "forward_return_12m",
-    "forward_return_12m_is_null",
-]
-TEMPORAL_COLS = ["day_sin", "day_cos", "month_sin", "month_cos"]
-
-# Must match the macro_features list used to train Model E in train_xgboost.py.
-MACRO_FEATURES = [
-    'z_score', 'snap_vix_close', 'snap_excessReturn', 'snap_volumeRatio',
-    'snap_shannon_entropy_30d', 'snap_amihud_illiquidity_30d',
-    'snap_fractal_efficiency_ratio_10d', 'snap_sector_relative_z_score',
-    'snap_fmp_news_sentiment_avg', 'snap_analyst_upgrades_30d', 'snap_eps_surprise_pct',
-    'snap_kinetic_energy', 'snap_seismic_magnitude_mw',
+MODEL_A_COLS = [
+    'z_score', 'pre_return_3d', 'pre_return_5d',
+    'pre_return_10d', 'pre_return_21d',
+    'pre_vol_ratio_5d', 'pre_vol_ratio_10d'
 ]
 
 
 def load_models():
     model_a = xgb.XGBClassifier()
-    model_a.load_model(ML_DIR / 'model_a_v3.json')
+    model_a.load_model(ML_DIR / 'model_a_v6.json')
     model_b = xgb.XGBRegressor()
-    model_b.load_model(ML_DIR / 'model_b_v3.json')
+    model_b.load_model(ML_DIR / 'model_b_v6.json')
     model_c = xgb.XGBRegressor()
-    model_c.load_model(ML_DIR / 'model_c_v3.json')
+    model_c.load_model(ML_DIR / 'model_c_v6.json')
     model_d1 = xgb.XGBRegressor()
-    model_d1.load_model(ML_DIR / 'model_d1_v1.json')
+    model_d1.load_model(ML_DIR / 'model_d1_v6.json')
     model_d2 = xgb.XGBRegressor()
-    model_d2.load_model(ML_DIR / 'model_d2_v2.json')
+    model_d2.load_model(ML_DIR / 'model_d2_v6.json')
     model_d3 = xgb.XGBRegressor()
-    model_d3.load_model(ML_DIR / 'model_d3_v1.json')
+    model_d3.load_model(ML_DIR / 'model_d3_v6.json')
     model_d4 = xgb.XGBRegressor()
-    model_d4.load_model(ML_DIR / 'model_d4_v1.json')
+    model_d4.load_model(ML_DIR / 'model_d4_v6.json')
     model_d5 = xgb.XGBRegressor()
-    model_d5.load_model(ML_DIR / 'model_d5_v1.json')
+    model_d5.load_model(ML_DIR / 'model_d5_v6.json')
     model_e = xgb.XGBClassifier()
-    model_e.load_model(ML_DIR / 'model_e_v1.json')
+    model_e.load_model(ML_DIR / 'model_e_v6.json')
     return model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e
 
 
@@ -68,7 +47,7 @@ def remap_vector(v: dict) -> dict:
         'volume_ratio':               'snap_volumeRatio',
         'body_to_range_ratio':        'snap_body_to_range_ratio',
         'overnight_gap_pct':          'snap_overnight_gap_pct',
-        'gap_fill_ratio':             'snap_gap_fill_ratio',
+        'gap_fill_ratio':              'snap_gap_fill_ratio',
         'obv_delta_10d':              'snap_obv_delta_10d',
         'dist_sma_50':                'snap_dist_sma_50',
         'dist_sma_200':               'snap_dist_sma_200',
@@ -124,37 +103,37 @@ def remap_vector(v: dict) -> dict:
 
 
 def infer(feature_vector: dict) -> dict:
-    feature_vector = remap_vector(feature_vector)
-
     model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e = load_models()
 
-    with open(ML_DIR / 'feature_metadata.json') as f:
+    with open(ML_DIR / 'feature_metadata_v6.json') as f:
         metadata = json.load(f)
 
-    column_names = [c['name'] for c in metadata['columns']]
-    all_feature_cols = [c for c in column_names if c not in NON_FEATURE_COLS + TARGET_COLS]
-    is_null_cols = [c for c in all_feature_cols if c.endswith('_is_null')]
+    model_bcde_cols = metadata['model_bcde_cols']
 
-    model_a_cols = [c for c in all_feature_cols if c not in is_null_cols]
-    model_bc_cols = [c for c in all_feature_cols if c not in TEMPORAL_COLS]
-    model_e_cols = [c for c in MACRO_FEATURES if c in all_feature_cols]
+    # Model A: uses flat features directly — do NOT remap
+    a_row = {col: feature_vector.get(col, 0.0) for col in MODEL_A_COLS}
+    df_a = pd.DataFrame([a_row])[MODEL_A_COLS]
+    model_a_conf = float(model_a.predict_proba(df_a)[0][1])
+
+    # Models B/C/D/E: apply remap as before
+    remapped = remap_vector(feature_vector)
 
     def build_df(cols):
-        row = {c: feature_vector.get(c, 0) for c in cols}
+        row = {c: remapped.get(c, 0) for c in cols}
         return pd.DataFrame([row], columns=cols)
 
-    prob_event = float(model_a.predict_proba(build_df(model_a_cols))[0][0])
-    pred_return_1m = float(model_b.predict(build_df(model_bc_cols))[0])
-    pred_drawdown = float(model_c.predict(build_df(model_bc_cols))[0])
-    pred_return_3m = float(model_d1.predict(build_df(model_bc_cols))[0])
-    pred_return_6m = float(model_d2.predict(build_df(model_bc_cols))[0])
-    pred_return_2d = float(model_d3.predict(build_df(model_bc_cols))[0])
-    pred_return_3d = float(model_d4.predict(build_df(model_bc_cols))[0])
-    pred_return_2w = float(model_d5.predict(build_df(model_bc_cols))[0])
-    pred_outperform_12m = float(model_e.predict_proba(build_df(model_e_cols))[0][1])
+    bcde_df = build_df(model_bcde_cols)
+    pred_return_1m = float(model_b.predict(bcde_df)[0])
+    pred_drawdown = float(model_c.predict(bcde_df)[0])
+    pred_return_3m = float(model_d1.predict(bcde_df)[0])
+    pred_return_6m = float(model_d2.predict(bcde_df)[0])
+    pred_return_2d = float(model_d3.predict(bcde_df)[0])
+    pred_return_3d = float(model_d4.predict(bcde_df)[0])
+    pred_return_2w = float(model_d5.predict(bcde_df)[0])
+    pred_outperform_12m = float(model_e.predict_proba(bcde_df)[0][1])
 
     return {
-        'model_a_confidence': round(prob_event, 4),
+        'model_a_confidence': round(model_a_conf, 4),
         'model_b_return_1m': round(pred_return_1m, 4),
         'model_c_max_drawdown': round(pred_drawdown, 4),
         'model_d1_return_3m': round(pred_return_3m, 4),
