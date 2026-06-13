@@ -51,6 +51,7 @@ function computeDigitalExhaustVelocity(snap: Record<string, any> | null): number
 }
 
 const Z_SCORE_THRESHOLD = 2.15;
+const WATCHLIST_Z_SCORE_THRESHOLD = 1.25;
 const ROLLING_WINDOW = 90;
 const NARRATIVE_CONFIDENCE_THRESHOLD = 0.65;
 const ML_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'ml');
@@ -169,7 +170,7 @@ function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], sp
   const rollingStd = Math.sqrt(sumSquaredDiffs / Math.max(1, windowReturns.length - 1));
 
   const zScore = calculatePriceZScore(excessReturn, rollingMean, rollingStd);
-  if (Math.abs(zScore) <= Z_SCORE_THRESHOLD && !forceSignal) return null;
+  if (Math.abs(zScore) <= (forceSignal ? WATCHLIST_Z_SCORE_THRESHOLD : Z_SCORE_THRESHOLD)) return null;
 
   const vol20Window = bars.slice(-21, -1);
   const vol20Avg = vol20Window.reduce((sum, b) => sum + b.volume, 0) / Math.max(1, vol20Window.length);
