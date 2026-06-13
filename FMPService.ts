@@ -1,17 +1,25 @@
 import { markSourceRateLimited, isSourceRateLimited } from "./DataSourceRegistry";
 import { CompanyProfile, CompanyFinancialRatios, EarningsEvent } from "./src/types";
 
+export function isFmpPremium(): boolean {
+  const tier = process.env.FMP_TIER ?? 'auto';
+  if (tier === 'premium') return true;
+  if (tier === 'free') return false;
+  // Auto: Premium until subscription expires Jul 6 2026
+  return new Date() < new Date('2026-07-06T23:59:59Z');
+}
+
 export let fmpDailyRequestCount = 0;
 export let fmpDailyResetDate = new Date().toISOString().split('T')[0];
-export const FMP_DAILY_BUDGET = Number(process.env.FMP_DAILY_BUDGET ?? 250);
-
-export function isFmpPremium(): boolean {
-  return (process.env.FMP_TIER ?? 'free') === 'premium';
-}
+export const FMP_DAILY_BUDGET = Number(
+  process.env.FMP_DAILY_BUDGET ?? (isFmpPremium() ? 1000000 : 250)
+);
 
 let fmpMinuteRequestCount = 0;
 let fmpMinuteResetTime = Date.now() + 60000;
-const FMP_MINUTE_LIMIT = Number(process.env.FMP_MINUTE_LIMIT ?? 5);
+const FMP_MINUTE_LIMIT = Number(
+  process.env.FMP_MINUTE_LIMIT ?? (isFmpPremium() ? 700 : 5)
+);
 
 export function checkAndIncrementFmpBudget(): boolean {
   const today = new Date().toISOString().split('T')[0];
