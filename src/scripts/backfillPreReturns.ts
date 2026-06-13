@@ -50,7 +50,7 @@ export async function main() {
   // Get all symbols that have at least one event missing backward features
   const symbols: { symbol: string }[] = db.prepare(`
     SELECT DISTINCT symbol FROM event_features
-    WHERE pre_return_5d IS NULL AND is_null_sample = 0
+    WHERE pre_return_5d IS NULL
     ORDER BY symbol
   `).all() as { symbol: string }[];
 
@@ -70,7 +70,7 @@ export async function main() {
 
       const events: { cache_key: string; date: string }[] = db.prepare(`
         SELECT cache_key, date FROM event_features
-        WHERE symbol = ? AND pre_return_5d IS NULL AND is_null_sample = 0
+        WHERE symbol = ? AND pre_return_5d IS NULL
       `).all(symbol) as { cache_key: string; date: string }[];
 
       let updated = 0;

@@ -502,16 +502,23 @@ Write a concise, professional narrative covering near-term (1-month) positioning
   }
 }
 
+// function sanitiseForHttp(text: string): string {
+//   // Remove characters outside the Basic Multilingual Plane (emoji, surrogates)
+//   // which cause ByteString errors in fetch headers/body
+//   return Array.from(text)
+//     .filter((ch) => {
+//       const code = ch.codePointAt(0)!;
+//       return code <= 0xffff && (code < 0xd800 || code > 0xdfff);
+//     })
+//     .join('');
+// }
+
 function sanitiseForHttp(text: string): string {
-  // Remove characters outside the Basic Multilingual Plane (emoji, surrogates)
-  // which cause ByteString errors in fetch headers/body
-  return Array.from(text)
-    .filter((ch) => {
-      const code = ch.codePointAt(0)!;
-      return code <= 0xffff && (code < 0xd800 || code > 0xdfff);
-    })
-    .join('');
+  return text
+    .replace(/[\uD800-\uDFFF]/g, '')  // remove lone/paired surrogates
+    .replace(/[^\x00-\xFF]/g, '');     // enforce strict Latin1 / ByteString range
 }
+
 
 async function sendNtfyNotification(symbol: string, rec: string, modelB: number, riskScore: number, narrative: string): Promise<void> {
   const topic = process.env.NTFY_TOPIC;

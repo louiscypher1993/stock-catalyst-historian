@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-11T15:40:22.217Z",
+  "generated_at": "2026-06-13T14:45:18.688Z",
   "row_count": 64514,
-  "column_count": 113,
+  "column_count": 118,
   "null_fill_value": 0,
   "null_indicator_threshold": 0.1,
   "columns": [
@@ -616,6 +616,21 @@
       "has_null_indicator": false
     },
     {
+      "name": "digital_exhaust_velocity_14d",
+      "type": "number",
+      "null_count": 63129,
+      "null_rate": 0.9785317915491211,
+      "fill_rate": 0.02146820845087888,
+      "has_null_indicator": true
+    },
+    {
+      "name": "digital_exhaust_velocity_14d_is_null",
+      "type": "binary",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1
+    },
+    {
       "name": "day_sin",
       "type": "number",
       "null_count": 0,
@@ -830,9 +845,9 @@
     {
       "name": "forward_return_3m",
       "type": "number",
-      "null_count": 2010,
-      "null_rate": 0.031156028148928913,
-      "fill_rate": 0.9688439718510711,
+      "null_count": 2009,
+      "null_rate": 0.031140527637412034,
+      "fill_rate": 0.968859472362588,
       "has_null_indicator": false
     },
     {
@@ -846,9 +861,9 @@
     {
       "name": "forward_return_12m",
       "type": "number",
-      "null_count": 7541,
-      "null_rate": 0.11688935734879251,
-      "fill_rate": 0.8831106426512075,
+      "null_count": 7538,
+      "null_rate": 0.11684285581424186,
+      "fill_rate": 0.8831571441857581,
       "has_null_indicator": true
     },
     {
@@ -857,6 +872,30 @@
       "null_count": 0,
       "null_rate": 0,
       "fill_rate": 1
+    },
+    {
+      "name": "forward_return_2d",
+      "type": "number",
+      "null_count": 476,
+      "null_rate": 0.007378243482034907,
+      "fill_rate": 0.9926217565179651,
+      "has_null_indicator": false
+    },
+    {
+      "name": "forward_return_3d",
+      "type": "number",
+      "null_count": 478,
+      "null_rate": 0.007409244505068667,
+      "fill_rate": 0.9925907554949314,
+      "has_null_indicator": false
+    },
+    {
+      "name": "forward_return_2w",
+      "type": "number",
+      "null_count": 561,
+      "null_rate": 0.008695786960969712,
+      "fill_rate": 0.9913042130390303,
+      "has_null_indicator": false
     }
   ]
 }
