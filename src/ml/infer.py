@@ -13,28 +13,34 @@ MODEL_A_COLS = [
     'volume_ratio',
     'relative_volume_30d',
     'seismic_magnitude_mw',
+    'pre_return_3d',
+    'pre_return_5d',
+    'pre_return_10d',
+    'pre_return_21d',
+    'pre_vol_ratio_5d',
+    'pre_vol_ratio_10d',
 ]
 
 
 def load_models():
     model_a = xgb.XGBClassifier()
-    model_a.load_model(ML_DIR / 'model_a_v7.json')
+    model_a.load_model(ML_DIR / 'model_a_v8.json')
     model_b = xgb.XGBRegressor()
-    model_b.load_model(ML_DIR / 'model_b_v7.json')
+    model_b.load_model(ML_DIR / 'model_b_v8.json')
     model_c = xgb.XGBRegressor()
-    model_c.load_model(ML_DIR / 'model_c_v7.json')
+    model_c.load_model(ML_DIR / 'model_c_v8.json')
     model_d1 = xgb.XGBRegressor()
-    model_d1.load_model(ML_DIR / 'model_d1_v7.json')
+    model_d1.load_model(ML_DIR / 'model_d1_v8.json')
     model_d2 = xgb.XGBRegressor()
-    model_d2.load_model(ML_DIR / 'model_d2_v7.json')
+    model_d2.load_model(ML_DIR / 'model_d2_v8.json')
     model_d3 = xgb.XGBRegressor()
-    model_d3.load_model(ML_DIR / 'model_d3_v7.json')
+    model_d3.load_model(ML_DIR / 'model_d3_v8.json')
     model_d4 = xgb.XGBRegressor()
-    model_d4.load_model(ML_DIR / 'model_d4_v7.json')
+    model_d4.load_model(ML_DIR / 'model_d4_v8.json')
     model_d5 = xgb.XGBRegressor()
-    model_d5.load_model(ML_DIR / 'model_d5_v7.json')
+    model_d5.load_model(ML_DIR / 'model_d5_v8.json')
     model_e = xgb.XGBClassifier()
-    model_e.load_model(ML_DIR / 'model_e_v7.json')
+    model_e.load_model(ML_DIR / 'model_e_v8.json')
     return model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e
 
 
@@ -109,7 +115,7 @@ def load_models():
 def infer(feature_vector: dict) -> dict:
     model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e = load_models()
 
-    with open(ML_DIR / 'feature_metadata_v7.json') as f:
+    with open(ML_DIR / 'feature_metadata_v8.json') as f:
         metadata = json.load(f)
 
     model_bcde_cols = metadata['model_bcde_cols']

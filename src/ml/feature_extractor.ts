@@ -19,6 +19,12 @@ interface EventFeatureRow {
   forward_return_2d: number | null;
   forward_return_3d: number | null;
   forward_return_2w: number | null;
+  pre_return_3d: number | null;
+  pre_return_5d: number | null;
+  pre_return_10d: number | null;
+  pre_return_21d: number | null;
+  pre_vol_ratio_5d: number | null;
+  pre_vol_ratio_10d: number | null;
   is_null_sample: number | null;
   signal_snapshot_json: string | null;
   confidence_tier: string | null;
@@ -186,6 +192,13 @@ const TARGET_ACCESSORS: Record<string, (f: Json, row: EventFeatureRow) => number
 const NUMERIC_FEATURE_NAMES = Object.keys(NUMERIC_ACCESSORS);
 const TARGET_NAMES = Object.keys(TARGET_ACCESSORS);
 
+// Pre-event lookback features: dedicated SQLite columns on event_features,
+// read directly from the row rather than via NUMERIC_ACCESSORS (f, snap).
+const PRE_RETURN_FIELD_NAMES = [
+  'pre_return_3d', 'pre_return_5d', 'pre_return_10d', 'pre_return_21d',
+  'pre_vol_ratio_5d', 'pre_vol_ratio_10d',
+];
+
 type CategoryContext = Pick<EventFeatureRow, 'symbol' | 'primaryCategory' | 'confidence_tier'>;
 
 function getPrimaryCategory(f: Json, snap: Json | null, row: CategoryContext): string {
@@ -255,6 +268,8 @@ export function extractFeatures(): FeatureExtractionResult {
            max_favorable_excursion_1m, max_adverse_excursion_1m,
            forward_return_3m, forward_return_6m, forward_return_12m,
            forward_return_2d, forward_return_3d, forward_return_2w,
+           pre_return_3d, pre_return_5d, pre_return_10d, pre_return_21d,
+           pre_vol_ratio_5d, pre_vol_ratio_10d,
            is_null_sample, signal_snapshot_json, confidence_tier
     FROM event_features
     WHERE signal_snapshot_json IS NOT NULL
@@ -284,6 +299,14 @@ export function extractFeatures(): FeatureExtractionResult {
       numeric[name] = NUMERIC_ACCESSORS[name](f, snap);
     }
 
+    // Pre-event lookback features: direct row reads (not in features_json/signal_snapshot_json).
+    numeric.pre_return_3d = numOrNull(row.pre_return_3d);
+    numeric.pre_return_5d = numOrNull(row.pre_return_5d);
+    numeric.pre_return_10d = numOrNull(row.pre_return_10d);
+    numeric.pre_return_21d = numOrNull(row.pre_return_21d);
+    numeric.pre_vol_ratio_5d = numOrNull(row.pre_vol_ratio_5d);
+    numeric.pre_vol_ratio_10d = numOrNull(row.pre_vol_ratio_10d);
+
     const targets: Record<string, number | null> = {};
     for (const name of TARGET_NAMES) {
       targets[name] = TARGET_ACCESSORS[name](f, row);
@@ -306,7 +329,7 @@ export function extractFeatures(): FeatureExtractionResult {
 
   // Determine null rates for numeric signals + regression targets
   const nullCounts: Record<string, number> = {};
-  for (const name of [...NUMERIC_FEATURE_NAMES, ...TARGET_NAMES]) {
+  for (const name of [...NUMERIC_FEATURE_NAMES, ...TARGET_NAMES, ...PRE_RETURN_FIELD_NAMES]) {
     nullCounts[name] = 0;
   }
   for (const rec of records) {
@@ -316,16 +339,23 @@ export function extractFeatures(): FeatureExtractionResult {
     for (const name of TARGET_NAMES) {
       if (rec.targets[name] === null) nullCounts[name]++;
     }
+    for (const name of PRE_RETURN_FIELD_NAMES) {
+      if (rec.numeric[name] === null) nullCounts[name]++;
+    }
   }
 
   const needsIndicator: Record<string, boolean> = {};
-  for (const name of [...NUMERIC_FEATURE_NAMES, ...TARGET_NAMES]) {
+  for (const name of [...NUMERIC_FEATURE_NAMES, ...TARGET_NAMES, ...PRE_RETURN_FIELD_NAMES]) {
     needsIndicator[name] = totalRows > 0 && (nullCounts[name] / totalRows) > NULL_INDICATOR_THRESHOLD;
   }
 
   // Build column list
   const columns: string[] = ['cache_key', 'symbol', 'date'];
   for (const name of NUMERIC_FEATURE_NAMES) {
+    columns.push(name);
+    if (needsIndicator[name]) columns.push(`${name}_is_null`);
+  }
+  for (const name of PRE_RETURN_FIELD_NAMES) {
     columns.push(name);
     if (needsIndicator[name]) columns.push(`${name}_is_null`);
   }
@@ -347,6 +377,11 @@ export function extractFeatures(): FeatureExtractionResult {
   for (const rec of records) {
     const values: (string | number)[] = [rec.cache_key, rec.symbol, rec.date];
     for (const name of NUMERIC_FEATURE_NAMES) {
+      const v = rec.numeric[name];
+      values.push(v === null ? 0 : v);
+      if (needsIndicator[name]) values.push(v === null ? 1 : 0);
+    }
+    for (const name of PRE_RETURN_FIELD_NAMES) {
       const v = rec.numeric[name];
       values.push(v === null ? 0 : v);
       if (needsIndicator[name]) values.push(v === null ? 1 : 0);
@@ -396,6 +431,7 @@ export function extractFeatures(): FeatureExtractionResult {
   };
 
   for (const name of NUMERIC_FEATURE_NAMES) pushNumericColumn(name);
+  for (const name of PRE_RETURN_FIELD_NAMES) pushNumericColumn(name);
 
   for (const cat of PRIMARY_CATEGORIES) {
     metadataColumns.push({ name: `primaryCategory_${cat}`, type: 'binary', null_count: 0, null_rate: 0, fill_rate: 1 });
