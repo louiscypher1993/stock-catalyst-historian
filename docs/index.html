@@ -743,6 +743,11 @@
     return diffDays > 3;
   }
 
+function is2dStale(runDate) {
+    const today = new Date().toISOString().split('T')[0];
+    return Math.round((Date.parse(today) - Date.parse(runDate)) / 86400000) > 1;
+}
+
   function formatPrice(symbol, price) {
     let prefix = '$';
     if (symbol.endsWith('.L')) prefix = '£';
@@ -826,11 +831,13 @@
         <div class="stats">
           <div class="stat">
             <div class="label">Expected Return (2D)</div>
-            <div class="value ${returnClass(r.model_d3_return_2d)}">${pct(r.model_d3_return_2d)}</div>
+            <div class="value ${is2dStale(r.run_date) ? '' : returnClass(r.model_d3_return_2d)}">
+             ${is2dStale(r.run_date) ? '—' : pct(r.model_d3_return_2d)}</div>
           </div>
           <div class="stat">
             <div class="label">Expected Return (3D)</div>
-            <div class="value ${returnClass(r.model_d4_return_3d)}">${pct(r.model_d4_return_3d)}</div>
+            <div class="value ${is2dStale(r.run_date) ? '' : returnClass(r.model_d4_return_3d)}">
+              ${is2dStale(r.run_date) ? '—' : pct(r.model_d4_return_3d)}</div>
           </div>
           <div class="stat">
             <div class="label">Expected Return (2W)</div>
@@ -864,6 +871,21 @@
             <div class="label">Position Size</div>
             <div class="value">${r.position_size_pct != null ? r.position_size_pct.toFixed(1) + '%' : '—'}</div>
           </div>
+          ${r.digital_exhaust_velocity_14d != null ? `
+          <div class="stat">
+            <div class="label">Digital Exhaust</div>
+            <div class="value" style="color: ${
+              r.digital_exhaust_velocity_14d >= 2   ? '#f87171' :
+              r.digital_exhaust_velocity_14d >= 1   ? '#fb923c' :
+              r.digital_exhaust_velocity_14d >= 0   ? '#facc15' :
+                                            '#94a3b8'
+            }">
+             ${r.digital_exhaust_velocity_14d >= 2   ? '🔥' :
+              r.digital_exhaust_velocity_14d >= 1   ? '📈' :
+              r.digital_exhaust_velocity_14d >= 0   ? '〰️' : '📉'}
+             ${r.digital_exhaust_velocity_14d.toFixed(2)}σ
+            </div>
+          </div>` : ''}
         </div>
         ${r.narrative ? `<p class="narrative">${r.narrative}</p>` : ''}
         ${renderEdgarFilings(r)}
@@ -892,11 +914,13 @@
         <div class="stats">
           <div class="stat">
             <div class="label">2D</div>
-            <div class="value ${returnClass(result.model_d3_return_2d)}">${pct(result.model_d3_return_2d)}</div>
+            <div class="value ${is2dStale(result.run_date) ? '' : returnClass(result.model_d3_return_2d)}">
+              ${is2dStale(result.run_date) ? '—' : pct(result.model_d3_return_2d)}</div>
           </div>
           <div class="stat">
             <div class="label">3D</div>
-            <div class="value ${returnClass(result.model_d4_return_3d)}">${pct(result.model_d4_return_3d)}</div>
+            <div class="value ${is2dStale(result.run_date) ? '' : returnClass(result.model_d4_return_3d)}">
+             ${is2dStale(result.run_date) ? '—' : pct(result.model_d4_return_3d)}</div>
           </div>
           <div class="stat">
             <div class="label">2W</div>
