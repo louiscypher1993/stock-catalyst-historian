@@ -338,6 +338,7 @@ function buildFeatureVectorForAnomaly(bars: YahooBar[], anomaly: AnomalySignal, 
   const temporal = getTemporalFeatures(anomaly.date);
 
   const features: Record<string, any> = {
+    date: anomaly.date,
     z_score: anomaly.zScore,
     zScore: anomaly.zScore,
     excessReturn: anomaly.excessReturn,

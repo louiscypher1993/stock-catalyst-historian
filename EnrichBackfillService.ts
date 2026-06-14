@@ -1,4 +1,4 @@
-import { db, setEventFeatures } from './db';
+import { db, setEventFeatures, getCompetitorEventDensity, getCachedCompanyProfile } from './db';
 import { EventFeatureVector } from './src/types';
 import {
   getFMPNewsSentiment,
@@ -7,9 +7,42 @@ import {
   getFMPEarningsSurprise,
   getFMPAnalystGrades,
   getFMPPriceTargetConsensus,
+  getEarningsTranscript,
+  isFmpPremium,
 } from './FMPService';
+import { getTrendsSummary } from './GoogleTrendsService';
+import { detectWikipediaSpike } from './WikipediaService';
+import { getShortInterest } from './FinraShortInterestService';
+import { getCongressionalNetFlow } from './CongressionalTradingService';
+import { scoreManagementConfidence } from './EarningsSentimentService';
 
 const BATCH_SIZE = 500;
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Local copy — cannot import from LiveInferenceService (circular dependency)
+function getMostRecentEarningsQuarter(runDate: string): { year: number; quarter: number } {
+  const d = new Date(runDate);
+  const month = d.getMonth() + 1; // 1-12
+  const year = d.getFullYear();
+  if (month <= 3) return { year: year - 1, quarter: 4 };
+  if (month <= 6) return { year, quarter: 1 };
+  if (month <= 9) return { year, quarter: 2 };
+  return { year, quarter: 3 };
+}
+
+// Same weighted composite as the live pipeline's digital_exhaust_velocity_14d,
+// but stocktwits_virality_z is excluded (no reliable historical StockTwits data for backfill).
+function computeDigitalExhaustVelocity(googleZ: number | null, wikiZ: number | null): number | null {
+  const inputs = [
+    { v: googleZ, w: 0.30 },
+    { v: wikiZ, w: 0.20 },
+  ];
+  const avail = inputs.filter(i => i.v !== null);
+  if (avail.length < 2) return null;
+  const totalW = avail.reduce((sum, i) => sum + i.w, 0);
+  const raw = avail.reduce((sum, i) => sum + i.v! * i.w, 0) / totalW;
+  return Math.max(-3, Math.min(3, raw));
+}
 
 interface BackfillStatus {
   isRunning: boolean;
@@ -65,13 +98,24 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
             features.signal_snapshot = JSON.parse(row.signal_snapshot_json);
           }
 
+          const isUsListed = !row.symbol.includes('.') || row.symbol.endsWith('.NYSE') || row.symbol.endsWith('.NASDAQ');
+
           if (!forceAll) {
+            const managementConfidenceDone = !isUsListed
+              || !process.env.GEMINI_API_KEY
+              || !isFmpPremium()
+              || features.signal_snapshot?.management_confidence_score !== undefined;
             const allPopulated =
               features.fmp_news_sentiment_avg !== undefined &&
               features.insider_net_shares_30d !== undefined &&
               features.institutional_ownership_pct !== undefined &&
               (features.eps_surprise_pct !== undefined && features.eps_surprise_pct !== null) &&
-              features.confidence_tier !== undefined;
+              features.confidence_tier !== undefined &&
+              features.competitor_event_density !== undefined &&
+              features.signal_snapshot?.digital_exhaust_velocity !== undefined &&
+              features.signal_snapshot?.short_interest_pct !== undefined &&
+              features.signal_snapshot?.congressional_net_flow_30d !== undefined &&
+              managementConfidenceDone;
             if (allPopulated) {
               state.processed++;
               if (state.processed % 100 === 0) {
@@ -82,7 +126,6 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
           }
 
           let changed = false;
-          const isUsListed = !row.symbol.includes('.') || row.symbol.endsWith('.NYSE') || row.symbol.endsWith('.NASDAQ');
 
           if (forceAll || features.fmp_news_sentiment_avg === undefined) {
             const result = await getFMPNewsSentiment(row.symbol, row.date);
@@ -179,6 +222,110 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
               features.confidence_tier_medium = tier === 'medium' ? 1 : 0;
               features.confidence_tier_low = tier === 'low' ? 1 : 0;
               changed = true;
+            }
+          }
+
+          // competitor_event_density: count of other same-sector anomaly events
+          // in the 14 days before this event (pure SQLite, no API calls)
+          if (forceAll || features.competitor_event_density === undefined) {
+            const density = getCompetitorEventDensity(row.symbol, row.date);
+            features.competitor_event_density = density;
+            if (features.signal_snapshot) {
+              features.signal_snapshot.competitor_event_density = density;
+            }
+            changed = true;
+          }
+
+          // digital_exhaust_velocity: weighted composite of google_trends_z + wikipedia_spike_z
+          // (stocktwits excluded — no reliable historical data for backfill)
+          if (features.signal_snapshot && (forceAll || features.signal_snapshot.digital_exhaust_velocity === undefined)) {
+            const companyName = getCachedCompanyProfile(row.symbol)?.profile.name ?? row.symbol;
+
+            let googleZ: number | null = features.signal_snapshot.google_trends_z ?? null;
+            if (googleZ === null) {
+              try {
+                const trends = await getTrendsSummary(row.symbol, companyName, row.date);
+                if (trends && typeof trends.google_trends_shock_ratio === 'number') {
+                  googleZ = trends.google_trends_shock_ratio - 1;
+                  features.signal_snapshot.google_trends_z = googleZ;
+                }
+              } catch (err) {
+                console.error(`[Backfill] Google Trends error for ${row.symbol}/${row.date}:`, err);
+              }
+            }
+
+            let wikiZ: number | null = features.signal_snapshot.wikipedia_spike_z ?? null;
+            if (wikiZ === null) {
+              try {
+                const spike = await detectWikipediaSpike(companyName, row.date);
+                if (spike) {
+                  wikiZ = spike.spikeRatio;
+                  features.signal_snapshot.wikipedia_spike_z = wikiZ;
+                }
+              } catch (err) {
+                console.error(`[Backfill] Wikipedia spike error for ${row.symbol}/${row.date}:`, err);
+              }
+            }
+
+            features.signal_snapshot.digital_exhaust_velocity = computeDigitalExhaustVelocity(googleZ, wikiZ);
+            changed = true;
+          }
+
+          // short_interest: nearest FINRA short interest data point to the event date
+          if (features.signal_snapshot && (forceAll || features.signal_snapshot.short_interest_pct === undefined)) {
+            try {
+              const si = await getShortInterest(row.symbol, row.date);
+              features.signal_snapshot.short_interest_pct = si?.pctOfFloat ?? null;
+              features.signal_snapshot.short_interest_ratio = si?.shortInterestRatio ?? null;
+              if (si) {
+                features.short_interest_pct = si.pctOfFloat;
+                features.short_interest_ratio = si.shortInterestRatio;
+              }
+              changed = true;
+            } catch (err) {
+              console.error(`[Backfill] FINRA short interest error for ${row.symbol}/${row.date}:`, err);
+            }
+          }
+
+          // congressional_net_flow_30d: sum of net congressional trades in the 30 days before the event
+          if (features.signal_snapshot && (forceAll || features.signal_snapshot.congressional_net_flow_30d === undefined)) {
+            try {
+              const netFlow = await getCongressionalNetFlow(row.symbol, row.date);
+              features.congressional_net_flow_30d = netFlow;
+              features.signal_snapshot.congressional_net_flow_30d = netFlow;
+              changed = true;
+            } catch (err) {
+              console.error(`[Backfill] Congressional net flow error for ${row.symbol}/${row.date}:`, err);
+            }
+          }
+
+          // earnings_transcript_sentiment: Gemini-scored management confidence from the most
+          // recent earnings call transcript before the event (FMP Premium + Gemini required)
+          if (
+            isUsListed &&
+            features.signal_snapshot &&
+            (forceAll || features.signal_snapshot.management_confidence_score === undefined) &&
+            process.env.GEMINI_API_KEY &&
+            isFmpPremium()
+          ) {
+            try {
+              const { year, quarter } = getMostRecentEarningsQuarter(row.date);
+              const transcript = await getEarningsTranscript(row.symbol, year, quarter);
+              if (transcript) {
+                const score = await scoreManagementConfidence(transcript);
+                await delay(3000); // rate limit: max 1 Gemini call per 3 seconds
+                features.signal_snapshot.management_confidence_score = score?.confidence_score ?? null;
+                features.signal_snapshot.earnings_primary_concern = score?.primary_concern ?? null;
+                if (score) {
+                  features.management_confidence_score = score.confidence_score;
+                }
+              } else {
+                features.signal_snapshot.management_confidence_score = null;
+                features.signal_snapshot.earnings_primary_concern = null;
+              }
+              changed = true;
+            } catch (err) {
+              console.error(`[Backfill] Earnings transcript sentiment error for ${row.symbol}/${row.date}:`, err);
             }
           }
 

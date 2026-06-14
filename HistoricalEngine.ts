@@ -13,6 +13,7 @@ import {
   saveSocialMentions,
   getInsiderClusterDensity,
   getManagementFrictionScore,
+  getCompetitorEventDensity,
   getEdgarFilings,
   getScannerState,
   setScannerState,
@@ -489,6 +490,7 @@ function buildAndSaveFeatureVector(
 
     const preReturnFeatures = computePreReturnFeatures(points, i);
     const forwardReturnFeatures = computeForwardReturnFeatures(points, i);
+    const competitorEventDensity = getCompetitorEventDensity(symbol, p.date);
 
     const features: EventFeatureVector = {
       symbol: symbol,
@@ -589,6 +591,7 @@ function buildAndSaveFeatureVector(
       max_adverse_excursion_1m: div100(p.analysis?.max_adverse_excursion_1m),
       gatingVerdict: p.gatingVerdict ?? undefined,
       is_null_sample: p.gatingVerdict?.event_classification === "SUPPRESSED_NON_EVENT" ? 1 : 0,
+      competitor_event_density: competitorEventDensity,
       signal_snapshot: (() => {
         const si = (p as any)._tempShortInterest ?? p.analysis?.shortInterest ?? null;
         const siVelocity = (p as any)._tempShortInterestVelocity ?? p.analysis?.shortInterestVelocity ?? null;
@@ -652,6 +655,7 @@ function buildAndSaveFeatureVector(
           analyst_downgrades_30d: (p as any)._tempAnalystDowngrades30d ?? (p.analysis as any)?.analyst_downgrades_30d ?? null,
           price_target_consensus: (p as any)._tempPriceTargetConsensus ?? (p.analysis as any)?.price_target_consensus ?? null,
           price_target_upside_pct: (p as any)._tempPriceTargetUpsidePct ?? (p.analysis as any)?.price_target_upside_pct ?? null,
+          competitor_event_density: competitorEventDensity,
         };
       })(),
     };

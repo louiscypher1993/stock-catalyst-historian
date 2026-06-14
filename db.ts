@@ -2403,6 +2403,26 @@ export function setCachedCongressionalNetFlow(symbol: string, event_date: string
   }
 }
 
+// Counts other anomaly events in event_features that share the target symbol's sector
+// (via company_profiles) and occurred in the 14 calendar days before `date`, excluding `symbol` itself.
+export function getCompetitorEventDensity(symbol: string, date: string): number {
+  try {
+    const uppercaseSymbol = symbol.toUpperCase().trim();
+    const row = db.prepare(`
+      SELECT COUNT(*) as count
+      FROM event_features ef
+      JOIN company_profiles cp ON UPPER(cp.symbol) = UPPER(ef.symbol)
+      WHERE UPPER(ef.symbol) != ?
+        AND ef.date < ?
+        AND ef.date >= date(?, '-14 days')
+        AND cp.sector = (SELECT sector FROM company_profiles WHERE UPPER(symbol) = ?)
+    `).get(uppercaseSymbol, date, date, uppercaseSymbol) as { count: number } | undefined;
+    return row?.count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 export function getInsiderClusterDensity(symbol: string, targetDate: string, lookbackDays: number): number {
   const targetTime = new Date(targetDate).getTime();
   const msPerDay = 24 * 60 * 60 * 1000;

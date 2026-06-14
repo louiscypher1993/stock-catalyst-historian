@@ -531,6 +531,7 @@ export interface EventFeatureVector {
   options_put_call_ratio?: number;
   insider_cluster_density?: number;
   management_friction_score?: number;
+  competitor_event_density?: number;
   is_null_sample?: boolean | number;
   is_human_verified?: boolean;
 
@@ -601,6 +602,18 @@ export interface EventFeatureVector {
     // FMP price target consensus
     price_target_consensus?: number | null;
     price_target_upside_pct?: number | null;
+    // count of other same-sector anomaly events in the 14 days before this event
+    competitor_event_density?: number | null;
+    // weighted composite of stocktwits/google trends/wikipedia z-scores (backfill: trends+wikipedia only)
+    digital_exhaust_velocity?: number | null;
+    // FINRA short interest nearest to the event date
+    short_interest_pct?: number | null;
+    short_interest_ratio?: number | null;
+    // sum of congressional net trades in the 30 days before the event
+    congressional_net_flow_30d?: number | null;
+    // Gemini-scored management confidence from the most recent earnings call transcript
+    management_confidence_score?: number | null;
+    earnings_primary_concern?: string | null;
   };
 }
 

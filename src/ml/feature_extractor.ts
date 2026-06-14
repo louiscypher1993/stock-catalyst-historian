@@ -41,6 +41,17 @@ function numOrNull(v: unknown): number | null {
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
 
+// 0.0 = new moon, 0.5 = full moon, 1.0 = new moon again
+function computeLunarPhase(date: unknown): number | null {
+  if (typeof date !== 'string') return null;
+  const eventDate = new Date(date);
+  if (Number.isNaN(eventDate.getTime())) return null;
+  const knownNewMoon = new Date('2000-01-06').getTime();
+  const lunarCycle = 29.53058770576; // days
+  const daysSinceNew = (eventDate.getTime() - knownNewMoon) / 86400000;
+  return ((daysSinceNew % lunarCycle) / lunarCycle + 1) % 1;
+}
+
 function encodeVixRegime(v: unknown): number | null {
   if (typeof v !== 'string') return null;
   switch (v.toLowerCase()) {
@@ -172,6 +183,7 @@ const NUMERIC_ACCESSORS: Record<string, (f: Json, snap: Json | null) => number |
   day_cos: (f) => numOrNull(f.day_cos),
   month_sin: (f) => numOrNull(f.month_sin),
   month_cos: (f) => numOrNull(f.month_cos),
+  lunar_phase: (f) => computeLunarPhase(f.date),
 };
 
 // Regression / classification targets
