@@ -16,6 +16,7 @@ import { fetchFREDSeries } from '../FREDService';
 import type { EdgarFiling } from './types';
 import { getEarningsTranscript, isFmpPremium } from '../FMPService';
 import { scoreManagementConfidence } from '../EarningsSentimentService';
+import { evaluateRun, type PotInferenceResult } from './PotService';
 
 function isUsListed(exchange: string | null): boolean {
   if (!exchange) return false;
@@ -113,6 +114,17 @@ interface TrendContext {
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/** Determines which pipeline slot is running from env var (GitHub Actions)
+ *  or falls back to the current UTC hour. */
+function determineRunSlot(): 'morning' | 'afternoon' | 'evening' {
+  const env = process.env.PIPELINE_RUN_SLOT;
+  if (env === 'morning' || env === 'afternoon' || env === 'evening') return env;
+  const hour = new Date().getUTCHours();
+  if (hour < 12) return 'morning';
+  if (hour < 18) return 'afternoon';
+  return 'evening';
 }
 
 async function fetchYahooDailyHistory(symbol: string, range: string = '1y'): Promise<YahooBar[]> {
@@ -751,6 +763,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
   let anomalyCount = 0;
   let narrativeCount = 0;
   let notificationCount = 0;
+  const potResults: PotInferenceResult[] = [];
 
   for (const { symbol, companyName, exchange } of universe) {
     try {
@@ -826,6 +839,24 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
 
       await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted, trendContext, edgarSummary, managementScore, digitalExhaust);
 
+      potResults.push({
+        symbol:                      anomaly.symbol,
+        companyName:                 anomaly.companyName,
+        current_price:               anomaly.close,
+        recommendation:              rec.recommendation,
+        risk_score:                  rec.riskScore,
+        risk_reward_ratio:           rec.riskReward,
+        model_a_confidence:          clampedScores.model_a_confidence,
+        model_b_return_1m:           clampedScores.model_b_return_1m,
+        model_c_max_drawdown:        clampedScores.model_c_max_drawdown,
+        model_d1_return_3m:          clampedScores.model_d1_return_3m,
+        model_d2_return_6m:          clampedScores.model_d2_return_6m,
+        model_d3_return_2d:          clampedScores.model_d3_return_2d,
+        model_d4_return_3d:          clampedScores.model_d4_return_3d,
+        model_d5_return_2w:          clampedScores.model_d5_return_2w,
+        model_e_outperform_12m_prob: clampedScores.model_e_outperform_12m_prob,
+      });
+
       const shouldNotify = rec.recommendation === 'STRONG_BUY' || rec.recommendation === 'BUY';
       if (shouldNotify && (isActualAnomaly || isWatchlisted)) {
         const titlePrefix = isWatchlisted && !isActualAnomaly ? 'WATCHLIST' : rec.recommendation;
@@ -838,6 +869,15 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
   }
 
   console.log(`[LiveInference] Done. Anomalies: ${anomalyCount}, Narratives: ${narrativeCount}, Notifications: ${notificationCount}`);
+
+  if (potResults.length > 0) {
+    console.log(`[LiveInference] Running PotService with ${potResults.length} signals (slot: ${determineRunSlot()})...`);
+    try {
+      await evaluateRun(potResults, new Date(), determineRunSlot());
+    } catch (err: any) {
+      console.error('[LiveInference] PotService evaluation failed:', err.message);
+    }
+  }
 
   const macro = await fetchMacroEnvironment(runDate);
   await writeMacroSnapshot(runDate, macro);
