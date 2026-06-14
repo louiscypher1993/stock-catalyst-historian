@@ -347,7 +347,7 @@
     margin: 0;
   }
 
-  .quality-banner,
+  .pipeline-banner,
   .offline-banner {
     display: flex;
     align-items: flex-start;
@@ -360,10 +360,22 @@
     line-height: 1.4;
   }
 
-  .quality-banner {
+  .pipeline-banner.green {
+    background: var(--green-bg);
+    border: 1px solid var(--green);
+    color: var(--green-400);
+  }
+
+  .pipeline-banner.amber {
     background: rgba(120, 53, 15, 0.3);
     border: 1px solid #92400e;
     color: #fbbf24;
+  }
+
+  .pipeline-banner.red {
+    background: var(--red-bg);
+    border: 1px solid var(--red);
+    color: var(--red-400);
   }
 
   .offline-banner {
@@ -1097,23 +1109,65 @@ function is2dStale(runDate) {
     container.innerHTML = rows.map(renderCard).join('');
   }
 
-  function updateQualityBanner(avgCompleteness) {
+  async function updatePipelineHealth() {
     const container = document.getElementById('quality-banner');
-    if (avgCompleteness >= 0.20) {
+
+    const { data: latest, error } = await sb
+      .from('inference_results')
+      .select('run_date, created_at')
+      .order('run_date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error || !latest || latest.length === 0) {
       container.innerHTML = '';
       return;
     }
 
-    const pctStr = (avgCompleteness * 100).toFixed(0);
+    const lastRunDate = latest[0].run_date;
+    const lastRunTimestamp = latest[0].created_at;
+
+    const { data: runRows, error: runError } = await sb
+      .from('inference_results')
+      .select('symbol, model_a_confidence')
+      .eq('run_date', lastRunDate);
+
+    if (runError) {
+      container.innerHTML = '';
+      return;
+    }
+
+    const symbols = new Set();
+    const anomalySymbols = new Set();
+    for (const row of runRows || []) {
+      symbols.add(row.symbol);
+      if (row.model_a_confidence > 0.5) {
+        anomalySymbols.add(row.symbol);
+      }
+    }
+
+    const symbolCount = symbols.size;
+    const anomalyCount = anomalySymbols.size;
+    const hoursAgo = (Date.now() - new Date(lastRunTimestamp).getTime()) / (1000 * 60 * 60);
+    const hoursStr = hoursAgo.toFixed(0);
+
+    let cls, message;
+    if (hoursAgo <= 24) {
+      cls = 'green';
+      message = `Pipeline healthy · Last run: ${hoursStr} hours ago · ${symbolCount} symbols scanned · ${anomalyCount} anomalies detected`;
+    } else if (hoursAgo <= 48) {
+      cls = 'amber';
+      message = `Last run: ${hoursStr} hours ago · ${symbolCount} symbols scanned · ${anomalyCount} anomalies detected`;
+    } else {
+      cls = 'red';
+      message = `Pipeline may be stalled · Last run: ${hoursStr} hours ago`;
+    }
+
     container.innerHTML = `
-      <div class="quality-banner">
-        <div>⚠️ Signal quality degraded (avg completeness: ${pctStr}%) — FMP or enrichment data may be unavailable. Model outputs are less reliable until resolved.</div>
-        <button class="dismiss-btn" id="quality-banner-dismiss">×</button>
+      <div class="pipeline-banner ${cls}">
+        <div>${message}</div>
       </div>
     `;
-    document.getElementById('quality-banner-dismiss').addEventListener('click', () => {
-      container.innerHTML = '';
-    });
   }
 
   function macroPill(label, value, colorClass) {
@@ -1215,23 +1269,7 @@ function is2dStale(runDate) {
     allResults = data || [];
     renderResults();
 
-    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const { data: recentResults } = await sb
-      .from('inference_results')
-      .select('signal_completeness_score')
-      .gte('run_date', threeDaysAgo)
-      .order('run_date', { ascending: false })
-      .order('created_at', { ascending: false })
-      .limit(20);
-
-    const recentScores = (recentResults || []).slice(0, 20)
-      .map(r => r.signal_completeness_score)
-      .filter(s => s != null && s > 0);
-    const avgCompleteness = recentScores.length > 0
-      ? recentScores.reduce((a, b) => a + b, 0) / recentScores.length
-      : 1;
-
-    updateQualityBanner(avgCompleteness);
+    updatePipelineHealth();
   }
 
   document.getElementById('dedup-toggle').addEventListener('click', () => {
