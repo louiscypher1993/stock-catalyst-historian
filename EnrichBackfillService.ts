@@ -14,7 +14,7 @@ import { getTrendsSummary } from './GoogleTrendsService';
 import { detectWikipediaSpike } from './WikipediaService';
 import { getShortInterest } from './FinraShortInterestService';
 import { getCongressionalNetFlow } from './CongressionalTradingService';
-import { scoreManagementConfidence } from './EarningsSentimentService';
+import { scoreManagementConfidence, getTranscriptFromAlternativeSources } from './EarningsSentimentService';
 
 const BATCH_SIZE = 500;
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -101,9 +101,7 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
           const isUsListed = !row.symbol.includes('.') || row.symbol.endsWith('.NYSE') || row.symbol.endsWith('.NASDAQ');
 
           if (!forceAll) {
-            const managementConfidenceDone = !isUsListed
-              || !process.env.GEMINI_API_KEY
-              || !isFmpPremium()
+            const managementConfidenceDone = !process.env.GEMINI_API_KEY
               || features.signal_snapshot?.management_confidence_score !== undefined;
             const allPopulated =
               features.fmp_news_sentiment_avg !== undefined &&
@@ -243,14 +241,19 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
 
             let googleZ: number | null = features.signal_snapshot.google_trends_z ?? null;
             if (googleZ === null) {
-              try {
-                const trends = await getTrendsSummary(row.symbol, companyName, row.date);
-                if (trends && typeof trends.google_trends_shock_ratio === 'number') {
-                  googleZ = trends.google_trends_shock_ratio - 1;
-                  features.signal_snapshot.google_trends_z = googleZ;
+              if (new Date(row.date).getFullYear() < 2010) {
+                // Google Trends has no reliable data before 2010 — write null sentinel, skip the call
+                features.signal_snapshot.google_trends_z = null;
+              } else {
+                try {
+                  const trends = await getTrendsSummary(row.symbol, companyName, row.date);
+                  if (trends && typeof trends.google_trends_shock_ratio === 'number') {
+                    googleZ = trends.google_trends_shock_ratio - 1;
+                    features.signal_snapshot.google_trends_z = googleZ;
+                  }
+                } catch (err) {
+                  console.error(`[Backfill] Google Trends error for ${row.symbol}/${row.date}:`, err);
                 }
-              } catch (err) {
-                console.error(`[Backfill] Google Trends error for ${row.symbol}/${row.date}:`, err);
               }
             }
 
@@ -300,17 +303,24 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
           }
 
           // earnings_transcript_sentiment: Gemini-scored management confidence from the most
-          // recent earnings call transcript before the event (FMP Premium + Gemini required)
+          // recent earnings call transcript before the event. FMP (Premium) is tried first,
+          // falling back to Seeking Alpha / EDGAR 8-K / Gemini grounding for non-Premium or
+          // non-US symbols. Requires Gemini for scoring.
           if (
-            isUsListed &&
             features.signal_snapshot &&
             (forceAll || features.signal_snapshot.management_confidence_score === undefined) &&
-            process.env.GEMINI_API_KEY &&
-            isFmpPremium()
+            process.env.GEMINI_API_KEY
           ) {
             try {
-              const { year, quarter } = getMostRecentEarningsQuarter(row.date);
-              const transcript = await getEarningsTranscript(row.symbol, year, quarter);
+              let transcript: string | null = null;
+              if (isFmpPremium()) {
+                const { year, quarter } = getMostRecentEarningsQuarter(row.date);
+                transcript = await getEarningsTranscript(row.symbol, year, quarter);
+              }
+              if (!transcript) {
+                const exchange = isUsListed ? (getCachedCompanyProfile(row.symbol)?.profile.exchange ?? 'US') : null;
+                transcript = await getTranscriptFromAlternativeSources(row.symbol, row.date, exchange);
+              }
               if (transcript) {
                 const score = await scoreManagementConfidence(transcript);
                 await delay(3000); // rate limit: max 1 Gemini call per 3 seconds

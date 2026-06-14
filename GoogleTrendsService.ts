@@ -14,6 +14,10 @@ export async function getSearchTrends(
   const symbolUpper = symbol.toUpperCase().trim();
 
   try {
+    // Random 2-5 second delay before each Trends call to reduce CAPTCHA-blocking
+    // on bulk historical queries
+    await delay(2000 + Math.random() * 3000);
+
     const rawResultStr = await googleTrendsThrottler.enqueue<string>(
       () => googleTrends.interestOverTime({ keyword: companyName, startTime: new Date(fromDate), endTime: new Date(toDate), geo: "US" }),
       2500
@@ -92,6 +96,13 @@ export async function getTrendsSummary(
   companyName: string,
   anomalyDate: string
 ): Promise<TrendsSummary | null> {
+  // Google Trends has no reliable data before 2004, and CAPTCHA-blocks
+  // bulk historical queries on pre-2010 dates
+  const eventDateObj = new Date(anomalyDate);
+  if (eventDateObj.getFullYear() < 2010) {
+    return null; // Write null sentinel in backfill, don't waste API call
+  }
+
   const symbolUpper = symbol.toUpperCase().trim();
 
   // 60-day window centered on anomalyDate (30 days before to 30 days after)

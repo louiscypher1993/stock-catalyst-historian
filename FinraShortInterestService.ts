@@ -16,22 +16,22 @@ export async function getShortInterest(
   date: string
 ): Promise<{
   shortInterestShares: number;
-  shortInterestRatio: number;
+  shortInterestRatio: number | null;
   pctOfFloat: number;
   settlementDate: string;
-  source: "finra";
+  source: "finra" | "yahoo";
 } | null> {
+  const uppercaseSymbol = symbol.toUpperCase().trim();
+
+  // Check local database cache first
   try {
-    const uppercaseSymbol = symbol.toUpperCase().trim();
-    
-    // Check local database first
     const stmt = db.prepare(`
-      SELECT * FROM finra_short_interest 
+      SELECT * FROM finra_short_interest
       WHERE symbol = ? AND settlement_date <= ?
-      ORDER BY settlement_date DESC 
+      ORDER BY settlement_date DESC
       LIMIT 1
     `);
-    
+
     const cached = stmt.get(uppercaseSymbol, date) as FinraShortInterestRecord | undefined;
     if (cached) {
       const now = Date.now();
@@ -45,27 +45,30 @@ export async function getShortInterest(
         };
       }
     }
+  } catch (error) {
+    // Cache lookup failure shouldn't block the fallback attempts below
+  }
 
-    // Since FINRA's API isn't a simple REST endpoint, we will implement a graceful degrading mock/fetch here
-    // In a real production scenario, we might scrape or hit FINRA's GraphQL endpoint.
-    // For now we attempt a plausible fetch and return null on failure as requested (graceful degradation).
-    
+  // Primary: FINRA point-in-time data (historical settlement dates).
+  // FINRA has no simple public REST endpoint, so this attempt commonly fails —
+  // any failure falls through to the Yahoo fallback below.
+  try {
     const url = `https://query.finra.org/FINRA/FINRA/eqs/data?symbol=${uppercaseSymbol}&date=${date}`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
-    
+
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeout);
-    
+
     if (!res.ok) {
       throw new Error(`FINRA API failed with status ${res.status}`);
     }
-    
+
     const data = await res.json();
     if (!data || !data.shortInterest) {
       throw new Error("No short interest data found in response");
     }
-    
+
     const results = {
       shortInterestShares: Number(data.shortInterestShares) || 0,
       shortInterestRatio: Number(data.shortInterestRatio) || 0,
@@ -73,7 +76,7 @@ export async function getShortInterest(
       settlementDate: data.settlementDate || date,
       source: "finra" as const
     };
-    
+
     // Cache it
     const insertStmt = db.prepare(`
       INSERT OR REPLACE INTO finra_short_interest (
@@ -88,12 +91,37 @@ export async function getShortInterest(
       results.pctOfFloat,
       Date.now()
     );
-    
+
     return results;
   } catch (error) {
-    // console.warn(`[FINRA] Short interest fetch warning for ${symbol}:`, error.message || String(error));
-    return null;
+    // fall through to Yahoo fallback
   }
+
+  // Fallback: current short interest snapshot from Yahoo Finance.
+  // This is "current" data (not point-in-time), so it's only a rough proxy
+  // for historical events but is better than no signal at all.
+  try {
+    const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(uppercaseSymbol)}?modules=defaultKeyStatistics`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const data = await res.json();
+    const stats = data?.quoteSummary?.result?.[0]?.defaultKeyStatistics;
+    const sharesShort = stats?.sharesShort?.raw;
+    const floatShares = stats?.floatShares?.raw;
+    if (sharesShort && floatShares && floatShares > 0) {
+      return {
+        shortInterestShares: sharesShort,
+        shortInterestRatio: stats?.shortRatio?.raw ?? null,
+        pctOfFloat: sharesShort / floatShares,
+        settlementDate: new Date().toISOString().split('T')[0],
+        source: 'yahoo'
+      };
+    }
+  } catch (error) {
+    // fall through to null sentinel
+  }
+
+  // No data from any source — write null sentinel
+  return null;
 }
 
 export async function getShortInterestVelocity(
