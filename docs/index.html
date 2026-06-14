@@ -192,6 +192,42 @@
     white-space: nowrap;
   }
 
+  .tab-nav {
+    display: flex;
+    gap: 4px;
+    background: #0f172a;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  .tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    padding: 12px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .tab-btn:hover {
+    color: var(--text);
+  }
+
+  .tab-btn.active {
+    color: var(--indigo);
+    border-bottom-color: var(--indigo);
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
   main {
     padding: 24px;
     max-width: 1400px;
@@ -635,6 +671,147 @@
     padding: 24px;
   }
 
+  .leaderboard {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  .leaderboard th {
+    background: var(--panel);
+    color: var(--muted);
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--panel-border);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .leaderboard td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--panel-border);
+    color: var(--text);
+  }
+
+  .leaderboard tbody tr.pot-row:hover td {
+    background: var(--panel);
+    cursor: pointer;
+  }
+
+  .pos { color: var(--green-400); }
+  .neg { color: var(--red-400); }
+  .neu { color: var(--muted); }
+
+  .pot-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: var(--indigo-bg);
+    color: var(--indigo);
+    margin: 0 1px;
+  }
+
+  .rank-1 { color: #fbbf24; font-weight: 700; }
+  .rank-2 { color: #d1d5db; font-weight: 700; }
+  .rank-3 { color: #d97706; font-weight: 700; }
+
+  .pots-error {
+    color: var(--red-400);
+    font-size: 0.85rem;
+    padding: 8px 0;
+  }
+
+  .pot-card {
+    display: none;
+    background: var(--bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 16px 20px;
+  }
+
+  .pot-card.open {
+    display: block;
+  }
+
+  .pot-card h4 {
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin: 12px 0 6px;
+  }
+
+  .pot-card h4:first-child {
+    margin-top: 0;
+  }
+
+  .pos-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+
+  .pos-table th {
+    color: var(--muted);
+    padding: 4px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  .pos-table td {
+    color: var(--text);
+    padding: 4px 8px;
+  }
+
+  .trade-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin: 2px;
+  }
+
+  .pill-BUY   { background: var(--green-bg); color: var(--green-400); }
+  .pill-SELL  { background: var(--red-bg); color: var(--red-400); }
+  .pill-SHORT { background: rgba(168, 85, 247, 0.12); color: #c4b5fd; }
+  .pill-COVER { background: var(--indigo-bg); color: #93c5fd; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .stat-box {
+    background: var(--panel);
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+
+  .stat-box .label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-box .value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 2px;
+  }
+
+  .char-grid {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
   @media (max-width: 480px) {
     header { padding: 16px 16px 12px; }
     main { padding: 16px; }
@@ -665,49 +842,90 @@
 
   <div class="macro-strip" id="macro-strip"></div>
 
+  <div class="tab-nav" id="tab-nav">
+    <button class="tab-btn active" data-tab="scan-events">📡 Scan Events</button>
+    <button class="tab-btn" data-tab="pots">🏺 Pots</button>
+    <button class="tab-btn" data-tab="watchlist">👁️ Watchlist</button>
+  </div>
+
   <main>
     <div id="server-offline-banner"></div>
 
-    <section class="panel-section" id="watchlist-section">
-      <div class="section-header">
-        <h2>📋 Watchlist</h2>
-        <form id="watchlist-form" class="watchlist-form">
-          <input type="text" id="watchlist-input" placeholder="Add symbol (e.g. AAPL)" autocomplete="off" required>
-          <div class="list-type-toggle" id="list-type-toggle">
-            <button type="button" class="toggle-option active" data-value="watching">👁 Watching</button>
-            <button type="button" class="toggle-option" data-value="holding">📊 Holding</button>
-          </div>
-          <input type="number" id="entry-price-input" class="entry-price-input hidden" placeholder="Entry price (optional)" step="0.01" min="0">
-          <button type="submit">Add</button>
-        </form>
-      </div>
-
+    <div class="tab-content active" id="tab-scan-events">
       <div id="quality-banner"></div>
 
-      <div class="watchlist-group">
-        <h3 class="section-subheader">📊 Holdings <span class="count-badge" id="holdings-count">0</span></h3>
-        <div id="holdings-results" class="watchlist-grid">
-          <p class="placeholder-empty">Loading…</p>
+      <section class="panel-section" id="signals-section">
+        <div class="section-header">
+          <h2>📡 Live Signals</h2>
+          <button id="dedup-toggle" class="dedup-toggle">Latest per symbol</button>
         </div>
-      </div>
-
-      <div class="watchlist-group">
-        <h3 class="section-subheader">👁 Watching <span class="count-badge" id="watching-count">0</span></h3>
-        <div id="watching-results" class="watchlist-grid">
-          <p class="placeholder-empty">Loading…</p>
+        <div id="results">
+          <p class="empty">Loading signals…</p>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
 
-    <section class="panel-section" id="signals-section">
-      <div class="section-header">
-        <h2>📡 Live Signals</h2>
-        <button id="dedup-toggle" class="dedup-toggle">Latest per symbol</button>
-      </div>
-      <div id="results">
-        <p class="empty">Loading signals…</p>
-      </div>
-    </section>
+    <div class="tab-content" id="tab-pots">
+      <section class="panel-section" id="pots-section">
+        <div class="section-header">
+          <h2>🏺 POTS — Agent Leaderboard</h2>
+        </div>
+        <p class="placeholder-empty" id="pots-loading">Loading pot standings…</p>
+        <div id="pots-error" class="pots-error" style="display:none"></div>
+        <table class="leaderboard" id="pots-leaderboard" style="display:none">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Portfolio Value</th>
+              <th>Return %</th>
+              <th>Unrealised P&amp;L</th>
+              <th>Open Positions</th>
+              <th>Characteristics</th>
+            </tr>
+          </thead>
+          <tbody id="pots-tbody"></tbody>
+        </table>
+      </section>
+    </div>
+
+    <div class="tab-content" id="tab-watchlist">
+      <section class="panel-section" id="watchlist-section">
+        <div class="section-header">
+          <h2>📋 Watchlist</h2>
+          <form id="watchlist-form" class="watchlist-form">
+            <input type="text" id="watchlist-input" placeholder="Add symbol (e.g. AAPL)" autocomplete="off" required>
+            <div class="list-type-toggle" id="list-type-toggle">
+              <button type="button" class="toggle-option active" data-value="watching">👁 Watching</button>
+              <button type="button" class="toggle-option" data-value="holding">📊 Holding</button>
+            </div>
+            <input type="number" id="entry-price-input" class="entry-price-input hidden" placeholder="Entry price (optional)" step="0.01" min="0">
+            <button type="submit">Add</button>
+          </form>
+        </div>
+
+        <div class="watchlist-group">
+          <h3 class="section-subheader">📊 Holdings <span class="count-badge" id="holdings-count">0</span></h3>
+          <div id="holdings-results" class="watchlist-grid">
+            <p class="placeholder-empty">Loading…</p>
+          </div>
+        </div>
+
+        <div class="watchlist-group">
+          <h3 class="section-subheader">👁 Watching <span class="count-badge" id="watching-count">0</span></h3>
+          <div id="watching-results" class="watchlist-grid">
+            <p class="placeholder-empty">Loading…</p>
+          </div>
+        </div>
+
+        <div class="watchlist-group">
+          <h3 class="section-subheader">📈 Signal Summary</h3>
+          <div id="watchlist-signals-table">
+            <p class="placeholder-empty">Loading…</p>
+          </div>
+        </div>
+      </section>
+    </div>
   </main>
 
   <div id="toast" class="toast hidden"></div>
@@ -747,6 +965,19 @@
     if (diffDays <= 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
     return `${diffDays}d ago`;
+  }
+
+  function formatDetected(r) {
+    const ts = r.created_at || r.run_date;
+    if (!ts) return '';
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    const datePart = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    if (r.created_at) {
+      const timePart = d.toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase().replace(/\s/g, '');
+      return `Detected: ${datePart} ${timePart}`;
+    }
+    return `Detected: ${datePart}`;
   }
 
   function isStale(runDate) {
@@ -838,6 +1069,7 @@ function is2dStale(runDate) {
           <div class="header-right">
             <div class="badge ${colorClass}">${r.recommendation.replace('_', ' ')}</div>
             <div class="date-badge">${formatDateBadge(r.run_date)}</div>
+            <div class="date-badge" style="opacity: 0.7">${formatDetected(r)}</div>
           </div>
         </div>
         <div class="stats">
@@ -996,6 +1228,7 @@ function is2dStale(runDate) {
       return;
     }
 
+    watchlistEntries = entries || [];
     const holdings = (entries || []).filter(e => e.list_type === 'holding');
     const watching = (entries || []).filter(e => e.list_type !== 'holding');
 
@@ -1027,6 +1260,8 @@ function is2dStale(runDate) {
     watchingContainer.innerHTML = watching.length > 0
       ? watching.map(entry => renderWatchlistCard(entry, resultsBySymbol[entry.symbol])).join('')
       : `<p class="placeholder-empty">Nothing added yet</p>`;
+
+    renderWatchlistSignalsTable();
   }
 
   document.getElementById('list-type-toggle').addEventListener('click', (e) => {
@@ -1088,6 +1323,17 @@ function is2dStale(runDate) {
 
   let allResults = [];
   let dedupMode = true;
+  let latestResultBySymbol = {};
+  let watchlistEntries = [];
+
+  const SIGNAL_COLORS = {
+    STRONG_BUY: '#4ade80',
+    BUY: '#22c55e',
+    ADD: '#2dd4bf',
+    HOLD: '#9ca3af',
+    REDUCE: '#f59e0b',
+    SELL: '#ef4444',
+  };
 
   function renderResults() {
     const container = document.getElementById('results');
@@ -1107,6 +1353,60 @@ function is2dStale(runDate) {
     }
 
     container.innerHTML = rows.map(renderCard).join('');
+  }
+
+  function renderWatchlistSignalsTable() {
+    const container = document.getElementById('watchlist-signals-table');
+    if (!container) return;
+
+    if (watchlistEntries.length === 0) {
+      container.innerHTML = `<p class="placeholder-empty">Nothing added yet</p>`;
+      return;
+    }
+
+    const rows = watchlistEntries.map(entry => {
+      const result = latestResultBySymbol[entry.symbol];
+      const typeLabel = entry.list_type === 'holding' ? 'HOLDING' : 'WATCHING';
+      const typeClass = entry.list_type === 'holding' ? 'green' : 'amber';
+      const entryPrice = entry.entry_price != null ? formatPrice(entry.symbol, entry.entry_price) : '—';
+
+      let signalCell = '—';
+      let confCell = '—';
+      if (result) {
+        const color = SIGNAL_COLORS[result.recommendation] || '#9ca3af';
+        signalCell = `<span style="color: ${color}; font-weight: 700">${result.recommendation.replace('_', ' ')}</span>`;
+        confCell = result.model_a_confidence != null ? `${(result.model_a_confidence * 100).toFixed(0)}%` : '—';
+      }
+
+      return `
+        <tr>
+          <td>${entry.symbol}</td>
+          <td>${entry.company_name || '—'}</td>
+          <td><span class="badge ${typeClass}">${typeLabel}</span></td>
+          <td>${entryPrice}</td>
+          <td>${entry.added_date || '—'}</td>
+          <td>${signalCell}</td>
+          <td>${confCell}</td>
+        </tr>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <table class="leaderboard">
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Company</th>
+            <th>Type</th>
+            <th>Entry Price</th>
+            <th>Added Date</th>
+            <th>Latest Signal</th>
+            <th>Confidence</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
   }
 
   async function updatePipelineHealth() {
@@ -1267,9 +1567,14 @@ function is2dStale(runDate) {
     }
 
     allResults = data || [];
+    latestResultBySymbol = {};
+    for (const r of allResults) {
+      if (!latestResultBySymbol[r.symbol]) latestResultBySymbol[r.symbol] = r;
+    }
     renderResults();
 
     updatePipelineHealth();
+    renderWatchlistSignalsTable();
   }
 
   document.getElementById('dedup-toggle').addEventListener('click', () => {
@@ -1325,10 +1630,246 @@ function is2dStale(runDate) {
     }
   });
 
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+    });
+  });
+
+  async function initPots() {
+    const STARTING_BALANCE = 10000;
+
+    const loadingEl = document.getElementById('pots-loading');
+    const errorEl = document.getElementById('pots-error');
+    const tableEl = document.getElementById('pots-leaderboard');
+    const tbodyEl = document.getElementById('pots-tbody');
+
+    function showError(msg) {
+      loadingEl.style.display = 'none';
+      errorEl.style.display = 'block';
+      errorEl.textContent = '⚠️ ' + msg;
+    }
+
+    function fmt(val, decimals = 2) {
+      return val == null ? '—' : Number(val).toFixed(decimals);
+    }
+
+    function potReturnClass(val) {
+      if (val == null) return 'neu';
+      return val > 0 ? 'pos' : val < 0 ? 'neg' : 'neu';
+    }
+
+    function fmtReturn(val, decimals = 1) {
+      if (val == null) return '<span class="neu">—</span>';
+      const pctVal = (val * 100).toFixed(decimals);
+      const cls = potReturnClass(val);
+      const prefix = val > 0 ? '+' : '';
+      return `<span class="${cls}">${prefix}${pctVal}%</span>`;
+    }
+
+    function potBadge(label, value) {
+      return `<span class="pot-badge" title="${label}">${label[0]}=${value}</span>`;
+    }
+
+    function charBadges(pot) {
+      return (
+        potBadge('Boldness', pot.boldness.toFixed(1)) +
+        potBadge('Ambition', pot.ambition.toFixed(1)) +
+        potBadge('Patience', pot.patience.toFixed(1)) +
+        potBadge('Conviction', pot.conviction.toFixed(1)) +
+        potBadge('Focus', pot.focus) +
+        potBadge('Reactivity', pot.reactivity.toFixed(1))
+      );
+    }
+
+    function rankMedal(i) {
+      if (i === 0) return '<span class="rank-1">🥇</span>';
+      if (i === 1) return '<span class="rank-2">🥈</span>';
+      if (i === 2) return '<span class="rank-3">🥉</span>';
+      return `<span>${i + 1}</span>`;
+    }
+
+    const { data: pots, error: potsErr } = await sb.from('pots').select('*');
+    if (potsErr) { showError('Could not load pots: ' + potsErr.message); return; }
+    if (!pots || pots.length === 0) { loadingEl.textContent = 'No pots found.'; return; }
+
+    const { data: snapshots, error: snapErr } = await sb
+      .from('pot_snapshots')
+      .select('pot_id, portfolio_value, cash_balance, open_positions_count, unrealised_pnl, realised_pnl_cumulative, run_date')
+      .in('pot_id', pots.map(p => p.pot_id))
+      .order('run_date', { ascending: false });
+    if (snapErr) { showError('Could not load snapshots: ' + snapErr.message); return; }
+
+    const snapMap = {};
+    for (const s of (snapshots || [])) {
+      if (!snapMap[s.pot_id]) snapMap[s.pot_id] = s;
+    }
+
+    const { data: positions } = await sb
+      .from('pot_positions')
+      .select('*')
+      .in('pot_id', pots.map(p => p.pot_id))
+      .eq('status', 'open')
+      .order('entry_date', { ascending: false });
+
+    const { data: trades } = await sb
+      .from('pot_trades')
+      .select('*')
+      .in('pot_id', pots.map(p => p.pot_id))
+      .order('run_date', { ascending: false })
+      .limit(200);
+
+    const ranked = pots.map(pot => {
+      const snap = snapMap[pot.pot_id];
+      const portfolioValue = snap?.portfolio_value ?? pot.starting_balance;
+      const returnPct = (portfolioValue - STARTING_BALANCE) / STARTING_BALANCE;
+      return { pot, snap, portfolioValue, returnPct };
+    }).sort((a, b) => b.portfolioValue - a.portfolioValue);
+
+    loadingEl.style.display = 'none';
+    tableEl.style.display = 'table';
+
+    function renderPotCard(pot, snap, portfolioValue, returnPct, el) {
+      const potPositions = (positions || []).filter(p => p.pot_id === pot.pot_id);
+      const potTrades = (trades || []).filter(t => t.pot_id === pot.pot_id).slice(0, 10);
+
+      const realisedPnl = snap?.realised_pnl_cumulative ?? 0;
+      const unrealisedPnl = snap?.unrealised_pnl ?? 0;
+      const cashBalance = snap?.cash_balance ?? pot.starting_balance;
+
+      const stopLoss = -((pot.conviction * 0.03 + pot.boldness * 0.02) * 100).toFixed(1);
+      const minConf = Math.max(0.5, 0.95 - pot.boldness * 0.045);
+      const ss = (pot.boldness * 0.4 + pot.reactivity * 0.4 + pot.ambition * 0.2).toFixed(1);
+
+      const horizonLabel = pot.patience <= 2.5 ? '2D'
+        : pot.patience <= 4.5 ? '2W'
+        : pot.patience <= 6.5 ? '1M'
+        : pot.patience <= 8.5 ? '3M' : '6M';
+
+      el.innerHTML = `
+        <div class="char-grid">${charBadges(pot)}</div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="label">Portfolio</div>
+            <div class="value">£${fmt(portfolioValue)}</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Total Return</div>
+            <div class="value ${potReturnClass(returnPct)}">${returnPct >= 0 ? '+' : ''}${(returnPct * 100).toFixed(1)}%</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Realised P&amp;L</div>
+            <div class="value ${potReturnClass(realisedPnl)}">£${fmt(realisedPnl)}</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Unrealised P&amp;L</div>
+            <div class="value ${potReturnClass(unrealisedPnl)}">£${fmt(unrealisedPnl)}</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Cash</div>
+            <div class="value">£${fmt(cashBalance)}</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Stop Loss</div>
+            <div class="value neg">${stopLoss}%</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Min Confidence</div>
+            <div class="value">${(minConf * 100).toFixed(0)}%</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Horizon</div>
+            <div class="value">${horizonLabel}</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Short Score</div>
+            <div class="value">${ss}</div>
+          </div>
+        </div>
+
+        <h4>📂 Open Positions (${potPositions.length} / ${pot.focus})</h4>
+        ${potPositions.length === 0
+          ? '<p class="placeholder-empty">No open positions.</p>'
+          : `<table class="pos-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th><th>Dir</th><th>Entry Date</th>
+                  <th>Entry Price</th><th>Size (£)</th>
+                  <th>Expected</th><th>Exit Deadline</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${potPositions.map(p => `
+                  <tr>
+                    <td><strong>${p.symbol}</strong></td>
+                    <td>${p.direction === 'long'
+                      ? '<span class="pos">▲ LONG</span>'
+                      : '<span class="neg">▼ SHORT</span>'}
+                    </td>
+                    <td>${p.entry_date}</td>
+                    <td>${fmt(p.entry_price)}</td>
+                    <td>£${fmt(p.position_size_gbp)}</td>
+                    <td>${fmtReturn(p.expected_return_at_entry)}</td>
+                    <td>${p.exit_deadline}</td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>`}
+
+        <h4>📋 Recent Trades</h4>
+        ${potTrades.length === 0
+          ? '<p class="placeholder-empty">No trades yet.</p>'
+          : `<div>
+              ${potTrades.map(t => {
+                const dt = new Date(t.run_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+                return `<span class="trade-pill pill-${t.action}" title="${t.symbol} ${t.action} @ £${fmt(t.price)} on ${dt}">${t.action} ${t.symbol} ${dt}</span>`;
+              }).join('')}
+            </div>`}
+      `;
+    }
+
+    ranked.forEach(({ pot, snap, portfolioValue, returnPct }, i) => {
+      const openCount = snap?.open_positions_count ?? 0;
+      const unrealised = snap?.unrealised_pnl ?? 0;
+
+      const tr = document.createElement('tr');
+      tr.className = 'pot-row';
+      tr.innerHTML = `
+        <td>${rankMedal(i)}</td>
+        <td><strong>${pot.name}</strong></td>
+        <td>£${fmt(portfolioValue)}</td>
+        <td>${fmtReturn(returnPct)}</td>
+        <td>${fmtReturn(unrealised / STARTING_BALANCE)}</td>
+        <td>${openCount}</td>
+        <td>${charBadges(pot)}</td>
+      `;
+      tbodyEl.appendChild(tr);
+
+      const cardRow = document.createElement('tr');
+      cardRow.innerHTML = `<td colspan="7" style="padding:0">
+        <div class="pot-card" id="pot-card-${pot.pot_id}"></div>
+      </td>`;
+      tbodyEl.appendChild(cardRow);
+
+      tr.addEventListener('click', () => {
+        const cardEl = document.getElementById(`pot-card-${pot.pot_id}`);
+        const isOpen = cardEl.classList.contains('open');
+        document.querySelectorAll('.pot-card.open').forEach(c => c.classList.remove('open'));
+        if (!isOpen) {
+          renderPotCard(pot, snap, portfolioValue, returnPct, cardEl);
+          cardEl.classList.add('open');
+        }
+      });
+    });
+  }
+
   document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()}`;
   loadWatchlist();
   loadResults();
   loadMacroStrip();
+  initPots();
 </script>
 </body>
 </html>
