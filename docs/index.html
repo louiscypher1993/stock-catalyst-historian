@@ -1099,7 +1099,7 @@ function is2dStale(runDate) {
 
   function updateQualityBanner(avgCompleteness) {
     const container = document.getElementById('quality-banner');
-    if (avgCompleteness >= 0.45) {
+    if (avgCompleteness >= 0.20) {
       container.innerHTML = '';
       return;
     }
@@ -1226,7 +1226,7 @@ function is2dStale(runDate) {
 
     const recentScores = (recentResults || []).slice(0, 20)
       .map(r => r.signal_completeness_score)
-      .filter(s => s != null);
+      .filter(s => s != null && s > 0);
     const avgCompleteness = recentScores.length > 0
       ? recentScores.reduce((a, b) => a + b, 0) / recentScores.length
       : 1;
