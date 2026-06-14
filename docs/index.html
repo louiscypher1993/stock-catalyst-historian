@@ -881,6 +881,7 @@
               <th>Return %</th>
               <th>Unrealised P&amp;L</th>
               <th>Open Positions</th>
+              <th>Cash Balance</th>
               <th>Characteristics</th>
             </tr>
           </thead>
@@ -1769,7 +1770,7 @@ function is2dStale(runDate) {
             <div class="value ${potReturnClass(unrealisedPnl)}">£${fmt(unrealisedPnl)}</div>
           </div>
           <div class="stat-box">
-            <div class="label">Cash</div>
+            <div class="label">Cash Available</div>
             <div class="value">£${fmt(cashBalance)}</div>
           </div>
           <div class="stat-box">
@@ -1796,9 +1797,9 @@ function is2dStale(runDate) {
           : `<table class="pos-table">
               <thead>
                 <tr>
-                  <th>Symbol</th><th>Dir</th><th>Entry Date</th>
-                  <th>Entry Price</th><th>Size (£)</th>
-                  <th>Expected</th><th>Exit Deadline</th>
+                  <th>Symbol</th><th>Direction</th><th>Entry Price</th>
+                  <th>Current Price</th><th>Cost (£)</th><th>Current Value (£)</th>
+                  <th>Unrealised P&amp;L</th><th>Return %</th><th>Exit Deadline</th>
                 </tr>
               </thead>
               <tbody>
@@ -1809,10 +1810,12 @@ function is2dStale(runDate) {
                       ? '<span class="pos">▲ LONG</span>'
                       : '<span class="neg">▼ SHORT</span>'}
                     </td>
-                    <td>${p.entry_date}</td>
                     <td>${fmt(p.entry_price)}</td>
+                    <td>${p.current_price != null ? fmt(p.current_price) : '—'}</td>
                     <td>£${fmt(p.position_size_gbp)}</td>
-                    <td>${fmtReturn(p.expected_return_at_entry)}</td>
+                    <td>${p.current_value_gbp != null ? `£${fmt(p.current_value_gbp)}` : '—'}</td>
+                    <td><span class="${potReturnClass(p.unrealised_pnl)}">${p.unrealised_pnl != null ? `£${fmt(p.unrealised_pnl)}` : '—'}</span></td>
+                    <td>${fmtReturn(p.unrealised_return_pct)}</td>
                     <td>${p.exit_deadline}</td>
                   </tr>`).join('')}
               </tbody>
@@ -1833,6 +1836,7 @@ function is2dStale(runDate) {
     ranked.forEach(({ pot, snap, portfolioValue, returnPct }, i) => {
       const openCount = snap?.open_positions_count ?? 0;
       const unrealised = snap?.unrealised_pnl ?? 0;
+      const cashBalance = snap?.cash_balance ?? pot.starting_balance;
 
       const tr = document.createElement('tr');
       tr.className = 'pot-row';
@@ -1843,12 +1847,13 @@ function is2dStale(runDate) {
         <td>${fmtReturn(returnPct)}</td>
         <td>${fmtReturn(unrealised / STARTING_BALANCE)}</td>
         <td>${openCount}</td>
+        <td>£${fmt(cashBalance)}</td>
         <td>${charBadges(pot)}</td>
       `;
       tbodyEl.appendChild(tr);
 
       const cardRow = document.createElement('tr');
-      cardRow.innerHTML = `<td colspan="7" style="padding:0">
+      cardRow.innerHTML = `<td colspan="8" style="padding:0">
         <div class="pot-card" id="pot-card-${pot.pot_id}"></div>
       </td>`;
       tbodyEl.appendChild(cardRow);

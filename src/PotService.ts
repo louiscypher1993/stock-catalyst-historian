@@ -459,12 +459,12 @@ async function processPot(
   // Reload fresh open positions so snapshot is accurate
   const { data: freshData } = await supabase
     .from('pot_positions')
-    .select('position_size_gbp, entry_price, shares, direction, symbol')
+    .select('id, position_size_gbp, entry_price, shares, direction, symbol')
     .eq('pot_id', pot.pot_id)
     .eq('status', 'open');
 
   const freshOpen: Array<{
-    position_size_gbp: number; entry_price: number;
+    id: number; position_size_gbp: number; entry_price: number;
     shares: number; direction: string; symbol: string;
   }> = freshData ?? [];
 
@@ -494,6 +494,28 @@ async function processPot(
 
   if (snapErr) {
     console.error(`[PotService] ${pot.name}: snapshot write error:`, snapErr.message);
+  }
+
+  // ── PHASE 5: Update current price/value on all open positions ──────────────────
+  for (const pos of freshOpen) {
+    const cp = priceMap[pos.symbol];
+    if (!cp) continue;
+
+    const unrealisedReturn = pos.direction === 'long'
+      ? (cp - pos.entry_price) / pos.entry_price
+      : (pos.entry_price - cp) / pos.entry_price;
+
+    const currentValue = pos.position_size_gbp * (1 + unrealisedReturn);
+
+    await supabase
+      .from('pot_positions')
+      .update({
+        current_price:        cp,
+        current_value_gbp:    parseFloat(currentValue.toFixed(2)),
+        unrealised_pnl:       parseFloat((currentValue - pos.position_size_gbp).toFixed(2)),
+        unrealised_return_pct: parseFloat(unrealisedReturn.toFixed(6)),
+      })
+      .eq('id', pos.id);
   }
 }
 
