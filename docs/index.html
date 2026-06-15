@@ -709,6 +709,34 @@
     text-align: right;
   }
 
+  .disclaimer {
+    color: var(--muted);
+    opacity: 0.7;
+    font-size: 0.8rem;
+    font-style: italic;
+    margin: 0 0 16px;
+  }
+
+  .shap-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 24px;
+  }
+
+  .shap-image-container {
+    background: var(--bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .shap-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+  }
+
   .pot-badge {
     display: inline-block;
     padding: 2px 6px;
@@ -853,6 +881,7 @@
     <button class="tab-btn active" data-tab="scan-events">📡 Scan Events</button>
     <button class="tab-btn" data-tab="pots">🏺 Pots</button>
     <button class="tab-btn" data-tab="watchlist">👁️ Watchlist</button>
+    <button class="tab-btn" data-tab="model">📊 Model</button>
   </div>
 
   <main>
@@ -930,6 +959,68 @@
           <h3 class="section-subheader">📈 Signal Summary</h3>
           <div id="watchlist-signals-table">
             <p class="placeholder-empty">Loading…</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="tab-model">
+      <section class="panel-section" id="signal-decay-section">
+        <div class="section-header">
+          <h2>📉 Signal Decay</h2>
+        </div>
+        <p class="disclaimer">Based on model expected returns, not realised P&amp;L. Actual performance tracked via POTS.</p>
+        <div id="signal-decay-table">
+          <p class="placeholder-empty">Loading…</p>
+        </div>
+      </section>
+
+      <section class="panel-section" id="confidence-distribution-section">
+        <div class="section-header">
+          <h2>📊 Confidence Distribution</h2>
+        </div>
+        <div class="watchlist-group">
+          <h3 class="section-subheader">Confidence Buckets (last 30 days)</h3>
+          <div id="confidence-bucket-table">
+            <p class="placeholder-empty">Loading…</p>
+          </div>
+        </div>
+        <div class="watchlist-group">
+          <h3 class="section-subheader">Average Confidence by Recommendation</h3>
+          <div id="confidence-recommendation-table">
+            <p class="placeholder-empty">Loading…</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel-section" id="shap-section">
+        <div class="section-header">
+          <h2>🔍 SHAP Feature Importance</h2>
+        </div>
+        <div class="shap-grid">
+          <div class="shap-item">
+            <h3 class="section-subheader">Model A: Event Classifier</h3>
+            <div class="shap-image-container">
+              <img class="shap-image" src="../src/ml/shap_summary_a.png" alt="Model A SHAP summary" loading="lazy">
+            </div>
+          </div>
+          <div class="shap-item">
+            <h3 class="section-subheader">Model B: 1-Month Return</h3>
+            <div class="shap-image-container">
+              <img class="shap-image" src="../src/ml/shap_summary_b.png" alt="Model B SHAP summary" loading="lazy">
+            </div>
+          </div>
+          <div class="shap-item">
+            <h3 class="section-subheader">Model C: Max Adverse Excursion</h3>
+            <div class="shap-image-container">
+              <img class="shap-image" src="../src/ml/shap_summary_c.png" alt="Model C SHAP summary" loading="lazy">
+            </div>
+          </div>
+          <div class="shap-item">
+            <h3 class="section-subheader">Overall Feature Importance</h3>
+            <div class="shap-image-container">
+              <img class="shap-image" src="../src/ml/feature_importance.png" alt="Overall feature importance" loading="lazy">
+            </div>
           </div>
         </div>
       </section>
@@ -1952,11 +2043,182 @@ function is2dStale(runDate) {
     });
   }
 
+  async function loadSignalDecay() {
+    const container = document.getElementById('signal-decay-table');
+    if (!container) return;
+
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const { data, error } = await sb
+      .from('inference_results')
+      .select('run_date, recommendation, model_b_return_1m, model_a_confidence')
+      .gte('run_date', ninetyDaysAgo)
+      .order('run_date', { ascending: true });
+
+    if (error) {
+      container.innerHTML = `<p class="empty">Error loading signal decay: ${error.message}</p>`;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      container.innerHTML = `<p class="placeholder-empty">No data available</p>`;
+      return;
+    }
+
+    const fmtPct = v => v == null ? '—' : `${v.toFixed(1)}%`;
+    const hitRate = (rows, predicate) => rows.length > 0
+      ? (rows.filter(predicate).length / rows.length * 100)
+      : null;
+
+    // 30-day rolling windows spanning the queried range
+    const firstDate = new Date(data[0].run_date + 'T00:00:00Z');
+    const lastDate = new Date(data[data.length - 1].run_date + 'T00:00:00Z');
+
+    const windows = [];
+    let windowStart = new Date(firstDate);
+    while (windowStart <= lastDate) {
+      const windowEnd = new Date(windowStart.getTime() + 30 * 24 * 60 * 60 * 1000);
+      windows.push({ start: new Date(windowStart), end: new Date(windowEnd) });
+      windowStart = windowEnd;
+    }
+
+    const rows = windows.map(w => {
+      const startStr = w.start.toISOString().split('T')[0];
+      const endStr = w.end.toISOString().split('T')[0];
+      const rowsInWindow = data.filter(r => r.run_date >= startStr && r.run_date < endStr);
+
+      const sbRows = rowsInWindow.filter(r => r.recommendation === 'STRONG_BUY');
+      const buyRows = rowsInWindow.filter(r => r.recommendation === 'BUY');
+      const sellRows = rowsInWindow.filter(r => r.recommendation === 'SELL' || r.recommendation === 'REDUCE');
+
+      return {
+        period: `${startStr} – ${endStr}`,
+        sbCount: sbRows.length,
+        sbHit: hitRate(sbRows, r => r.model_b_return_1m > 0.05),
+        buyCount: buyRows.length,
+        buyHit: hitRate(buyRows, r => r.model_b_return_1m > 0.03),
+        sellCount: sellRows.length,
+        sellHit: hitRate(sellRows, r => r.model_b_return_1m < -0.02),
+      };
+    }).filter(r => r.sbCount + r.buyCount + r.sellCount > 0);
+
+    if (rows.length === 0) {
+      container.innerHTML = `<p class="placeholder-empty">No data available</p>`;
+      return;
+    }
+
+    const rowsHtml = rows.map(r => `
+      <tr>
+        <td>${r.period}</td>
+        <td>${r.sbCount}</td>
+        <td>${fmtPct(r.sbHit)}</td>
+        <td>${r.buyCount}</td>
+        <td>${fmtPct(r.buyHit)}</td>
+        <td>${r.sellCount}</td>
+        <td>${fmtPct(r.sellHit)}</td>
+      </tr>
+    `).join('');
+
+    container.innerHTML = `
+      <table class="leaderboard">
+        <thead>
+          <tr>
+            <th>Period</th>
+            <th>STRONG_BUY count</th>
+            <th>STRONG_BUY hit%</th>
+            <th>BUY count</th>
+            <th>BUY hit%</th>
+            <th>SELL/REDUCE count</th>
+            <th>SELL/REDUCE hit%</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    `;
+  }
+
+  async function loadConfidenceDistribution() {
+    const bucketContainer = document.getElementById('confidence-bucket-table');
+    const recContainer = document.getElementById('confidence-recommendation-table');
+    if (!bucketContainer || !recContainer) return;
+
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const { data, error } = await sb
+      .from('inference_results')
+      .select('model_a_confidence, recommendation')
+      .gte('run_date', thirtyDaysAgo);
+
+    if (error) {
+      bucketContainer.innerHTML = `<p class="empty">Error loading confidence distribution: ${error.message}</p>`;
+      recContainer.innerHTML = '';
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      bucketContainer.innerHTML = `<p class="placeholder-empty">No data available</p>`;
+      recContainer.innerHTML = '';
+      return;
+    }
+
+    // Bucket counts across 0.0-0.1, 0.1-0.2, ..., 0.9-1.0
+    const buckets = new Array(10).fill(0);
+    for (const row of data) {
+      const c = row.model_a_confidence;
+      if (c == null) continue;
+      let idx = Math.floor(c * 10);
+      if (idx >= 10) idx = 9;
+      if (idx < 0) idx = 0;
+      buckets[idx]++;
+    }
+
+    const bucketHeaders = buckets.map((_, i) => `<th>${(i / 10).toFixed(1)}-${((i + 1) / 10).toFixed(1)}</th>`).join('');
+    const bucketCells = buckets.map(c => `<td>${c}</td>`).join('');
+
+    bucketContainer.innerHTML = `
+      <table class="leaderboard">
+        <thead><tr>${bucketHeaders}</tr></thead>
+        <tbody><tr>${bucketCells}</tr></tbody>
+      </table>
+    `;
+
+    // Average confidence by recommendation
+    const RECS = ['STRONG_BUY', 'BUY', 'ADD', 'HOLD', 'REDUCE', 'SELL'];
+    const sums = {};
+    const counts = {};
+    for (const rec of RECS) { sums[rec] = 0; counts[rec] = 0; }
+    for (const row of data) {
+      if (row.model_a_confidence == null) continue;
+      if (!(row.recommendation in sums)) continue;
+      sums[row.recommendation] += row.model_a_confidence;
+      counts[row.recommendation]++;
+    }
+
+    const recHeaders = RECS.map(r => `<th>${r}</th>`).join('');
+    const recCells = RECS.map(r => {
+      const avg = counts[r] > 0 ? (sums[r] / counts[r]) : null;
+      return `<td>${avg != null ? avg.toFixed(2) : '—'}</td>`;
+    }).join('');
+
+    recContainer.innerHTML = `
+      <table class="leaderboard">
+        <thead><tr>${recHeaders}</tr></thead>
+        <tbody><tr>${recCells}</tr></tbody>
+      </table>
+    `;
+  }
+
+  function initModelTab() {
+    loadSignalDecay();
+    loadConfidenceDistribution();
+  }
+
   document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()}`;
   loadWatchlist();
   loadResults();
   loadMacroStrip();
   initPots();
+  initModelTab();
 </script>
 </body>
 </html>
