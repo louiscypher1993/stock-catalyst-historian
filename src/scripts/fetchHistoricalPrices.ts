@@ -52,16 +52,33 @@ function saveProgress(completed: Set<string>): void {
 }
 
 // FMP fetch
-async function fetchFMPHistory(symbol: string): Promise<any[] | null> {
+let fmpDebugSymbolCount = 0;
+
+async function tryFMPUrl(url: string, symbol: string, debug: boolean): Promise<any[] | null> {
   try {
-    const url = `https://financialmodelingprep.com/stable/historical-price-full/${encodeURIComponent(symbol)}?from=${FROM_DATE}&to=${TO_DATE}&apikey=${FMP_KEY}`;
     const res = await fetch(url, {
       signal: AbortSignal.timeout(15000)
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      if (debug) console.log(`[FMP] ${symbol}: HTTP ${res.status} — ${url}`);
+      return null;
+    }
     const data: any = await res.json();
     return data?.historical ?? null;
   } catch { return null; }
+}
+
+async function fetchFMPHistory(symbol: string): Promise<any[] | null> {
+  const debug = fmpDebugSymbolCount < 3;
+  fmpDebugSymbolCount++;
+
+  const url = `https://financialmodelingprep.com/stable/historical-price-full/${encodeURIComponent(symbol)}?from=${FROM_DATE}&to=${TO_DATE}&apikey=${FMP_KEY}`;
+  const primary = await tryFMPUrl(url, symbol, debug);
+  if (primary) return primary;
+
+  // Some FMP stable endpoints use query params instead of path params
+  const altUrl = `https://financialmodelingprep.com/stable/historical-price-full?symbol=${encodeURIComponent(symbol)}&from=${FROM_DATE}&to=${TO_DATE}&apikey=${FMP_KEY}`;
+  return await tryFMPUrl(altUrl, symbol, debug);
 }
 
 // Yahoo Finance fallback
