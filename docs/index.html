@@ -1714,6 +1714,7 @@ function is2dStale(runDate) {
   }
 
   async function updatePipelineHealth() {
+    const UNIVERSE_SIZE = 1253; // matches GLOBAL_MARKETS length
     const container = document.getElementById('quality-banner');
 
     const { data: latest, error } = await sb
@@ -1758,10 +1759,10 @@ function is2dStale(runDate) {
     let cls, message;
     if (hoursAgo <= 24) {
       cls = 'green';
-      message = `Pipeline healthy · Last run: ${hoursStr} hours ago · ${symbolCount} symbols scanned · ${anomalyCount} anomalies detected`;
+      message = `Pipeline healthy · Last run: ${hoursStr} hours ago · ${symbolCount} signals generated · ${UNIVERSE_SIZE.toLocaleString()} symbols monitored · ${anomalyCount} anomalies detected`;
     } else if (hoursAgo <= 48) {
       cls = 'amber';
-      message = `Last run: ${hoursStr} hours ago · ${symbolCount} symbols scanned · ${anomalyCount} anomalies detected`;
+      message = `Last run: ${hoursStr} hours ago · ${symbolCount} signals generated · ${UNIVERSE_SIZE.toLocaleString()} symbols monitored · ${anomalyCount} anomalies detected`;
     } else {
       cls = 'red';
       message = `Pipeline may be stalled · Last run: ${hoursStr} hours ago`;
