@@ -361,6 +361,13 @@ async function processPot(
     const entryPrice = result.current_price;
     if (!entryPrice || entryPrice <= 0) continue;
 
+    const shares = Math.floor(positionGBP / entryPrice);
+    if (shares === 0) {
+      console.log(`[PotService] ${pot.name}: skipping ${result.symbol} — price £${entryPrice} exceeds allocation £${positionGBP.toFixed(2)}`);
+      continue;
+    }
+    const actualPositionGBP = shares * entryPrice;
+
     const expReturn  = expectedReturnForHorizon(result, P);
     const deadline   = addCalendarDays(todayStr, ph.calendarDays);
 
@@ -370,8 +377,8 @@ async function processPot(
       direction:                'long',
       entry_date:               todayStr,
       entry_price:              entryPrice,
-      shares:                   parseFloat((positionGBP / entryPrice).toFixed(6)),
-      position_size_gbp:        parseFloat(positionGBP.toFixed(2)),
+      shares:                   shares,
+      position_size_gbp:        parseFloat(actualPositionGBP.toFixed(2)),
       expected_return_at_entry: parseFloat(expReturn.toFixed(6)),
       patience_horizon:         ph.label,
       exit_deadline:            deadline,
@@ -384,8 +391,8 @@ async function processPot(
         symbol:            result.symbol,
         action:            'BUY',
         price:             entryPrice,
-        shares:            parseFloat((positionGBP / entryPrice).toFixed(6)),
-        position_size_gbp: parseFloat(positionGBP.toFixed(2)),
+        shares:            shares,
+        position_size_gbp: parseFloat(actualPositionGBP.toFixed(2)),
         reason:            result.recommendation,
         run_date:          runDateStr,
       });
@@ -419,6 +426,13 @@ async function processPot(
     const entryPrice = result.current_price;
     if (!entryPrice || entryPrice <= 0) continue;
 
+    const shares = Math.floor(positionGBP / entryPrice);
+    if (shares === 0) {
+      console.log(`[PotService] ${pot.name}: skipping ${result.symbol} — price £${entryPrice} exceeds allocation £${positionGBP.toFixed(2)}`);
+      continue;
+    }
+    const actualPositionGBP = shares * entryPrice;
+
     // For shorts: expected_return_at_entry is our anticipated profit (price fall → positive for us)
     const expReturn = downside;
     const deadline  = addCalendarDays(todayStr, ph.calendarDays);
@@ -429,8 +443,8 @@ async function processPot(
       direction:                'short',
       entry_date:               todayStr,
       entry_price:              entryPrice,
-      shares:                   parseFloat((positionGBP / entryPrice).toFixed(6)),
-      position_size_gbp:        parseFloat(positionGBP.toFixed(2)),
+      shares:                   shares,
+      position_size_gbp:        parseFloat(actualPositionGBP.toFixed(2)),
       expected_return_at_entry: parseFloat(expReturn.toFixed(6)),
       patience_horizon:         ph.label,
       exit_deadline:            deadline,
@@ -443,8 +457,8 @@ async function processPot(
         symbol:            result.symbol,
         action:            'SHORT',
         price:             entryPrice,
-        shares:            parseFloat((positionGBP / entryPrice).toFixed(6)),
-        position_size_gbp: parseFloat(positionGBP.toFixed(2)),
+        shares:            shares,
+        position_size_gbp: parseFloat(actualPositionGBP.toFixed(2)),
         reason:            result.recommendation,
         run_date:          runDateStr,
       });
