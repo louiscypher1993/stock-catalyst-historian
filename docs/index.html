@@ -702,6 +702,13 @@
   .neg { color: var(--red-400); }
   .neu { color: var(--muted); }
 
+  .last-updated {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: right;
+  }
+
   .pot-badge {
     display: inline-block;
     padding: 2px 6px;
@@ -1263,6 +1270,14 @@ function is2dStale(runDate) {
       : `<p class="placeholder-empty">Nothing added yet</p>`;
 
     renderWatchlistSignalsTable();
+
+    // Start the live price polling loop once, after the watchlist table first renders
+    if (!pricePollingStarted) {
+      pricePollingStarted = true;
+      refreshWatchlistPrices();
+      // Poll every 60 minutes
+      setInterval(refreshWatchlistPrices, 60 * 60 * 1000);
+    }
   }
 
   document.getElementById('list-type-toggle').addEventListener('click', (e) => {
@@ -1326,6 +1341,8 @@ function is2dStale(runDate) {
   let dedupMode = true;
   let latestResultBySymbol = {};
   let watchlistEntries = [];
+  const watchlistPrices = {};
+  let pricePollingStarted = false;
 
   const SIGNAL_COLORS = {
     STRONG_BUY: '#4ade80',
@@ -1379,6 +1396,15 @@ function is2dStale(runDate) {
         confCell = result.model_a_confidence != null ? `${(result.model_a_confidence * 100).toFixed(0)}%` : '—';
       }
 
+      const livePrice = watchlistPrices[entry.symbol];
+      const priceText = livePrice?.price?.toFixed(2) ?? '—';
+      const changeText = livePrice?.changePct != null
+        ? `${livePrice.changePct >= 0 ? '+' : ''}${livePrice.changePct.toFixed(2)}%`
+        : '—';
+      const changeClass = livePrice?.changePct != null
+        ? (livePrice.changePct >= 0 ? 'pos' : 'neg')
+        : '';
+
       return `
         <tr>
           <td>${entry.symbol}</td>
@@ -1388,6 +1414,8 @@ function is2dStale(runDate) {
           <td>${entry.added_date || '—'}</td>
           <td>${signalCell}</td>
           <td>${confCell}</td>
+          <td id="price-${entry.symbol}">${priceText}</td>
+          <td id="change-${entry.symbol}" class="${changeClass}">${changeText}</td>
         </tr>
       `;
     }).join('');
@@ -1403,11 +1431,65 @@ function is2dStale(runDate) {
             <th>Added Date</th>
             <th>Latest Signal</th>
             <th>Confidence</th>
+            <th>Live Price</th>
+            <th>Today %</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
+      <div id="watchlist-last-updated" class="last-updated"></div>
     `;
+  }
+
+  async function fetchWatchlistPrice(symbol) {
+    try {
+      const yahooSym = encodeURIComponent(symbol);
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSym}?range=1d&interval=1d`;
+      const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+      const data = await res.json();
+      const result = data?.chart?.result?.[0];
+      if (!result) return null;
+      const meta = result.meta;
+      return {
+        price: meta.regularMarketPrice,
+        prevClose: meta.chartPreviousClose,
+        changePct: ((meta.regularMarketPrice - meta.chartPreviousClose)
+                    / meta.chartPreviousClose * 100),
+        currency: meta.currency,
+        updatedAt: new Date().toLocaleTimeString('en-GB',
+                    { hour: '2-digit', minute: '2-digit' })
+      };
+    } catch { return null; }
+  }
+
+  async function refreshWatchlistPrices() {
+    const symbols = watchlistEntries.map(w => w.symbol);
+    for (const sym of symbols) {
+      await new Promise(r => setTimeout(r, 500)); // 500ms between calls
+      const priceData = await fetchWatchlistPrice(sym);
+      if (priceData) {
+        watchlistPrices[sym] = priceData;
+        // Update the price cell in the watchlist table for this symbol
+        const priceCell = document.getElementById(`price-${sym}`);
+        const changeCell = document.getElementById(`change-${sym}`);
+        if (priceCell) {
+          priceCell.textContent = priceData.price?.toFixed(2) ?? '—';
+        }
+        if (changeCell) {
+          const pct = priceData.changePct?.toFixed(2);
+          const sign = priceData.changePct >= 0 ? '+' : '';
+          changeCell.textContent = pct != null ? `${sign}${pct}%` : '—';
+          changeCell.className = priceData.changePct >= 0
+            ? 'pos' : 'neg';
+        }
+      }
+    }
+
+    const lastUpdated = document.getElementById('watchlist-last-updated');
+    if (lastUpdated) {
+      const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      lastUpdated.textContent = `Last updated: ${now}`;
+    }
   }
 
   async function updatePipelineHealth() {
