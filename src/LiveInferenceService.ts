@@ -144,7 +144,10 @@ function determineRunSlot(): 'morning' | 'afternoon' | 'evening' {
 
 export async function fetchYahooDailyHistory(symbol: string, range: string = '1y'): Promise<YahooBar[]> {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(normaliseForYahoo(symbol))}?range=${range}&interval=1d`;
-  const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+  const response = await fetch(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0' },
+    signal: AbortSignal.timeout(10000)
+  });
   if (!response.ok) {
     throw new Error(`Yahoo Finance request failed for ${symbol}: HTTP ${response.status}`);
   }
