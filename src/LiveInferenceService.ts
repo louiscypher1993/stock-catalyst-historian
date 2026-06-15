@@ -127,7 +127,7 @@ function determineRunSlot(): 'morning' | 'afternoon' | 'evening' {
   return 'evening';
 }
 
-async function fetchYahooDailyHistory(symbol: string, range: string = '1y'): Promise<YahooBar[]> {
+export async function fetchYahooDailyHistory(symbol: string, range: string = '1y'): Promise<YahooBar[]> {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=1d`;
   const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
   if (!response.ok) {
@@ -160,7 +160,7 @@ async function fetchYahooDailyHistory(symbol: string, range: string = '1y'): Pro
 // Mirrors HistoricalEngine.ts's idiosyncratic-return z-score: a 90-day rolling window of
 // SPY-excess returns establishes the baseline mean/stddev, and an anomaly is any day whose
 // excess return deviates from that baseline by more than Z_SCORE_THRESHOLD standard deviations.
-function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], spyReturn: number, forceSignal: boolean = false): AnomalySignal | null {
+export function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], spyReturn: number, forceSignal: boolean = false): AnomalySignal | null {
   if (bars.length < 12) return null;
 
   const last = bars[bars.length - 1];
@@ -225,7 +225,7 @@ function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], sp
   };
 }
 
-function computeTrendContext(bars: YahooBar[], anomalyZScore: number): TrendContext {
+export function computeTrendContext(bars: YahooBar[], anomalyZScore: number): TrendContext {
   const n = bars.length;
 
   // Returns are computed up to the day BEFORE the anomaly (bars[-2])
@@ -285,7 +285,7 @@ interface SymbolEnrichment {
 // symbol, the same way feature_extractor.ts reads them out of signal_snapshot_json. On a
 // fresh checkout (e.g. GitHub Actions) the local SQLite DB is empty, so we fall back to the
 // symbol_snapshots table mirrored to Supabase by migrate_snapshots.ts.
-async function getSymbolSnapshot(symbol: string): Promise<SymbolEnrichment> {
+export async function getSymbolSnapshot(symbol: string): Promise<SymbolEnrichment> {
   const efRow = db.prepare(`
     SELECT signal_snapshot_json, primaryCategory
     FROM event_features
@@ -333,7 +333,7 @@ async function getSymbolSnapshot(symbol: string): Promise<SymbolEnrichment> {
   return { snap: null, primaryCategory: null, companyName: null, sector: null, exchange: null };
 }
 
-function buildFeatureVectorForAnomaly(bars: YahooBar[], anomaly: AnomalySignal, enrichment: SymbolEnrichment): Record<string, number> {
+export function buildFeatureVectorForAnomaly(bars: YahooBar[], anomaly: AnomalySignal, enrichment: SymbolEnrichment): Record<string, number> {
   const { snap, primaryCategory } = enrichment;
   const temporal = getTemporalFeatures(anomaly.date);
 

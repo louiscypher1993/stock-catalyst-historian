@@ -22,7 +22,16 @@ import { exportAndUploadToDrive, exportToLocalStream } from "./CSVExportService"
 import { runSignalValidation } from "./SignalValidationService";
 import { BatchScanner } from "./BatchScannerService";
 import { startBackfill, getBackfillStatus } from "./EnrichBackfillService";
-import { runLiveInference } from "./src/LiveInferenceService";
+import {
+  runLiveInference,
+  fetchYahooDailyHistory,
+  detectAnomaly,
+  computeTrendContext,
+  buildFeatureVectorForAnomaly,
+  getSymbolSnapshot,
+  runInference,
+  getRecommendation,
+} from "./src/LiveInferenceService";
 
 dotenv.config();
 
@@ -34,6 +43,10 @@ const SYMBOL_PATTERN = /^[A-Z0-9.\-]{1,15}$/;
 function isValidSymbol(sym: string): boolean {
   return SYMBOL_PATTERN.test(sym.toUpperCase().trim());
 }
+
+// On-demand symbol scan rate limiting: 1 request per symbol per 5 minutes
+const SCAN_RATE_LIMIT_MS = 5 * 60 * 1000;
+const scanLastRequestAt = new Map<string, number>();
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -1299,6 +1312,86 @@ app.post('/api/live-inference/run', async (req, res, next) => {
     const { symbols } = req.body as { symbols?: string[] };
     await runLiveInference(symbols);
     res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/scan-symbol/:symbol — run live inference for a single symbol on demand
+app.get('/api/scan-symbol/:symbol', async (req, res, next) => {
+  try {
+    const symbol = req.params.symbol.toUpperCase().trim();
+    if (!isValidSymbol(symbol)) return res.status(400).json({ error: 'Invalid symbol format' });
+
+    const now = Date.now();
+    const lastRequest = scanLastRequestAt.get(symbol);
+    if (lastRequest !== undefined && now - lastRequest < SCAN_RATE_LIMIT_MS) {
+      const retryAfterSec = Math.ceil((SCAN_RATE_LIMIT_MS - (now - lastRequest)) / 1000);
+      return res.status(429).json({ error: `Rate limited — try again in ${retryAfterSec}s`, retryAfter: retryAfterSec });
+    }
+    scanLastRequestAt.set(symbol, now);
+
+    let companyName = symbol;
+    for (const market of GLOBAL_MARKETS) {
+      const stock = market.stocks.find(s => s.symbol.toUpperCase() === symbol);
+      if (stock) {
+        companyName = stock.companyName;
+        break;
+      }
+    }
+
+    const bars = await fetchYahooDailyHistory(symbol, '1y');
+    if (bars.length < 12) {
+      return res.json({ anomaly: false, symbol, message: 'No anomaly detected' });
+    }
+
+    let spyReturn = 0;
+    try {
+      const spyBars = await fetchYahooDailyHistory('SPY', '1mo');
+      if (spyBars.length >= 2) {
+        const last = spyBars[spyBars.length - 1];
+        const prev = spyBars[spyBars.length - 2];
+        spyReturn = (last.close - prev.close) / prev.close;
+      }
+    } catch (err: any) {
+      console.warn('[ScanSymbol] Failed to fetch SPY benchmark:', err.message);
+    }
+
+    const anomaly = detectAnomaly(symbol, companyName, bars, spyReturn);
+    if (!anomaly) {
+      return res.json({ anomaly: false, symbol, message: 'No anomaly detected' });
+    }
+
+    const trendContext = computeTrendContext(bars, anomaly.zScore);
+    const enrichment = await getSymbolSnapshot(symbol);
+    const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, enrichment);
+    const scores = runInference(featureVector);
+
+    const clampedReturn = Math.max(-0.30, Math.min(0.30, scores.model_b_return_1m));
+    const clampedReturn3m = Math.max(-0.50, Math.min(0.50, scores.model_d1_return_3m));
+    const clampedReturn6m = Math.max(-0.40, Math.min(0.40, scores.model_d2_return_6m));
+    const clampedReturn2d = Math.max(-0.20, Math.min(0.20, scores.model_d3_return_2d));
+    const clampedReturn2w = Math.max(-0.35, Math.min(0.35, scores.model_d5_return_2w));
+
+    const rec = getRecommendation(scores.model_a_confidence, clampedReturn, scores.model_c_max_drawdown, trendContext);
+
+    res.json({
+      anomaly: true,
+      symbol,
+      companyName: anomaly.companyName,
+      zScore: anomaly.zScore,
+      recommendation: rec.recommendation,
+      riskScore: rec.riskScore,
+      riskReward: rec.riskReward,
+      model_a_confidence: scores.model_a_confidence,
+      model_b_return_1m: clampedReturn,
+      model_d3_return_2d: clampedReturn2d,
+      model_d5_return_2w: clampedReturn2w,
+      model_d1_return_3m: clampedReturn3m,
+      model_d2_return_6m: clampedReturn6m,
+      currentPrice: anomaly.close,
+      scannedAt: new Date().toISOString(),
+    });
   } catch (err) {
     next(err);
   }

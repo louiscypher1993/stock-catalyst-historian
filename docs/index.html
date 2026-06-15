@@ -702,6 +702,44 @@
   .neg { color: var(--red-400); }
   .neu { color: var(--muted); }
 
+  .scan-now-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--indigo-bg);
+    color: var(--indigo);
+    border: 1px solid var(--indigo);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .scan-now-btn:hover:not(:disabled) {
+    background: var(--indigo);
+    color: #fff;
+  }
+
+  .scan-now-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .scan-result-row.hidden {
+    display: none;
+  }
+
+  .scan-result-row td {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 12px;
+  }
+
+  .scan-result-card {
+    max-width: 640px;
+  }
+
   .last-updated {
     margin-top: 8px;
     font-size: 0.75rem;
@@ -1415,16 +1453,47 @@ function is2dStale(runDate) {
   });
 
   document.getElementById('watchlist-section').addEventListener('click', async (e) => {
-    const btn = e.target.closest('.remove-btn');
-    if (!btn) return;
-    const symbol = btn.dataset.symbol;
+    const removeBtn = e.target.closest('.remove-btn');
+    if (removeBtn) {
+      const symbol = removeBtn.dataset.symbol;
+      try {
+        const { error } = await sb.from('watchlist').delete().eq('symbol', symbol);
+        if (error) throw new Error(error.message);
+        await loadWatchlist();
+      } catch (err) {
+        alert(`Error removing ${symbol}: ${err.message}`);
+      }
+      return;
+    }
 
-    try {
-      const { error } = await sb.from('watchlist').delete().eq('symbol', symbol);
-      if (error) throw new Error(error.message);
-      await loadWatchlist();
-    } catch (err) {
-      alert(`Error removing ${symbol}: ${err.message}`);
+    const scanBtn = e.target.closest('.scan-now-btn');
+    if (scanBtn) {
+      const symbol = scanBtn.dataset.symbol;
+      const resultRow = document.getElementById(`scan-result-row-${symbol}`);
+      const resultContainer = document.getElementById(`scan-result-${symbol}`);
+      const originalHTML = scanBtn.innerHTML;
+
+      scanBtn.disabled = true;
+      scanBtn.innerHTML = `<span class="spinner"></span> Scanning…`;
+
+      try {
+        const response = await fetch(`http://localhost:3000/api/scan-symbol/${symbol}`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+
+        if (data.anomaly) {
+          resultContainer.innerHTML = renderScanResultCard(data);
+        } else {
+          resultContainer.innerHTML = `<p class="placeholder-empty">No anomaly detected at current z-score</p>`;
+        }
+        resultRow.classList.remove('hidden');
+      } catch (err) {
+        resultContainer.innerHTML = `<p class="placeholder-empty">Error: ${err.message}</p>`;
+        resultRow.classList.remove('hidden');
+      } finally {
+        scanBtn.disabled = false;
+        scanBtn.innerHTML = originalHTML;
+      }
     }
   });
 
@@ -1507,6 +1576,10 @@ function is2dStale(runDate) {
           <td>${confCell}</td>
           <td id="price-${entry.symbol}">${priceText}</td>
           <td id="change-${entry.symbol}" class="${changeClass}">${changeText}</td>
+          <td><button class="scan-now-btn" data-symbol="${entry.symbol}">🔍 Scan Now</button></td>
+        </tr>
+        <tr class="scan-result-row hidden" id="scan-result-row-${entry.symbol}">
+          <td colspan="10"><div id="scan-result-${entry.symbol}"></div></td>
         </tr>
       `;
     }).join('');
@@ -1524,6 +1597,7 @@ function is2dStale(runDate) {
             <th>Confidence</th>
             <th>Live Price</th>
             <th>Today %</th>
+            <th>Scan</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -1581,6 +1655,62 @@ function is2dStale(runDate) {
       const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
       lastUpdated.textContent = `Last updated: ${now}`;
     }
+  }
+
+  function renderScanResultCard(data) {
+    const colorClass = REC_COLOR[data.recommendation] || 'amber';
+    return `
+      <div class="card ${colorClass} scan-result-card">
+        <div class="card-header">
+          <div class="symbol-block">
+            <div class="symbol">${data.symbol}</div>
+            ${data.companyName ? `<div class="company">${data.companyName}</div>` : ''}
+          </div>
+          <div class="header-right">
+            <div class="badge ${colorClass}">${data.recommendation.replace('_', ' ')}</div>
+            <div class="date-badge">z = ${data.zScore.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="label">Expected Return (2D)</div>
+            <div class="value ${returnClass(data.model_d3_return_2d)}">${pct(data.model_d3_return_2d)}</div>
+          </div>
+          <div class="stat">
+            <div class="label">Expected Return (2W)</div>
+            <div class="value ${returnClass(data.model_d5_return_2w)}">${pct(data.model_d5_return_2w)}</div>
+          </div>
+          <div class="stat">
+            <div class="label">Expected Return (1M)</div>
+            <div class="value ${returnClass(data.model_b_return_1m)}">${pct(data.model_b_return_1m)}</div>
+          </div>
+          <div class="stat">
+            <div class="label">Expected Return (3M)</div>
+            <div class="value ${returnClass(data.model_d1_return_3m)}">${pct(data.model_d1_return_3m)}</div>
+          </div>
+          <div class="stat">
+            <div class="label">Expected Return (6M)</div>
+            <div class="value ${returnClass(data.model_d2_return_6m)}">${pct(data.model_d2_return_6m)}</div>
+          </div>
+          <div class="stat">
+            <div class="label">Model Confidence</div>
+            <div class="value">${(data.model_a_confidence * 100).toFixed(1)}%</div>
+          </div>
+          <div class="stat">
+            <div class="label">Risk Score</div>
+            <div class="value">${data.riskScore} / 100</div>
+          </div>
+          <div class="stat">
+            <div class="label">Risk / Reward</div>
+            <div class="value">${data.riskReward.toFixed(2)}x</div>
+          </div>
+          <div class="stat">
+            <div class="label">Current Price</div>
+            <div class="value">${formatPrice(data.symbol, data.currentPrice)}</div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   async function updatePipelineHealth() {
