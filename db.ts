@@ -3013,7 +3013,70 @@ export function getEventsWithSignals(filter?: {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Daily Prices (OHLCV)
+// ---------------------------------------------------------------------------
 
+try {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS daily_prices (
+      symbol        TEXT NOT NULL,
+      date          TEXT NOT NULL,    -- YYYY-MM-DD
+      open          REAL,
+      high          REAL,
+      low           REAL,
+      close         REAL NOT NULL,
+      volume        INTEGER,
+      adj_close     REAL,
+      source        TEXT DEFAULT 'fmp', -- 'fmp' | 'yahoo'
+      PRIMARY KEY (symbol, date)
+    );
+    CREATE INDEX IF NOT EXISTS idx_daily_prices_date
+      ON daily_prices(date DESC);
+    CREATE INDEX IF NOT EXISTS idx_daily_prices_symbol
+      ON daily_prices(symbol);
+  `);
+} catch (e: any) {
+  console.error("Failed to create daily_prices table", e);
+}
+
+export interface DailyPriceRow {
+  symbol: string;
+  date: string;
+  open: number | null;
+  high: number | null;
+  low: number | null;
+  close: number;
+  volume: number | null;
+  adj_close: number | null;
+  source: string;
+}
+
+export function upsertDailyPrices(rows: DailyPriceRow[]): void {
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO daily_prices
+      (symbol, date, open, high, low, close, volume, adj_close, source)
+    VALUES
+      (@symbol, @date, @open, @high, @low, @close,
+       @volume, @adj_close, @source)
+  `);
+  const insertMany = db.transaction((priceRows: DailyPriceRow[]) => {
+    for (const row of priceRows) stmt.run(row);
+  });
+  insertMany(rows);
+}
+
+export function getDailyPricesCount(): number {
+  return (db.prepare(
+    'SELECT COUNT(*) as count FROM daily_prices'
+  ).get() as any).count;
+}
+
+export function getSymbolPriceCount(symbol: string): number {
+  return (db.prepare(
+    'SELECT COUNT(*) as count FROM daily_prices WHERE symbol = ?'
+  ).get(symbol) as any).count;
+}
 
 
 
