@@ -18,6 +18,21 @@ import { getEarningsTranscript, isFmpPremium } from '../FMPService';
 import { scoreManagementConfidence } from '../EarningsSentimentService';
 import { evaluateRun, type PotInferenceResult } from './PotService';
 
+// Local copy — cannot import from HistoricalEngine (circular dependency).
+const _YAHOO_INTL_SUFFIXES = new Set([
+  '.L', '.PA', '.AS', '.BR', '.DE', '.F', '.HK', '.SS', '.SZ',
+  '.T', '.TO', '.AX', '.NS', '.BO', '.KS', '.TW', '.SW', '.ST',
+  '.OL', '.CO', '.HE', '.ME', '.SA', '.BA', '.MX', '.IS', '.NZ',
+]);
+function normaliseForYahoo(symbol: string): string {
+  const upper = symbol.toUpperCase().trim();
+  const dotIdx = upper.lastIndexOf('.');
+  if (dotIdx === -1) return upper;
+  const suffix = upper.slice(dotIdx);
+  if (_YAHOO_INTL_SUFFIXES.has(suffix)) return upper;
+  return upper.replace(/\./g, '-');
+}
+
 function isUsListed(exchange: string | null): boolean {
   if (!exchange) return false;
   const ex = exchange.toLowerCase();
@@ -128,7 +143,7 @@ function determineRunSlot(): 'morning' | 'afternoon' | 'evening' {
 }
 
 export async function fetchYahooDailyHistory(symbol: string, range: string = '1y'): Promise<YahooBar[]> {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=1d`;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(normaliseForYahoo(symbol))}?range=${range}&interval=1d`;
   const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
   if (!response.ok) {
     throw new Error(`Yahoo Finance request failed for ${symbol}: HTTP ${response.status}`);

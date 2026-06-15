@@ -309,10 +309,6 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "FedEx Corp."
       },
       {
-        "symbol": "FI",
-        "companyName": "Fiserv, Inc."
-      },
-      {
         "symbol": "FOXA",
         "companyName": "Fox Corporation"
       },
@@ -419,14 +415,6 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "JPM",
         "companyName": "JPMorgan Chase & Co."
-      },
-      {
-        "symbol": "K",
-        "companyName": "Kellanova"
-      },
-      {
-        "symbol": "KL",
-        "companyName": "Kirkland Lake Gold"
       },
       {
         "symbol": "KO",
@@ -559,10 +547,6 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "OXY",
         "companyName": "Occidental Petroleum"
-      },
-      {
-        "symbol": "PARA",
-        "companyName": "Paramount Global"
       },
       {
         "symbol": "PFE",
@@ -973,10 +957,6 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "iShares iBoxx $ High Yield Corporate Bond ETF"
       },
       {
-        "symbol": "CS",
-        "companyName": "Credit Suisse Group AG"
-      },
-      {
         "symbol": "GME",
         "companyName": "GameStop Corp."
       }
@@ -1036,10 +1016,6 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "ANET",
         "companyName": "Arista Networks"
-      },
-      {
-        "symbol": "ANSS",
-        "companyName": "Ansys, Inc."
       },
       {
         "symbol": "APP",
@@ -1414,10 +1390,6 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "SolarEdge Technologies, Inc."
       },
       {
-        "symbol": "SGEN",
-        "companyName": "Seagen Inc."
-      },
-      {
         "symbol": "SIRI",
         "companyName": "Sirius XM Holdings"
       },
@@ -1432,10 +1404,6 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "SNPS",
         "companyName": "Synopsys, Inc."
-      },
-      {
-        "symbol": "SPLK",
-        "companyName": "Splunk Inc."
       },
       {
         "symbol": "SSNLF",
@@ -1484,10 +1452,6 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "VRTX",
         "companyName": "Vertex Pharmaceuticals"
-      },
-      {
-        "symbol": "WBA",
-        "companyName": "Walgreens Boots Alliance"
       },
       {
         "symbol": "WDAY",
