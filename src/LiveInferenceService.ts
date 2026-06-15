@@ -466,17 +466,30 @@ Pre-anomaly price trajectory:
 - Volume trend (recent 5d vs prior 5d): ${trendContext.pre_volume_trend > 0 ? 'building' : 'declining'} (${(trendContext.pre_volume_trend * 100).toFixed(1)}%)
 - Trend alignment: ${trendLabel}`;
 
+    // Anonymize entity identifiers before LLM scoring to prevent
+    // distraction/look-ahead bias (Glasserman & Lin, 2023)
+    const ANON_TICKER = 'TICKER_X';
+    const ANON_COMPANY = 'Company X';
+    const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const anonymize = (text: string): string => {
+      let result = text.replace(new RegExp(escapeRegex(anomaly.symbol), 'gi'), ANON_TICKER);
+      if (anomaly.companyName && anomaly.companyName !== anomaly.symbol) {
+        result = result.replace(new RegExp(escapeRegex(anomaly.companyName), 'gi'), ANON_COMPANY);
+      }
+      return result;
+    };
+
     const edgarSection = edgarFilings.length > 0
       ? `\nRecent SEC 8-K filings (last 7 days):\n${edgarFilings
-          .map(f => `- ${f.filedAt}: ${f.description}`)
+          .map(f => `- ${f.filedAt}: ${anonymize(f.description)}`)
           .join('\n')}`
       : '';
 
     const managementSection = managementScore
-      ? `\nManagement confidence score (most recent earnings call): ${managementScore.confidence_score}/100\nPrimary concern: ${managementScore.primary_concern}`
+      ? `\nManagement confidence score (most recent earnings call): ${managementScore.confidence_score}/100\nPrimary concern: ${anonymize(managementScore.primary_concern)}`
       : '';
 
-    const prompt = `You are a senior institutional equity analyst. Summarize the investment case for ${anomaly.symbol} (${anomaly.companyName}) in 2-3 sentences.
+    const prompt = `You are a senior institutional equity analyst. Summarize the investment case for ${ANON_TICKER} (${ANON_COMPANY}) in 2-3 sentences.
 
 Today's price: $${anomaly.close.toFixed(2)}
 Z-score (idiosyncratic move): ${anomaly.zScore.toFixed(2)}
