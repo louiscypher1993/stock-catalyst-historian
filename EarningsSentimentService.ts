@@ -4,7 +4,40 @@ import { getRecentFilings } from "./EdgarService";
 // SEC fair-access policy requires a descriptive User-Agent identifying the requester
 const EDGAR_USER_AGENT = "MarketEcosystemIntelligence lewispiper1993@gmail.com";
 
+// Phrases that appear in AI self-referential responses but never in real earnings call transcripts.
+const NON_TRANSCRIPT_SIGNALS = [
+  'knowledge cutoff', 'cutoff date', 'cut-off', 'cut off',
+  'as an ai', 'language model',
+  'no specific knowledge', 'future knowledge', 'lack of access',
+  'i do not have access', 'i cannot access', 'i have no information about',
+  'unable to predict', 'cannot forecast', 'no visibility into',
+  'future event', 'future data',
+  'not an earnings call transcript', 'not an earnings call',
+  'unable to assess management confidence', 'unable to evaluate management confidence',
+  'no management content', 'not a transcript',
+];
+
+// Structural heuristic: real earnings call transcripts are long and information-dense.
+// Counts how many of the following signals are present and requires at least 2.
+// This blocks Gemini grounding stubs (~200 words) regardless of their phrasing.
+function looksLikeRealTranscript(text: string): boolean {
+  let signals = 0;
+  if (text.length > 1500) signals++;
+  if (/operator/i.test(text)) signals++;
+  if (/q&a/i.test(text)) signals++;
+  if (/thank you/i.test(text)) signals++;
+  if (/\$[\d,.]+/.test(text)) signals++;
+  if (/\d+%/.test(text)) signals++;
+  // Speaker-label pattern: "LASTNAME:" or "FIRST LAST:" in all-caps, 3+ occurrences
+  if ((text.match(/^[A-Z][A-Z .]{2,25}:/gm) ?? []).length >= 3) signals++;
+  return signals >= 2;
+}
+
 export async function scoreManagementConfidence(transcriptText: string): Promise<{ confidence_score: number, primary_concern: string } | null> {
+  if (transcriptText.length < 200) return null;
+  const lowerInput = transcriptText.substring(0, 1000).toLowerCase();
+  if (NON_TRANSCRIPT_SIGNALS.some(p => lowerInput.includes(p))) return null;
+
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
     const responseSchema: Schema = {
@@ -50,6 +83,9 @@ ${transcriptText.substring(0, 80000)}` // Safeguard transcript length
 
     if (response.text) {
       const parsed = JSON.parse(response.text);
+      const lowerConcern = (parsed.primary_concern ?? '').toLowerCase();
+      if (lowerConcern.includes('transcript')) return null;
+      if (NON_TRANSCRIPT_SIGNALS.some(p => lowerConcern.includes(p))) return null;
       return {
         confidence_score: parsed.confidence_score,
         primary_concern: parsed.primary_concern
@@ -155,7 +191,12 @@ async function fetchGeminiGroundingSummary(symbol: string, eventDate: string): P
       ]
     });
 
-    return response.text ?? null;
+    const text = response.text;
+    if (!text) return null;
+    // Discard responses where Gemini described its own limitations instead of actual management sentiment
+    const lowerText = text.substring(0, 800).toLowerCase();
+    if (NON_TRANSCRIPT_SIGNALS.some(p => lowerText.includes(p))) return null;
+    return text;
   } catch (error) {
     console.error("[EarningsSentimentService] Gemini grounding fallback error:", error);
     return null;
@@ -173,13 +214,14 @@ export async function getTranscriptFromAlternativeSources(
   exchange: string | null
 ): Promise<string | null> {
   const seekingAlpha = await fetchSeekingAlphaTranscript(symbol, eventDate);
-  if (seekingAlpha) return seekingAlpha;
+  if (seekingAlpha && looksLikeRealTranscript(seekingAlpha)) return seekingAlpha;
 
   if (exchange) {
     const edgar = await fetchEdgar8KTranscript(symbol, eventDate);
-    if (edgar) return edgar;
+    if (edgar && looksLikeRealTranscript(edgar)) return edgar;
   }
 
   if (!process.env.GEMINI_API_KEY) return null;
-  return await fetchGeminiGroundingSummary(symbol, eventDate);
+  const grounding = await fetchGeminiGroundingSummary(symbol, eventDate);
+  return grounding && looksLikeRealTranscript(grounding) ? grounding : null;
 }

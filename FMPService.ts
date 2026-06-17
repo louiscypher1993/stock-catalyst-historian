@@ -638,6 +638,9 @@ export async function getTopPeers(symbol: string): Promise<string[]> {
   }
 }
 
+// Set once if the earning-call-transcript endpoint returns 402 Payment Required.
+let _earningsTranscriptUnavailable = false;
+
 /**
  * Fetches an earnings call transcript for a given symbol, year, and quarter.
  */
@@ -653,6 +656,7 @@ export async function getEarningsTranscript(symbol: string, year: number, quarte
       return cached;
     }
 
+    if (_earningsTranscriptUnavailable) return null;
     if (isSourceRateLimited('fmp')) return null;
 
     const apiKey = process.env.FMP_API_KEY;
@@ -663,6 +667,15 @@ export async function getEarningsTranscript(symbol: string, year: number, quarte
 
     const url = `https://financialmodelingprep.com/stable/earning-call-transcript?symbol=${uppercaseSymbol}&year=${year}&quarter=${quarter}&apikey=${apiKey}`;
     const res = await fetchWithTimeout(url);
+
+    if (!res.ok && res.status === 402) {
+      if (!_earningsTranscriptUnavailable) {
+        console.warn('[FMP] earning-call-transcript endpoint requires a higher plan — disabling for this session.');
+        _earningsTranscriptUnavailable = true;
+      }
+      return null;
+    }
+
     const data = await handleFmpResponse(res, 'getEarningsTranscript');
 
     if (Array.isArray(data) && data.length > 0) {

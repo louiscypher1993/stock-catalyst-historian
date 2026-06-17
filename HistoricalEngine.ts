@@ -656,6 +656,10 @@ function buildAndSaveFeatureVector(
           price_target_consensus: (p as any)._tempPriceTargetConsensus ?? (p.analysis as any)?.price_target_consensus ?? null,
           price_target_upside_pct: (p as any)._tempPriceTargetUpsidePct ?? (p.analysis as any)?.price_target_upside_pct ?? null,
           competitor_event_density: competitorEventDensity,
+          short_interest_pct: si ? (si.pctOfFloat ?? null) : null,
+          short_interest_ratio: si ? (si.shortInterestRatio ?? null) : null,
+          management_confidence_score: p.analysis?.management_confidence_score ?? null,
+          earnings_primary_concern: (p.analysis as any)?.primary_concern ?? null,
         };
       })(),
     };

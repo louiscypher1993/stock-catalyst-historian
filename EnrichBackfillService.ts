@@ -102,7 +102,8 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
 
           if (!forceAll) {
             const managementConfidenceDone = !process.env.GEMINI_API_KEY
-              || features.signal_snapshot?.management_confidence_score !== undefined;
+              || (features.signal_snapshot?.management_confidence_score !== undefined &&
+                  features.signal_snapshot?.earnings_primary_concern !== undefined);
             const allPopulated =
               features.fmp_news_sentiment_avg !== undefined &&
               features.insider_net_shares_30d !== undefined &&
@@ -236,7 +237,7 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
 
           // digital_exhaust_velocity: weighted composite of google_trends_z + wikipedia_spike_z
           // (stocktwits excluded — no reliable historical data for backfill)
-          if (features.signal_snapshot && (forceAll || features.signal_snapshot.digital_exhaust_velocity === undefined)) {
+          if (features.signal_snapshot && (forceAll || features.signal_snapshot.digital_exhaust_velocity === undefined || (features.signal_snapshot.digital_exhaust_velocity === null && new Date(row.date).getFullYear() >= 2010))) {
             const companyName = getCachedCompanyProfile(row.symbol)?.profile.name ?? row.symbol;
 
             let googleZ: number | null = features.signal_snapshot.google_trends_z ?? null;
@@ -246,6 +247,7 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
                 features.signal_snapshot.google_trends_z = null;
               } else {
                 try {
+                  await new Promise(r => setTimeout(r, 3000));
                   const trends = await getTrendsSummary(row.symbol, companyName, row.date);
                   if (trends && typeof trends.google_trends_shock_ratio === 'number') {
                     googleZ = trends.google_trends_shock_ratio - 1;
