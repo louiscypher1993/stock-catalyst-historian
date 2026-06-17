@@ -33,6 +33,16 @@ jobs:
       - name: Install Python dependencies
         run: pip install xgboost scikit-learn pandas numpy
 
+      - name: Determine run slot
+        id: slot
+        run: |
+          case "${{ github.event.schedule }}" in
+            "0 7 * * 1-5")   echo "slot=morning"   >> $GITHUB_OUTPUT ;;
+            "30 15 * * 1-5") echo "slot=afternoon"  >> $GITHUB_OUTPUT ;;
+            "0 20 * * 1-5")  echo "slot=evening"    >> $GITHUB_OUTPUT ;;
+            *)                echo "slot=afternoon"  >> $GITHUB_OUTPUT ;;
+          esac
+
       - name: Run live inference
         env:
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
@@ -40,4 +50,5 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          PIPELINE_RUN_SLOT: ${{ steps.slot.outputs.slot }}
         run: npx tsx src/LiveInferenceService.ts
