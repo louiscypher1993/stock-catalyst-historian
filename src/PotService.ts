@@ -617,7 +617,9 @@ export async function evaluateRun(
   }
 
   // 6. Process each eligible pot
+  console.log(`[PotService] eligiblePot ids entering loop: [${eligiblePots.map(p => p.pot_id).join(', ')}]`);
   for (const pot of eligiblePots) {
+    console.log(`[PotService] >>> starting processPot for pot_id=${pot.pot_id} name='${pot.name}'`);
     try {
       const potPositions = allOpenPositions.filter(p => p.pot_id === pot.pot_id);
       const prevPnl      = prevPnlMap[pot.pot_id] ?? 0;

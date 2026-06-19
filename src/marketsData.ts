@@ -37,10 +37,6 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "Automatic Data Processing"
       },
       {
-        "symbol": "ADSK",
-        "companyName": "Autodesk, Inc."
-      },
-      {
         "symbol": "AEP",
         "companyName": "American Electric Power"
       },
@@ -67,10 +63,6 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "AMT",
         "companyName": "American Tower"
-      },
-      {
-        "symbol": "ANET",
-        "companyName": "Arista Networks, Inc."
       },
       {
         "symbol": "AON",
@@ -605,10 +597,6 @@ export const GLOBAL_MARKETS: Market[] = [
         "companyName": "Royal Caribbean Group"
       },
       {
-        "symbol": "REGN",
-        "companyName": "Regeneron Pharmaceuticals"
-      },
-      {
         "symbol": "RIO",
         "companyName": "Rio Tinto Group"
       },
@@ -959,6 +947,190 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "GME",
         "companyName": "GameStop Corp."
+      },
+      {
+        "symbol": "CAG",
+        "companyName": "Conagra Brands"
+      },
+      {
+        "symbol": "CHPT",
+        "companyName": "ChargePoint Holdings"
+      },
+      {
+        "symbol": "RIG",
+        "companyName": "Transocean"
+      },
+      {
+        "symbol": "FRO",
+        "companyName": "Frontline"
+      },
+      {
+        "symbol": "TSN",
+        "companyName": "Tyson Foods"
+      },
+      {
+        "symbol": "ANDE",
+        "companyName": "The Andersons"
+      },
+      {
+        "symbol": "INGR",
+        "companyName": "Ingredion"
+      },
+      {
+        "symbol": "DAR",
+        "companyName": "Darling Ingredients"
+      },
+      {
+        "symbol": "BE",
+        "companyName": "Bloom Energy"
+      },
+      {
+        "symbol": "PL",
+        "companyName": "Planet Labs"
+      },
+      {
+        "symbol": "GSAT",
+        "companyName": "Globalstar"
+      },
+      {
+        "symbol": "XYL",
+        "companyName": "Xylem"
+      },
+      {
+        "symbol": "PNR",
+        "companyName": "Pentair"
+      },
+      {
+        "symbol": "WTRG",
+        "companyName": "Essential Utilities"
+      },
+      {
+        "symbol": "VLTO",
+        "companyName": "Veralto"
+      },
+      {
+        "symbol": "CGNX",
+        "companyName": "Cognex"
+      },
+      {
+        "symbol": "ZBRA",
+        "companyName": "Zebra Technologies"
+      },
+      {
+        "symbol": "COTY",
+        "companyName": "Coty"
+      },
+      {
+        "symbol": "NVT",
+        "companyName": "nVent Electric"
+      },
+      {
+        "symbol": "VAL",
+        "companyName": "Valaris"
+      },
+      {
+        "symbol": "NE",
+        "companyName": "Noble Corporation"
+      },
+      {
+        "symbol": "ACHR",
+        "companyName": "Archer Aviation"
+      },
+      {
+        "symbol": "KMX",
+        "companyName": "CarMax"
+      },
+      {
+        "symbol": "ZIM",
+        "companyName": "ZIM Integrated Shipping"
+      },
+      {
+        "symbol": "TXT",
+        "companyName": "Textron"
+      },
+      {
+        "symbol": "HII",
+        "companyName": "Huntington Ingalls Industries"
+      },
+      {
+        "symbol": "KTOS",
+        "companyName": "Kratos Defense and Security Solutions"
+      },
+      {
+        "symbol": "LDOS",
+        "companyName": "Leidos Holdings"
+      },
+      {
+        "symbol": "XLV",
+        "companyName": "Health Care Select Sector SPDR"
+      },
+      {
+        "symbol": "XLI",
+        "companyName": "Industrial Select Sector SPDR"
+      },
+      {
+        "symbol": "XLY",
+        "companyName": "Consumer Discretionary Select Sector SPDR"
+      },
+      {
+        "symbol": "XLP",
+        "companyName": "Consumer Staples Select Sector SPDR"
+      },
+      {
+        "symbol": "XLB",
+        "companyName": "Materials Select Sector SPDR"
+      },
+      {
+        "symbol": "XLU",
+        "companyName": "Utilities Select Sector SPDR"
+      },
+      {
+        "symbol": "XLRE",
+        "companyName": "Real Estate Select Sector SPDR"
+      },
+      {
+        "symbol": "XBI",
+        "companyName": "SPDR S&P Biotech ETF"
+      },
+      {
+        "symbol": "EWZ",
+        "companyName": "iShares MSCI Brazil ETF"
+      },
+      {
+        "symbol": "FXI",
+        "companyName": "iShares China Large-Cap ETF"
+      },
+      {
+        "symbol": "EWJ",
+        "companyName": "iShares MSCI Japan ETF"
+      },
+      {
+        "symbol": "INDA",
+        "companyName": "iShares MSCI India ETF"
+      },
+      {
+        "symbol": "EEM",
+        "companyName": "iShares MSCI Emerging Markets ETF"
+      },
+      {
+        "symbol": "VGK",
+        "companyName": "Vanguard FTSE Europe ETF"
+      },
+      {
+        "symbol": "USO",
+        "companyName": "United States Oil Fund"
+      },
+      {
+        "symbol": "SLV",
+        "companyName": "iShares Silver Trust"
+      },
+      {
+        "symbol": "DBC",
+        "companyName": "Invesco DB Commodity Index Tracking Fund"
+      },
+      {
+        "symbol": "VIXY",
+        "companyName": "ProShares VIX Short-Term Futures ETF"
       }
     ]
   },
@@ -1504,6 +1676,166 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "SVB",
         "companyName": "SVB Financial Group"
+      },
+      {
+        "symbol": "KHC",
+        "companyName": "Kraft Heinz"
+      },
+      {
+        "symbol": "WBA",
+        "companyName": "Walgreens Boots Alliance"
+      },
+      {
+        "symbol": "PLUG",
+        "companyName": "Plug Power"
+      },
+      {
+        "symbol": "DBX",
+        "companyName": "Dropbox"
+      },
+      {
+        "symbol": "DOCU",
+        "companyName": "DocuSign"
+      },
+      {
+        "symbol": "SBLK",
+        "companyName": "Star Bulk Carriers"
+      },
+      {
+        "symbol": "AGRO",
+        "companyName": "Adecoagro"
+      },
+      {
+        "symbol": "CSIQ",
+        "companyName": "Canadian Solar"
+      },
+      {
+        "symbol": "JKS",
+        "companyName": "JinkoSolar"
+      },
+      {
+        "symbol": "DQ",
+        "companyName": "Daqo New Energy"
+      },
+      {
+        "symbol": "ARRY",
+        "companyName": "Array Technologies"
+      },
+      {
+        "symbol": "ALNY",
+        "companyName": "Alnylam Pharmaceuticals"
+      },
+      {
+        "symbol": "CRSP",
+        "companyName": "CRISPR Therapeutics"
+      },
+      {
+        "symbol": "NTLA",
+        "companyName": "Intellia Therapeutics"
+      },
+      {
+        "symbol": "BEAM",
+        "companyName": "Beam Therapeutics"
+      },
+      {
+        "symbol": "NTRA",
+        "companyName": "Natera"
+      },
+      {
+        "symbol": "EXAS",
+        "companyName": "Exact Sciences"
+      },
+      {
+        "symbol": "TXG",
+        "companyName": "10x Genomics"
+      },
+      {
+        "symbol": "ENTG",
+        "companyName": "Entegris"
+      },
+      {
+        "symbol": "MKSI",
+        "companyName": "MKS Instruments"
+      },
+      {
+        "symbol": "TER",
+        "companyName": "Teradyne"
+      },
+      {
+        "symbol": "IRDM",
+        "companyName": "Iridium Communications"
+      },
+      {
+        "symbol": "VSAT",
+        "companyName": "Viasat"
+      },
+      {
+        "symbol": "LUNR",
+        "companyName": "Intuitive Machines"
+      },
+      {
+        "symbol": "GEN",
+        "companyName": "Gen Digital"
+      },
+      {
+        "symbol": "QLYS",
+        "companyName": "Qualys"
+      },
+      {
+        "symbol": "SYM",
+        "companyName": "Symbotic"
+      },
+      {
+        "symbol": "UAA",
+        "companyName": "Under Armour"
+      },
+      {
+        "symbol": "SKX",
+        "companyName": "Skechers USA"
+      },
+      {
+        "symbol": "EVGO",
+        "companyName": "EVgo"
+      },
+      {
+        "symbol": "BLNK",
+        "companyName": "Blink Charging"
+      },
+      {
+        "symbol": "RGTI",
+        "companyName": "Rigetti Computing"
+      },
+      {
+        "symbol": "QBTS",
+        "companyName": "D-Wave Quantum"
+      },
+      {
+        "symbol": "CART",
+        "companyName": "Maplebear (Instacart)"
+      },
+      {
+        "symbol": "U",
+        "companyName": "Unity Software"
+      },
+      {
+        "symbol": "IBKR",
+        "companyName": "Interactive Brokers Group"
+      },
+      {
+        "symbol": "UPST",
+        "companyName": "Upstart Holdings"
+      },
+      {
+        "symbol": "PENN",
+        "companyName": "Penn Entertainment"
+      },
+      {
+        "symbol": "CZR",
+        "companyName": "Caesars Entertainment"
+      },
+      {
+        "symbol": "STNE",
+        "companyName": "StoneCo"
       }
     ]
   },
@@ -1990,6 +2322,62 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "6723.T",
         "companyName": "Renesas Electronics Corporation"
+      },
+      {
+        "symbol": "9107.T",
+        "companyName": "Kawasaki Kisen"
+      },
+      {
+        "symbol": "6857.T",
+        "companyName": "Advantest"
+      },
+      {
+        "symbol": "6146.T",
+        "companyName": "Disco Corporation"
+      },
+      {
+        "symbol": "7735.T",
+        "companyName": "SCREEN Holdings"
+      },
+      {
+        "symbol": "6525.T",
+        "companyName": "Kokusai Electric"
+      },
+      {
+        "symbol": "3436.T",
+        "companyName": "SUMCO"
+      },
+      {
+        "symbol": "6506.T",
+        "companyName": "Yaskawa Electric"
+      },
+      {
+        "symbol": "6645.T",
+        "companyName": "Omron"
+      },
+      {
+        "symbol": "6594.T",
+        "companyName": "Nidec"
+      },
+      {
+        "symbol": "8750.T",
+        "companyName": "Dai-ichi Life Holdings"
+      },
+      {
+        "symbol": "8630.T",
+        "companyName": "Sompo Holdings"
+      },
+      {
+        "symbol": "8725.T",
+        "companyName": "MS&AD Insurance Group"
+      },
+      {
+        "symbol": "7012.T",
+        "companyName": "Kawasaki Heavy Industries"
+      },
+      {
+        "symbol": "7013.T",
+        "companyName": "IHI Corporation"
       }
     ]
   },
@@ -2451,6 +2839,306 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "ZURN.SW",
         "companyName": "Zurich Insurance Group AG"
+      },
+      {
+        "symbol": "HLAG.DE",
+        "companyName": "Hapag-Lloyd"
+      },
+      {
+        "symbol": "VWS.CO",
+        "companyName": "Vestas Wind Systems"
+      },
+      {
+        "symbol": "NDX1.DE",
+        "companyName": "Nordex"
+      },
+      {
+        "symbol": "ARGX.BR",
+        "companyName": "argenx"
+      },
+      {
+        "symbol": "ASM.AS",
+        "companyName": "ASM International"
+      },
+      {
+        "symbol": "ETL.PA",
+        "companyName": "Eutelsat"
+      },
+      {
+        "symbol": "GEBN.SW",
+        "companyName": "Geberit"
+      },
+      {
+        "symbol": "BLND.L",
+        "companyName": "British Land"
+      },
+      {
+        "symbol": "LI.PA",
+        "companyName": "Klepierre"
+      },
+      {
+        "symbol": "GFC.PA",
+        "companyName": "Gecina"
+      },
+      {
+        "symbol": "SPSN.SW",
+        "companyName": "Swiss Prime Site"
+      },
+      {
+        "symbol": "AT1.DE",
+        "companyName": "Aroundtown"
+      },
+      {
+        "symbol": "SREN.SW",
+        "companyName": "Swiss Re"
+      },
+      {
+        "symbol": "HNR1.DE",
+        "companyName": "Hannover Re"
+      },
+      {
+        "symbol": "G.MI",
+        "companyName": "Assicurazioni Generali"
+      },
+      {
+        "symbol": "SAMPO.HE",
+        "companyName": "Sampo"
+      },
+      {
+        "symbol": "TRYG.CO",
+        "companyName": "Tryg"
+      },
+      {
+        "symbol": "AENA.MC",
+        "companyName": "Aena"
+      },
+      {
+        "symbol": "AMS.MC",
+        "companyName": "Amadeus IT Group"
+      },
+      {
+        "symbol": "CLNX.MC",
+        "companyName": "Cellnex Telecom"
+      },
+      {
+        "symbol": "NTGY.MC",
+        "companyName": "Naturgy Energy"
+      },
+      {
+        "symbol": "ELE.MC",
+        "companyName": "Endesa"
+      },
+      {
+        "symbol": "SAB.MC",
+        "companyName": "Banco Sabadell"
+      },
+      {
+        "symbol": "BKT.MC",
+        "companyName": "Bankinter"
+      },
+      {
+        "symbol": "ACS.MC",
+        "companyName": "ACS Actividades de Construccion y Servicios"
+      },
+      {
+        "symbol": "GRF.MC",
+        "companyName": "Grifols"
+      },
+      {
+        "symbol": "MAP.MC",
+        "companyName": "Mapfre"
+      },
+      {
+        "symbol": "ANA.MC",
+        "companyName": "Acciona"
+      },
+      {
+        "symbol": "RED.MC",
+        "companyName": "Redeia (Red Electrica)"
+      },
+      {
+        "symbol": "MB.MI",
+        "companyName": "Mediobanca"
+      },
+      {
+        "symbol": "BAMI.MI",
+        "companyName": "Banco BPM"
+      },
+      {
+        "symbol": "PRY.MI",
+        "companyName": "Prysmian"
+      },
+      {
+        "symbol": "MONC.MI",
+        "companyName": "Moncler"
+      },
+      {
+        "symbol": "REC.MI",
+        "companyName": "Recordati"
+      },
+      {
+        "symbol": "SRG.MI",
+        "companyName": "Snam"
+      },
+      {
+        "symbol": "PST.MI",
+        "companyName": "Poste Italiane"
+      },
+      {
+        "symbol": "CPR.MI",
+        "companyName": "Davide Campari-Milano"
+      },
+      {
+        "symbol": "NEXI.MI",
+        "companyName": "Nexi"
+      },
+      {
+        "symbol": "FBK.MI",
+        "companyName": "FinecoBank"
+      },
+      {
+        "symbol": "BMED.MI",
+        "companyName": "Banca Mediolanum"
+      },
+      {
+        "symbol": "PIRC.MI",
+        "companyName": "Pirelli"
+      },
+      {
+        "symbol": "TIT.MI",
+        "companyName": "Telecom Italia"
+      },
+      {
+        "symbol": "EGL.LS",
+        "companyName": "Mota-Engil"
+      },
+      {
+        "symbol": "SON.LS",
+        "companyName": "Sonae"
+      },
+      {
+        "symbol": "COR.LS",
+        "companyName": "Corticeira Amorim"
+      },
+      {
+        "symbol": "NVG.LS",
+        "companyName": "The Navigator Company"
+      },
+      {
+        "symbol": "SEM.LS",
+        "companyName": "Semapa"
+      },
+      {
+        "symbol": "RENE.LS",
+        "companyName": "REN Redes Energeticas Nacionais"
+      },
+      {
+        "symbol": "CTT.LS",
+        "companyName": "CTT Correios de Portugal"
+      },
+      {
+        "symbol": "KYGA.IR",
+        "companyName": "Kerry Group"
+      },
+      {
+        "symbol": "A5G.IR",
+        "companyName": "AIB Group"
+      },
+      {
+        "symbol": "GL9.IR",
+        "companyName": "Glanbia"
+      },
+      {
+        "symbol": "GBLB.BR",
+        "companyName": "Groupe Bruxelles Lambert"
+      },
+      {
+        "symbol": "UMI.BR",
+        "companyName": "Umicore"
+      },
+      {
+        "symbol": "DIE.BR",
+        "companyName": "D'Ieteren Group"
+      },
+      {
+        "symbol": "SOF.BR",
+        "companyName": "Sofina"
+      },
+      {
+        "symbol": "ACKB.BR",
+        "companyName": "Ackermans and van Haaren"
+      },
+      {
+        "symbol": "ELI.BR",
+        "companyName": "Elia Group"
+      },
+      {
+        "symbol": "SYENS.BR",
+        "companyName": "Syensqo"
+      },
+      {
+        "symbol": "LOTB.BR",
+        "companyName": "Lotus Bakeries"
+      },
+      {
+        "symbol": "MELE.BR",
+        "companyName": "Melexis"
+      },
+      {
+        "symbol": "WDP.BR",
+        "companyName": "Warehouses De Pauw"
+      },
+      {
+        "symbol": "AED.BR",
+        "companyName": "Aedifica"
+      },
+      {
+        "symbol": "MT.AS",
+        "companyName": "ArcelorMittal"
+      },
+      {
+        "symbol": "IMCD.AS",
+        "companyName": "IMCD Group"
+      },
+      {
+        "symbol": "AALB.AS",
+        "companyName": "Aalberts"
+      },
+      {
+        "symbol": "HEIO.AS",
+        "companyName": "Heineken Holding"
+      },
+      {
+        "symbol": "EXO.AS",
+        "companyName": "Exor"
+      },
+      {
+        "symbol": "ADS.DE",
+        "companyName": "Adidas"
+      },
+      {
+        "symbol": "PUM.DE",
+        "companyName": "Puma"
+      },
+      {
+        "symbol": "DHER.DE",
+        "companyName": "Delivery Hero"
+      },
+      {
+        "symbol": "HO.PA",
+        "companyName": "Thales"
+      },
+      {
+        "symbol": "AM.PA",
+        "companyName": "Dassault Aviation"
+      },
+      {
+        "symbol": "BAB.L",
+        "companyName": "Babcock International Group"
+      },
+      {
+        "symbol": "QQ.L",
+        "companyName": "QinetiQ Group"
       }
     ]
   },
@@ -3082,6 +3770,18 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "LICI.NS",
         "companyName": "Life Insurance Corporation of India"
+      },
+      {
+        "symbol": "SWIGGY.NS",
+        "companyName": "Swiggy"
+      },
+      {
+        "symbol": "HAL.NS",
+        "companyName": "Hindustan Aeronautics"
+      },
+      {
+        "symbol": "BEL.NS",
+        "companyName": "Bharat Electronics"
       }
     ]
   },
@@ -3611,6 +4311,10 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "THG.L",
         "companyName": "THG plc"
+      },
+      {
+        "symbol": "TATE.L",
+        "companyName": "Tate and Lyle"
       }
     ]
   },
@@ -4395,6 +5099,86 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "096770.KS",
         "companyName": "SK Innovation Co., Ltd."
+      },
+      {
+        "symbol": "055550.KS",
+        "companyName": "Shinhan Financial Group"
+      },
+      {
+        "symbol": "316140.KS",
+        "companyName": "Woori Financial Group"
+      },
+      {
+        "symbol": "373220.KS",
+        "companyName": "LG Energy Solution"
+      },
+      {
+        "symbol": "006400.KS",
+        "companyName": "Samsung SDI"
+      },
+      {
+        "symbol": "015760.KS",
+        "companyName": "Korea Electric Power"
+      },
+      {
+        "symbol": "032830.KS",
+        "companyName": "Samsung Life Insurance"
+      },
+      {
+        "symbol": "033780.KS",
+        "companyName": "KT&G Corporation"
+      },
+      {
+        "symbol": "034220.KS",
+        "companyName": "LG Display"
+      },
+      {
+        "symbol": "010950.KS",
+        "companyName": "S-Oil"
+      },
+      {
+        "symbol": "010130.KS",
+        "companyName": "Korea Zinc"
+      },
+      {
+        "symbol": "034020.KS",
+        "companyName": "Doosan Enerbility"
+      },
+      {
+        "symbol": "323410.KS",
+        "companyName": "KakaoBank"
+      },
+      {
+        "symbol": "377300.KS",
+        "companyName": "KakaoPay"
+      },
+      {
+        "symbol": "036570.KS",
+        "companyName": "NCSoft"
+      },
+      {
+        "symbol": "251270.KS",
+        "companyName": "Netmarble"
+      },
+      {
+        "symbol": "000720.KS",
+        "companyName": "Hyundai Engineering and Construction"
+      },
+      {
+        "symbol": "003670.KS",
+        "companyName": "POSCO Future M"
+      },
+      {
+        "symbol": "247540.KQ",
+        "companyName": "Ecopro BM"
+      },
+      {
+        "symbol": "047810.KS",
+        "companyName": "Korea Aerospace Industries"
+      },
+      {
+        "symbol": "079550.KS",
+        "companyName": "LIG Nex1"
       }
     ]
   },
@@ -4488,6 +5272,66 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "VIVT3.SA",
         "companyName": "Telefonica Brasil S.A."
+      },
+      {
+        "symbol": "SANB11.SA",
+        "companyName": "Banco Santander Brasil"
+      },
+      {
+        "symbol": "GGBR4.SA",
+        "companyName": "Gerdau"
+      },
+      {
+        "symbol": "BPAC11.SA",
+        "companyName": "BTG Pactual"
+      },
+      {
+        "symbol": "KLBN11.SA",
+        "companyName": "Klabin"
+      },
+      {
+        "symbol": "MRFG3.SA",
+        "companyName": "Marfrig Global Foods"
+      },
+      {
+        "symbol": "NTCO3.SA",
+        "companyName": "Natura and Co Holding"
+      },
+      {
+        "symbol": "UGPA3.SA",
+        "companyName": "Ultrapar Participacoes"
+      },
+      {
+        "symbol": "VBBR3.SA",
+        "companyName": "Vibra Energia"
+      },
+      {
+        "symbol": "CSAN3.SA",
+        "companyName": "Cosan"
+      },
+      {
+        "symbol": "CCRO3.SA",
+        "companyName": "CCR (Motiva)"
+      },
+      {
+        "symbol": "SBSP3.SA",
+        "companyName": "Companhia de Saneamento Basico do Estado de Sao Paulo"
+      },
+      {
+        "symbol": "EGIE3.SA",
+        "companyName": "Engie Brasil Energia"
+      },
+      {
+        "symbol": "EQTL3.SA",
+        "companyName": "Equatorial Energia"
+      },
+      {
+        "symbol": "TIMS3.SA",
+        "companyName": "TIM S.A."
+      },
+      {
+        "symbol": "HYPE3.SA",
+        "companyName": "Hypera"
       }
     ]
   },
@@ -4545,6 +5389,54 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "U96.SI",
         "companyName": "Sembcorp Industries Ltd."
+      },
+      {
+        "symbol": "S63.SI",
+        "companyName": "ST Engineering"
+      },
+      {
+        "symbol": "C38U.SI",
+        "companyName": "CapitaLand Integrated Commercial Trust"
+      },
+      {
+        "symbol": "A17U.SI",
+        "companyName": "CapitaLand Ascendas REIT"
+      },
+      {
+        "symbol": "M44U.SI",
+        "companyName": "Mapletree Logistics Trust"
+      },
+      {
+        "symbol": "Y92.SI",
+        "companyName": "Thai Beverage"
+      },
+      {
+        "symbol": "G07.SI",
+        "companyName": "Great Eastern Holdings"
+      },
+      {
+        "symbol": "C09.SI",
+        "companyName": "City Developments"
+      },
+      {
+        "symbol": "U14.SI",
+        "companyName": "UOL Group"
+      },
+      {
+        "symbol": "H78.SI",
+        "companyName": "Hongkong Land Holdings"
+      },
+      {
+        "symbol": "D01.SI",
+        "companyName": "DFI Retail Group"
+      },
+      {
+        "symbol": "5E2.SI",
+        "companyName": "Seatrium"
+      },
+      {
+        "symbol": "BS6.SI",
+        "companyName": "Yangzijiang Shipbuilding"
       }
     ]
   },
@@ -4602,6 +5494,62 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "2886.TW",
         "companyName": "Mega Financial Holding Co., Ltd."
+      },
+      {
+        "symbol": "2882.TW",
+        "companyName": "Cathay Financial Holding"
+      },
+      {
+        "symbol": "2891.TW",
+        "companyName": "CTBC Financial Holding"
+      },
+      {
+        "symbol": "2884.TW",
+        "companyName": "E.Sun Financial Holding"
+      },
+      {
+        "symbol": "2880.TW",
+        "companyName": "Hua Nan Financial Holding"
+      },
+      {
+        "symbol": "1301.TW",
+        "companyName": "Formosa Plastics"
+      },
+      {
+        "symbol": "1303.TW",
+        "companyName": "Nan Ya Plastics"
+      },
+      {
+        "symbol": "1326.TW",
+        "companyName": "Formosa Chemicals and Fibre"
+      },
+      {
+        "symbol": "6505.TW",
+        "companyName": "Formosa Petrochemical"
+      },
+      {
+        "symbol": "2207.TW",
+        "companyName": "Hotai Motor"
+      },
+      {
+        "symbol": "2912.TW",
+        "companyName": "President Chain Store"
+      },
+      {
+        "symbol": "3008.TW",
+        "companyName": "Largan Precision"
+      },
+      {
+        "symbol": "2603.TW",
+        "companyName": "Evergreen Marine"
+      },
+      {
+        "symbol": "2609.TW",
+        "companyName": "Yang Ming Marine Transport"
+      },
+      {
+        "symbol": "2615.TW",
+        "companyName": "Wan Hai Lines"
       }
     ]
   },
@@ -4659,6 +5607,42 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "VESTA.MX",
         "companyName": "Corporacion Inmobiliaria Vesta, S.A.B. de C.V."
+      },
+      {
+        "symbol": "AC.MX",
+        "companyName": "Arca Continental"
+      },
+      {
+        "symbol": "GFINBURO.MX",
+        "companyName": "Grupo Financiero Inbursa"
+      },
+      {
+        "symbol": "GAPB.MX",
+        "companyName": "Grupo Aeroportuario del Pacifico"
+      },
+      {
+        "symbol": "OMAB.MX",
+        "companyName": "Grupo Aeroportuario Centro Norte"
+      },
+      {
+        "symbol": "KIMBERA.MX",
+        "companyName": "Kimberly-Clark de Mexico"
+      },
+      {
+        "symbol": "PINFRA.MX",
+        "companyName": "Promotora y Operadora de Infraestructura"
+      },
+      {
+        "symbol": "MEGACPO.MX",
+        "companyName": "Megacable Holdings"
+      },
+      {
+        "symbol": "LABB.MX",
+        "companyName": "Genomma Lab Internacional"
+      },
+      {
+        "symbol": "Q.MX",
+        "companyName": "Qualitas Controladora"
       }
     ]
   },
@@ -4700,6 +5684,30 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "4030.SR",
         "companyName": "Bahri (National Shipping Company of Saudi Arabia)"
+      },
+      {
+        "symbol": "2280.SR",
+        "companyName": "Almarai"
+      },
+      {
+        "symbol": "2082.SR",
+        "companyName": "ACWA Power"
+      },
+      {
+        "symbol": "4190.SR",
+        "companyName": "Jarir Marketing"
+      },
+      {
+        "symbol": "2020.SR",
+        "companyName": "SABIC Agri-Nutrients"
+      },
+      {
+        "symbol": "1140.SR",
+        "companyName": "Bank Albilad"
+      },
+      {
+        "symbol": "4013.SR",
+        "companyName": "Dr. Sulaiman Al Habib Medical Services"
       }
     ]
   },
@@ -4894,6 +5902,50 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "VOD.JO",
         "companyName": "Vodacom Group"
+      },
+      {
+        "symbol": "CPI.JO",
+        "companyName": "Capitec Bank Holdings"
+      },
+      {
+        "symbol": "SHP.JO",
+        "companyName": "Shoprite Holdings"
+      },
+      {
+        "symbol": "WHL.JO",
+        "companyName": "Woolworths Holdings"
+      },
+      {
+        "symbol": "CLS.JO",
+        "companyName": "Clicks Group"
+      },
+      {
+        "symbol": "BVT.JO",
+        "companyName": "Bidvest Group"
+      },
+      {
+        "symbol": "BID.JO",
+        "companyName": "Bid Corporation"
+      },
+      {
+        "symbol": "SLM.JO",
+        "companyName": "Sanlam"
+      },
+      {
+        "symbol": "OMU.JO",
+        "companyName": "Old Mutual"
+      },
+      {
+        "symbol": "DSY.JO",
+        "companyName": "Discovery Limited"
+      },
+      {
+        "symbol": "GFI.JO",
+        "companyName": "Gold Fields"
+      },
+      {
+        "symbol": "ANG.JO",
+        "companyName": "AngloGold Ashanti"
       }
     ]
   },
@@ -4919,6 +5971,54 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "GILT",
         "companyName": "Gilat Satellite Networks"
+      },
+      {
+        "symbol": "CYBR",
+        "companyName": "CyberArk Software"
+      },
+      {
+        "symbol": "S",
+        "companyName": "SentinelOne"
+      },
+      {
+        "symbol": "WIX",
+        "companyName": "Wix.com"
+      },
+      {
+        "symbol": "MNDY",
+        "companyName": "monday.com"
+      },
+      {
+        "symbol": "GLBE",
+        "companyName": "Global-e Online"
+      },
+      {
+        "symbol": "TEVA",
+        "companyName": "Teva Pharmaceutical Industries"
+      },
+      {
+        "symbol": "MBLY",
+        "companyName": "Mobileye Global"
+      },
+      {
+        "symbol": "NVMI",
+        "companyName": "Nova Ltd"
+      },
+      {
+        "symbol": "TSEM",
+        "companyName": "Tower Semiconductor"
+      },
+      {
+        "symbol": "PLTK",
+        "companyName": "Playtika Holding"
+      },
+      {
+        "symbol": "ODD",
+        "companyName": "Oddity Tech"
+      },
+      {
+        "symbol": "FVRR",
+        "companyName": "Fiverr International"
       }
     ]
   },
@@ -4952,6 +6052,46 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "ASII.JK",
         "companyName": "Astra International"
+      },
+      {
+        "symbol": "BBCA.JK",
+        "companyName": "Bank Central Asia"
+      },
+      {
+        "symbol": "BBNI.JK",
+        "companyName": "Bank Negara Indonesia"
+      },
+      {
+        "symbol": "TPIA.JK",
+        "companyName": "Chandra Asri Pacific"
+      },
+      {
+        "symbol": "BREN.JK",
+        "companyName": "Barito Renewables Energy"
+      },
+      {
+        "symbol": "UNVR.JK",
+        "companyName": "Unilever Indonesia"
+      },
+      {
+        "symbol": "ICBP.JK",
+        "companyName": "Indofood CBP Sukses Makmur"
+      },
+      {
+        "symbol": "INDF.JK",
+        "companyName": "Indofood Sukses Makmur"
+      },
+      {
+        "symbol": "PGAS.JK",
+        "companyName": "Perusahaan Gas Negara"
+      },
+      {
+        "symbol": "ANTM.JK",
+        "companyName": "Aneka Tambang"
+      },
+      {
+        "symbol": "HMSP.JK",
+        "companyName": "HM Sampoerna"
       }
     ]
   },
@@ -4989,6 +6129,50 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "VPB.VN",
         "companyName": "Vietnam Prosperity Joint Stock Commercial Bank"
+      },
+      {
+        "symbol": "FPT.VN",
+        "companyName": "FPT Corporation"
+      },
+      {
+        "symbol": "MWG.VN",
+        "companyName": "Mobile World Investment"
+      },
+      {
+        "symbol": "GAS.VN",
+        "companyName": "PetroVietnam Gas"
+      },
+      {
+        "symbol": "VRE.VN",
+        "companyName": "Vincom Retail"
+      },
+      {
+        "symbol": "CTG.VN",
+        "companyName": "VietinBank"
+      },
+      {
+        "symbol": "MBB.VN",
+        "companyName": "Military Commercial Bank"
+      },
+      {
+        "symbol": "VJC.VN",
+        "companyName": "Vietjet Aviation"
+      },
+      {
+        "symbol": "SAB.VN",
+        "companyName": "Saigon Beer-Alcohol-Beverage (Sabeco)"
+      },
+      {
+        "symbol": "PLX.VN",
+        "companyName": "Petrolimex"
+      },
+      {
+        "symbol": "SSI.VN",
+        "companyName": "SSI Securities"
+      },
+      {
+        "symbol": "PNJ.VN",
+        "companyName": "Phu Nhuan Jewelry"
       }
     ]
   },
@@ -5026,6 +6210,50 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "TKFEN.IS",
         "companyName": "Tekfen Holding A.S."
+      },
+      {
+        "symbol": "ASELS.IS",
+        "companyName": "Aselsan"
+      },
+      {
+        "symbol": "FROTO.IS",
+        "companyName": "Ford Otosan"
+      },
+      {
+        "symbol": "TUPRS.IS",
+        "companyName": "Turkiye Petrol Rafinerileri"
+      },
+      {
+        "symbol": "SAHOL.IS",
+        "companyName": "Haci Omer Sabanci Holding"
+      },
+      {
+        "symbol": "ISCTR.IS",
+        "companyName": "Turkiye Is Bankasi"
+      },
+      {
+        "symbol": "YKBNK.IS",
+        "companyName": "Yapi ve Kredi Bankasi"
+      },
+      {
+        "symbol": "VAKBN.IS",
+        "companyName": "Turkiye Vakiflar Bankasi"
+      },
+      {
+        "symbol": "TCELL.IS",
+        "companyName": "Turkcell Iletisim Hizmetleri"
+      },
+      {
+        "symbol": "ENKAI.IS",
+        "companyName": "Enka Insaat ve Sanayi"
+      },
+      {
+        "symbol": "SASA.IS",
+        "companyName": "Sasa Polyester Sanayi"
+      },
+      {
+        "symbol": "ASTOR.IS",
+        "companyName": "Astor Enerji"
       }
     ]
   },
@@ -5033,24 +6261,80 @@ export const GLOBAL_MARKETS: Market[] = [
     "name": "UAE Exchanges (ADX & DFM)",
     "stocks": [
       {
-        "symbol": "FAB.AD",
+        "symbol": "FAB.AB",
         "companyName": "First Abu Dhabi Bank PJSC"
       },
       {
-        "symbol": "EMAAR.DU",
+        "symbol": "EMAAR.AE",
         "companyName": "Emaar Properties PJSC"
       },
       {
-        "symbol": "DIB.DU",
+        "symbol": "DIB.AE",
         "companyName": "Dubai Islamic Bank PJSC"
       },
       {
-        "symbol": "ENBD.DU",
+        "symbol": "EMIRATESNBD.AE",
         "companyName": "Emirates NBD Bank PJSC"
       },
       {
-        "symbol": "ALDAR.AD",
+        "symbol": "ALDAR.AB",
         "companyName": "Aldar Properties PJSC"
+      },
+      {
+        "symbol": "IHC.AB",
+        "companyName": "International Holding Company"
+      },
+      {
+        "symbol": "ADNOCGAS.AB",
+        "companyName": "ADNOC Gas"
+      },
+      {
+        "symbol": "ADNOCDRILL.AB",
+        "companyName": "ADNOC Drilling"
+      },
+      {
+        "symbol": "ETISALAT.AB",
+        "companyName": "e& (Etisalat Group)"
+      },
+      {
+        "symbol": "TAQA.AB",
+        "companyName": "Abu Dhabi National Energy"
+      },
+      {
+        "symbol": "ADIB.AB",
+        "companyName": "Abu Dhabi Islamic Bank"
+      },
+      {
+        "symbol": "ADCB.AB",
+        "companyName": "Abu Dhabi Commercial Bank"
+      },
+      {
+        "symbol": "BOROUGE.AB",
+        "companyName": "Borouge"
+      },
+      {
+        "symbol": "AMR.AB",
+        "companyName": "Americana Restaurants International"
+      },
+      {
+        "symbol": "DEWA.AE",
+        "companyName": "Dubai Electricity and Water Authority"
+      },
+      {
+        "symbol": "SALIK.AE",
+        "companyName": "Salik Company"
+      },
+      {
+        "symbol": "TALABAT.AE",
+        "companyName": "Talabat Holding"
+      },
+      {
+        "symbol": "AIRARABIA.AE",
+        "companyName": "Air Arabia"
+      },
+      {
+        "symbol": "PARKIN.AE",
+        "companyName": "Parkin Company"
       }
     ]
   },
@@ -5084,6 +6368,50 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "1961.KL",
         "companyName": "IOI Corporation Berhad"
+      },
+      {
+        "symbol": "5183.KL",
+        "companyName": "Petronas Chemicals Group"
+      },
+      {
+        "symbol": "5681.KL",
+        "companyName": "Petronas Dagangan"
+      },
+      {
+        "symbol": "6033.KL",
+        "companyName": "Petronas Gas"
+      },
+      {
+        "symbol": "5225.KL",
+        "companyName": "IHH Healthcare"
+      },
+      {
+        "symbol": "3816.KL",
+        "companyName": "MISC Berhad"
+      },
+      {
+        "symbol": "6888.KL",
+        "companyName": "Axiata Group"
+      },
+      {
+        "symbol": "1066.KL",
+        "companyName": "RHB Bank"
+      },
+      {
+        "symbol": "5819.KL",
+        "companyName": "Hong Leong Bank"
+      },
+      {
+        "symbol": "1082.KL",
+        "companyName": "Hong Leong Financial Group"
+      },
+      {
+        "symbol": "3182.KL",
+        "companyName": "Genting Berhad"
+      },
+      {
+        "symbol": "4715.KL",
+        "companyName": "Genting Malaysia"
       }
     ]
   },
@@ -5121,6 +6449,58 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "MINT.BK",
         "companyName": "Minor International Public Company Limited"
+      },
+      {
+        "symbol": "PTTEP.BK",
+        "companyName": "PTT Exploration and Production"
+      },
+      {
+        "symbol": "OR.BK",
+        "companyName": "PTT Oil and Retail Business"
+      },
+      {
+        "symbol": "SCC.BK",
+        "companyName": "Siam Cement"
+      },
+      {
+        "symbol": "BDMS.BK",
+        "companyName": "Bangkok Dusit Medical Services"
+      },
+      {
+        "symbol": "BH.BK",
+        "companyName": "Bumrungrad Hospital"
+      },
+      {
+        "symbol": "CPAXT.BK",
+        "companyName": "CP Axtra"
+      },
+      {
+        "symbol": "CPF.BK",
+        "companyName": "Charoen Pokphand Foods"
+      },
+      {
+        "symbol": "CPN.BK",
+        "companyName": "Central Pattana"
+      },
+      {
+        "symbol": "KTB.BK",
+        "companyName": "Krung Thai Bank"
+      },
+      {
+        "symbol": "TTB.BK",
+        "companyName": "TMBThanachart Bank"
+      },
+      {
+        "symbol": "TRUE.BK",
+        "companyName": "True Corporation"
+      },
+      {
+        "symbol": "HMPRO.BK",
+        "companyName": "Home Product Center"
+      },
+      {
+        "symbol": "DELTA.BK",
+        "companyName": "Delta Electronics Thailand"
       }
     ]
   },
@@ -5158,6 +6538,576 @@ export const GLOBAL_MARKETS: Market[] = [
       {
         "symbol": "CPS.WA",
         "companyName": "Cyfrowy Polsat S.A."
+      },
+      {
+        "symbol": "ALE.WA",
+        "companyName": "Allegro.eu"
+      },
+      {
+        "symbol": "DNP.WA",
+        "companyName": "Dino Polska"
+      },
+      {
+        "symbol": "PEO.WA",
+        "companyName": "Bank Pekao"
+      },
+      {
+        "symbol": "SPL.WA",
+        "companyName": "Erste Bank Polska"
+      },
+      {
+        "symbol": "MBK.WA",
+        "companyName": "mBank"
+      },
+      {
+        "symbol": "OPL.WA",
+        "companyName": "Orange Polska"
+      },
+      {
+        "symbol": "PCO.WA",
+        "companyName": "Pepco Group"
+      },
+      {
+        "symbol": "CCC.WA",
+        "companyName": "CCC S.A."
+      },
+      {
+        "symbol": "BDX.WA",
+        "companyName": "Budimex"
+      }
+    ]
+  },
+  {
+    "name": "Philippine Stock Exchange (PSE)",
+    "stocks": [
+      {
+        "symbol": "SM.PS",
+        "companyName": "SM Investments Corporation"
+      },
+      {
+        "symbol": "BDO.PS",
+        "companyName": "BDO Unibank"
+      },
+      {
+        "symbol": "ICT.PS",
+        "companyName": "International Container Terminal Services"
+      },
+      {
+        "symbol": "SMPH.PS",
+        "companyName": "SM Prime Holdings"
+      },
+      {
+        "symbol": "BPI.PS",
+        "companyName": "Bank of the Philippine Islands"
+      },
+      {
+        "symbol": "AC.PS",
+        "companyName": "Ayala Corporation"
+      },
+      {
+        "symbol": "ALI.PS",
+        "companyName": "Ayala Land"
+      },
+      {
+        "symbol": "JFC.PS",
+        "companyName": "Jollibee Foods Corporation"
+      },
+      {
+        "symbol": "GLO.PS",
+        "companyName": "Globe Telecom"
+      },
+      {
+        "symbol": "MER.PS",
+        "companyName": "Manila Electric Company"
+      },
+      {
+        "symbol": "TEL.PS",
+        "companyName": "PLDT Inc."
+      }
+    ]
+  },
+  {
+    "name": "Santiago Stock Exchange (Chile)",
+    "stocks": [
+      {
+        "symbol": "FALABELLA.SN",
+        "companyName": "Falabella"
+      },
+      {
+        "symbol": "COPEC.SN",
+        "companyName": "Empresas Copec"
+      },
+      {
+        "symbol": "ENELCHILE.SN",
+        "companyName": "Enel Chile"
+      },
+      {
+        "symbol": "CENCOSUD.SN",
+        "companyName": "Cencosud"
+      },
+      {
+        "symbol": "CCU.SN",
+        "companyName": "Compania Cervecerias Unidas"
+      },
+      {
+        "symbol": "CHILE.SN",
+        "companyName": "Banco de Chile"
+      },
+      {
+        "symbol": "BSANTANDER.SN",
+        "companyName": "Banco Santander-Chile"
+      },
+      {
+        "symbol": "LTM.SN",
+        "companyName": "LATAM Airlines Group"
+      },
+      {
+        "symbol": "CMPC.SN",
+        "companyName": "Empresas CMPC"
+      },
+      {
+        "symbol": "COLBUN.SN",
+        "companyName": "Colbun"
+      },
+      {
+        "symbol": "AGUAS-A.SN",
+        "companyName": "Aguas Andinas"
+      },
+      {
+        "symbol": "PARAUCO.SN",
+        "companyName": "Parque Arauco"
+      },
+      {
+        "symbol": "SQM-B.SN",
+        "companyName": "Sociedad Quimica y Minera (B shares)"
+      }
+    ]
+  },
+  {
+    "name": "Bolsa de Valores de Colombia (BVC)",
+    "stocks": [
+      {
+        "symbol": "ECOPETROL.CL",
+        "companyName": "Ecopetrol"
+      },
+      {
+        "symbol": "PFBCOLOM.CL",
+        "companyName": "Bancolombia (preferred)"
+      },
+      {
+        "symbol": "GRUPOSURA.CL",
+        "companyName": "Grupo SURA"
+      },
+      {
+        "symbol": "GRUPOARGOS.CL",
+        "companyName": "Grupo Argos"
+      },
+      {
+        "symbol": "CEMARGOS.CL",
+        "companyName": "Cementos Argos"
+      },
+      {
+        "symbol": "GEB.CL",
+        "companyName": "Grupo Energia Bogota"
+      },
+      {
+        "symbol": "ISA.CL",
+        "companyName": "Interconexion Electrica (ISA)"
+      },
+      {
+        "symbol": "NUTRESA.CL",
+        "companyName": "Grupo Nutresa"
+      },
+      {
+        "symbol": "CELSIA.CL",
+        "companyName": "Celsia"
+      },
+      {
+        "symbol": "PFAVAL.CL",
+        "companyName": "Grupo Aval (preferred)"
+      }
+    ]
+  },
+  {
+    "name": "Bolsa de Valores de Lima (Peru)",
+    "stocks": [
+      {
+        "symbol": "IFS.LM",
+        "companyName": "Intercorp Financial Services"
+      },
+      {
+        "symbol": "BVN.LM",
+        "companyName": "Compania de Minas Buenaventura"
+      },
+      {
+        "symbol": "ALICORC1.LM",
+        "companyName": "Alicorp"
+      },
+      {
+        "symbol": "FERREYC1.LM",
+        "companyName": "Ferreycorp"
+      },
+      {
+        "symbol": "CPACASI1.LM",
+        "companyName": "Cementos Pacasmayo (investment shares)"
+      },
+      {
+        "symbol": "MINSURI1.LM",
+        "companyName": "Minsur (investment shares)"
+      },
+      {
+        "symbol": "INRETC1.LM",
+        "companyName": "InRetail Peru"
+      },
+      {
+        "symbol": "VOLCABC1.LM",
+        "companyName": "Volcan Compania Minera (B)"
+      },
+      {
+        "symbol": "BAP",
+        "companyName": "Credicorp (NYSE ADR; no confirmed Lima line)"
+      }
+    ]
+  },
+  {
+    "name": "Argentina (BYMA / US ADRs)",
+    "stocks": [
+      {
+        "symbol": "GGAL",
+        "companyName": "Grupo Financiero Galicia (ADR)"
+      },
+      {
+        "symbol": "YPF",
+        "companyName": "YPF S.A. (ADR)"
+      },
+      {
+        "symbol": "BMA",
+        "companyName": "Banco Macro (ADR)"
+      },
+      {
+        "symbol": "PAM",
+        "companyName": "Pampa Energia (ADR)"
+      },
+      {
+        "symbol": "BBAR",
+        "companyName": "Banco BBVA Argentina (ADR)"
+      },
+      {
+        "symbol": "SUPV",
+        "companyName": "Grupo Supervielle (ADR)"
+      },
+      {
+        "symbol": "LOMA",
+        "companyName": "Loma Negra (ADR)"
+      },
+      {
+        "symbol": "CRESY",
+        "companyName": "Cresud (ADR)"
+      },
+      {
+        "symbol": "TEO",
+        "companyName": "Telecom Argentina (ADR)"
+      },
+      {
+        "symbol": "CEPU",
+        "companyName": "Central Puerto (ADR)"
+      },
+      {
+        "symbol": "BYMA.BA",
+        "companyName": "Bolsas y Mercados Argentinos"
+      }
+    ]
+  },
+  {
+    "name": "Qatar Exchange",
+    "stocks": [
+      {
+        "symbol": "QNBK.QA",
+        "companyName": "Qatar National Bank"
+      },
+      {
+        "symbol": "IQCD.QA",
+        "companyName": "Industries Qatar"
+      },
+      {
+        "symbol": "QIBK.QA",
+        "companyName": "Qatar Islamic Bank"
+      },
+      {
+        "symbol": "QGTS.QA",
+        "companyName": "Qatar Gas Transport (Nakilat)"
+      },
+      {
+        "symbol": "QFLS.QA",
+        "companyName": "Qatar Fuel (WOQOD)"
+      },
+      {
+        "symbol": "QEWS.QA",
+        "companyName": "Qatar Electricity and Water"
+      },
+      {
+        "symbol": "MARK.QA",
+        "companyName": "Masraf Al Rayan"
+      },
+      {
+        "symbol": "QATI.QA",
+        "companyName": "Qatar Insurance"
+      }
+    ]
+  },
+  {
+    "name": "Boursa Kuwait",
+    "stocks": [
+      {
+        "symbol": "NBK.KW",
+        "companyName": "National Bank of Kuwait"
+      },
+      {
+        "symbol": "KFH.KW",
+        "companyName": "Kuwait Finance House"
+      },
+      {
+        "symbol": "ZAIN.KW",
+        "companyName": "Mobile Telecommunications (Zain)"
+      },
+      {
+        "symbol": "BOUBYAN.KW",
+        "companyName": "Boubyan Bank"
+      },
+      {
+        "symbol": "AGLTY.KW",
+        "companyName": "Agility Public Warehousing"
+      },
+      {
+        "symbol": "GBK.KW",
+        "companyName": "Gulf Bank"
+      },
+      {
+        "symbol": "MABANEE.KW",
+        "companyName": "Mabanee"
+      },
+      {
+        "symbol": "HUMANSOFT.KW",
+        "companyName": "Humansoft Holding"
+      }
+    ]
+  },
+  {
+    "name": "Egyptian Exchange (EGX)",
+    "stocks": [
+      {
+        "symbol": "COMI.CA",
+        "companyName": "Commercial International Bank"
+      },
+      {
+        "symbol": "FWRY.CA",
+        "companyName": "Fawry"
+      },
+      {
+        "symbol": "HRHO.CA",
+        "companyName": "EFG Holding"
+      },
+      {
+        "symbol": "JUFO.CA",
+        "companyName": "Juhayna Food Industries"
+      }
+    ]
+  },
+  {
+    "name": "New Zealand Exchange (NZX)",
+    "stocks": [
+      {
+        "symbol": "FPH.NZ",
+        "companyName": "Fisher and Paykel Healthcare"
+      },
+      {
+        "symbol": "AIA.NZ",
+        "companyName": "Auckland International Airport"
+      },
+      {
+        "symbol": "MEL.NZ",
+        "companyName": "Meridian Energy"
+      },
+      {
+        "symbol": "MFT.NZ",
+        "companyName": "Mainfreight"
+      },
+      {
+        "symbol": "IFT.NZ",
+        "companyName": "Infratil"
+      },
+      {
+        "symbol": "EBO.NZ",
+        "companyName": "EBOS Group"
+      },
+      {
+        "symbol": "CEN.NZ",
+        "companyName": "Contact Energy"
+      },
+      {
+        "symbol": "SPK.NZ",
+        "companyName": "Spark New Zealand"
+      },
+      {
+        "symbol": "MCY.NZ",
+        "companyName": "Mercury NZ"
+      },
+      {
+        "symbol": "RYM.NZ",
+        "companyName": "Ryman Healthcare"
+      },
+      {
+        "symbol": "ATM.NZ",
+        "companyName": "The a2 Milk Company"
+      },
+      {
+        "symbol": "FBU.NZ",
+        "companyName": "Fletcher Building"
+      }
+    ]
+  },
+  {
+    "name": "Pakistan Stock Exchange (PSX)",
+    "stocks": [
+      {
+        "symbol": "LUCK.KA",
+        "companyName": "Lucky Cement"
+      },
+      {
+        "symbol": "HBL.KA",
+        "companyName": "Habib Bank"
+      },
+      {
+        "symbol": "PPL.KA",
+        "companyName": "Pakistan Petroleum"
+      },
+      {
+        "symbol": "MEBL.KA",
+        "companyName": "Meezan Bank"
+      }
+    ]
+  },
+  {
+    "name": "Prague Stock Exchange (Czech Republic)",
+    "stocks": [
+      {
+        "symbol": "CEZ.PR",
+        "companyName": "CEZ a.s."
+      },
+      {
+        "symbol": "KOMB.PR",
+        "companyName": "Komercni banka a.s."
+      }
+    ]
+  },
+  {
+    "name": "Budapest Stock Exchange (Hungary)",
+    "stocks": [
+      {
+        "symbol": "OTP.BD",
+        "companyName": "OTP Bank Nyrt."
+      },
+      {
+        "symbol": "MOL.BD",
+        "companyName": "MOL Magyar Olaj- es Gazipari Nyrt."
+      },
+      {
+        "symbol": "RICHT.BD",
+        "companyName": "Gedeon Richter Plc."
+      },
+      {
+        "symbol": "MTEL.BD",
+        "companyName": "Magyar Telekom"
+      },
+      {
+        "symbol": "4IG.BD",
+        "companyName": "4iG Nyrt."
+      },
+      {
+        "symbol": "OPUS.BD",
+        "companyName": "OPUS GLOBAL Nyrt."
+      }
+    ]
+  },
+  {
+    "name": "Bucharest Stock Exchange (Romania)",
+    "stocks": [
+      {
+        "symbol": "TLV.RO",
+        "companyName": "Banca Transilvania S.A."
+      },
+      {
+        "symbol": "SNP.RO",
+        "companyName": "OMV Petrom S.A."
+      },
+      {
+        "symbol": "SNG.RO",
+        "companyName": "SNGN Romgaz SA"
+      },
+      {
+        "symbol": "SNN.RO",
+        "companyName": "S.N. Nuclearelectrica S.A."
+      },
+      {
+        "symbol": "H2O.RO",
+        "companyName": "Hidroelectrica S.A."
+      },
+      {
+        "symbol": "BRD.RO",
+        "companyName": "BRD - Groupe Societe Generale S.A."
+      },
+      {
+        "symbol": "BVB.RO",
+        "companyName": "Bursa de Valori Bucuresti SA"
+      }
+    ]
+  },
+  {
+    "name": "Athens Stock Exchange (Greece)",
+    "stocks": [
+      {
+        "symbol": "ETE.AT",
+        "companyName": "National Bank of Greece S.A."
+      },
+      {
+        "symbol": "EUROB.AT",
+        "companyName": "Eurobank Ergasias Services and Holdings S.A."
+      },
+      {
+        "symbol": "ALPHA.AT",
+        "companyName": "Alpha Services and Holdings S.A."
+      },
+      {
+        "symbol": "TPEIR.AT",
+        "companyName": "Piraeus Financial Holdings S.A."
+      },
+      {
+        "symbol": "HTO.AT",
+        "companyName": "Hellenic Telecommunications Organization (OTE)"
+      },
+      {
+        "symbol": "BELA.AT",
+        "companyName": "Jumbo S.A."
+      },
+      {
+        "symbol": "MYTIL.AT",
+        "companyName": "Metlen Energy and Metals"
+      },
+      {
+        "symbol": "MOH.AT",
+        "companyName": "Motor Oil (Hellas) Corinth Refineries S.A."
+      },
+      {
+        "symbol": "PPC.AT",
+        "companyName": "Public Power Corporation S.A."
+      },
+      {
+        "symbol": "ALWN.AT",
+        "companyName": "Allwyn AG"
+      },
+      {
+        "symbol": "TITC.AT",
+        "companyName": "Titan S.A."
       }
     ]
   }
