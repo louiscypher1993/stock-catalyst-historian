@@ -1,1 +1,2716 @@
-{"completed":["CAG","CHPT","RIG","FRO","TSN","ANDE","INGR","DAR","BE","PL","GSAT","XYL","PNR","WTRG","VLTO","CGNX","ZBRA","COTY","NVT","VAL","NE","ACHR","KMX","ZIM","TXT","HII","KTOS","LDOS","XLV","XLI","XLY","XLP","XLB","XLU","XLRE","XBI","EWZ","FXI","EWJ","INDA","EEM","VGK","USO","SLV","DBC","VIXY","KHC","WBA","PLUG","DBX","DOCU","SBLK","AGRO","CSIQ","JKS","DQ","ARRY","ALNY","CRSP","NTLA","BEAM","NTRA","EXAS","TXG","ENTG","MKSI","TER","IRDM","VSAT","LUNR","GEN","QLYS","SYM","UAA","SKX","EVGO","BLNK","RGTI","QBTS","CART","U","IBKR","UPST","PENN","CZR","STNE","9107.T","6857.T","6146.T","7735.T","6525.T","3436.T","6506.T","6645.T","6594.T","8750.T","8630.T","8725.T","7012.T","7013.T","HLAG.DE","VWS.CO","NDX1.DE","ARGX.BR","ASM.AS","ETL.PA","GEBN.SW","BLND.L","LI.PA","GFC.PA","SPSN.SW","AT1.DE","SREN.SW","HNR1.DE","G.MI","SAMPO.HE","TRYG.CO","AENA.MC","AMS.MC","CLNX.MC","NTGY.MC","ELE.MC","SAB.MC","BKT.MC","ACS.MC","GRF.MC","MAP.MC","ANA.MC","RED.MC","MB.MI","BAMI.MI","PRY.MI","MONC.MI","REC.MI","SRG.MI","PST.MI","CPR.MI","NEXI.MI","FBK.MI","BMED.MI","PIRC.MI","TIT.MI","EGL.LS","SON.LS","COR.LS","NVG.LS","SEM.LS","RENE.LS","CTT.LS","KYGA.IR","A5G.IR","GL9.IR","GBLB.BR","UMI.BR","DIE.BR","SOF.BR","ACKB.BR","ELI.BR","SYENS.BR","LOTB.BR","MELE.BR","WDP.BR","AED.BR","MT.AS","IMCD.AS","AALB.AS","HEIO.AS","EXO.AS","ADS.DE","PUM.DE","DHER.DE","HO.PA","AM.PA","BAB.L","QQ.L","SWIGGY.NS","HAL.NS","BEL.NS","TATE.L","055550.KS","316140.KS","373220.KS","006400.KS","015760.KS","032830.KS","033780.KS","034220.KS","010950.KS","010130.KS","034020.KS","323410.KS","377300.KS","036570.KS","251270.KS","000720.KS","003670.KS","247540.KQ","047810.KS","079550.KS","SANB11.SA","GGBR4.SA","BPAC11.SA","KLBN11.SA","MRFG3.SA","NTCO3.SA","UGPA3.SA","VBBR3.SA","CSAN3.SA","CCRO3.SA","SBSP3.SA","EGIE3.SA","EQTL3.SA","TIMS3.SA","HYPE3.SA","S63.SI","C38U.SI","A17U.SI","M44U.SI","Y92.SI","G07.SI","C09.SI","U14.SI","H78.SI","D01.SI","5E2.SI","BS6.SI","2882.TW","2891.TW","2884.TW","2880.TW","1301.TW","1303.TW","1326.TW","6505.TW","2207.TW","2912.TW","3008.TW","2603.TW","2609.TW","2615.TW","AC.MX","GFINBURO.MX","GAPB.MX","OMAB.MX","KIMBERA.MX","PINFRA.MX","MEGACPO.MX","LABB.MX","Q.MX","2280.SR","2082.SR"],"updatedAt":"2026-06-19T16:58:07.389Z"}
+{
+  "succeeded": [
+    {
+      "symbol": "CAG",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "RIG",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "FRO",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "TSN",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ANDE",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "INGR",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "DAR",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "GSAT",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "XYL",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "PNR",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "WTRG",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CGNX",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ZBRA",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "COTY",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "NVT",
+      "rows": 2049,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "KMX",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "TXT",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "HII",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "KTOS",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "LDOS",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "XLV",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "XLI",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "XLY",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "XLP",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "XLB",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "XLU",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "XLRE",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "XBI",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "EWZ",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "FXI",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "EWJ",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "INDA",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "EEM",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "VGK",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "USO",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SLV",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "DBC",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "VIXY",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "KHC",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "PLUG",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "DBX",
+      "rows": 2070,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "DOCU",
+      "rows": 2046,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SBLK",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "AGRO",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CSIQ",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "JKS",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "DQ",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ALNY",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CRSP",
+      "rows": 2428,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "NTLA",
+      "rows": 2543,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "NTRA",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ENTG",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "MKSI",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "TER",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "IRDM",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "VSAT",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "GEN",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "QLYS",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "UAA",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BLNK",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "IBKR",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "PENN",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CZR",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "9107.T",
+      "rows": 2576,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "6857.T",
+      "rows": 2576,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "6146.T",
+      "rows": 2576,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "7735.T",
+      "rows": 2576,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "3436.T",
+      "rows": 2576,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "6506.T",
+      "rows": 2576,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "6645.T",
+      "rows": 2576,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "6594.T",
+      "rows": 2576,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "8750.T",
+      "rows": 2576,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "8630.T",
+      "rows": 2576,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "8725.T",
+      "rows": 2576,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "7012.T",
+      "rows": 2576,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "7013.T",
+      "rows": 2576,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "HLAG.DE",
+      "rows": 2659,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "VWS.CO",
+      "rows": 2614,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "NDX1.DE",
+      "rows": 2659,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ARGX.BR",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ASM.AS",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ETL.PA",
+      "rows": 2679,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "GEBN.SW",
+      "rows": 2628,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BLND.L",
+      "rows": 2643,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "LI.PA",
+      "rows": 2679,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "GFC.PA",
+      "rows": 2679,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SPSN.SW",
+      "rows": 2628,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "AT1.DE",
+      "rows": 2566,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SREN.SW",
+      "rows": 2628,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "HNR1.DE",
+      "rows": 2659,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SAMPO.HE",
+      "rows": 2628,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "TRYG.CO",
+      "rows": 2614,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "GBLB.BR",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "UMI.BR",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "DIE.BR",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SOF.BR",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ACKB.BR",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ELI.BR",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "LOTB.BR",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "MELE.BR",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "WDP.BR",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "AED.BR",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "MT.AS",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "IMCD.AS",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "AALB.AS",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "HEIO.AS",
+      "rows": 2678,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ADS.DE",
+      "rows": 2659,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "PUM.DE",
+      "rows": 2659,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "DHER.DE",
+      "rows": 2278,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "HO.PA",
+      "rows": 2679,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "AM.PA",
+      "rows": 2679,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BAB.L",
+      "rows": 2643,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "QQ.L",
+      "rows": 2643,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "HAL.NS",
+      "rows": 2032,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BEL.NS",
+      "rows": 2586,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "TATE.L",
+      "rows": 2643,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "055550.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "006400.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "015760.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "032830.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "033780.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "034220.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "010950.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "010130.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "034020.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "036570.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "251270.KS",
+      "rows": 2225,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "000720.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "003670.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "047810.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "079550.KS",
+      "rows": 2559,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SANB11.SA",
+      "rows": 2606,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "GGBR4.SA",
+      "rows": 2606,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BPAC11.SA",
+      "rows": 2319,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "KLBN11.SA",
+      "rows": 2606,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "UGPA3.SA",
+      "rows": 2606,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "VBBR3.SA",
+      "rows": 2054,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CSAN3.SA",
+      "rows": 2606,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SBSP3.SA",
+      "rows": 2606,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "EGIE3.SA",
+      "rows": 2606,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "EQTL3.SA",
+      "rows": 2606,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "TIMS3.SA",
+      "rows": 2606,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "HYPE3.SA",
+      "rows": 2606,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "2882.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "2891.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "2884.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "2880.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "1301.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "1303.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "1326.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "6505.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "2207.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "2912.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "3008.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "2603.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "2609.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "2615.TW",
+      "rows": 2539,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "AC.MX",
+      "rows": 2630,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "GFINBURO.MX",
+      "rows": 2630,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "GAPB.MX",
+      "rows": 2630,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "OMAB.MX",
+      "rows": 2630,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "KIMBERA.MX",
+      "rows": 2630,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "PINFRA.MX",
+      "rows": 2630,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "MEGACPO.MX",
+      "rows": 2630,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "LABB.MX",
+      "rows": 2630,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "Q.MX",
+      "rows": 2630,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "WIX",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "TEVA",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "NVMI",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "TSEM",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ASELS.IS",
+      "rows": 2661,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "FROTO.IS",
+      "rows": 2662,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "TUPRS.IS",
+      "rows": 2661,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SAHOL.IS",
+      "rows": 2661,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ISCTR.IS",
+      "rows": 2661,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "YKBNK.IS",
+      "rows": 2661,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "VAKBN.IS",
+      "rows": 2661,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "TCELL.IS",
+      "rows": 2661,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ENKAI.IS",
+      "rows": 2661,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SASA.IS",
+      "rows": 2662,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "FALABELLA.SN",
+      "rows": 2604,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "COPEC.SN",
+      "rows": 2604,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ENELCHILE.SN",
+      "rows": 2527,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CENCOSUD.SN",
+      "rows": 2604,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CCU.SN",
+      "rows": 2604,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CHILE.SN",
+      "rows": 2604,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BSANTANDER.SN",
+      "rows": 2604,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "LTM.SN",
+      "rows": 2604,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CMPC.SN",
+      "rows": 2604,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "COLBUN.SN",
+      "rows": 2604,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "AGUAS-A.SN",
+      "rows": 2604,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "PARAUCO.SN",
+      "rows": 2604,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SQM-B.SN",
+      "rows": 2604,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ECOPETROL.CL",
+      "rows": 2693,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "GRUPOSURA.CL",
+      "rows": 2697,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "GRUPOARGOS.CL",
+      "rows": 2693,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CEMARGOS.CL",
+      "rows": 2696,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "GEB.CL",
+      "rows": 2693,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ISA.CL",
+      "rows": 2693,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "NUTRESA.CL",
+      "rows": 2694,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CELSIA.CL",
+      "rows": 2694,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "PFAVAL.CL",
+      "rows": 2693,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "IFS.LM",
+      "rows": 2619,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BVN.LM",
+      "rows": 2617,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ALICORC1.LM",
+      "rows": 2618,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "FERREYC1.LM",
+      "rows": 2618,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CPACASI1.LM",
+      "rows": 2628,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "MINSURI1.LM",
+      "rows": 2619,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "INRETC1.LM",
+      "rows": 2617,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "VOLCABC1.LM",
+      "rows": 2617,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BAP",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "GGAL",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "YPF",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BMA",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "PAM",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BBAR",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SUPV",
+      "rows": 2534,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "LOMA",
+      "rows": 2167,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CRESY",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "TEO",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CEPU",
+      "rows": 2104,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BYMA.BA",
+      "rows": 2192,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "QNBK.QA",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "IQCD.QA",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "QIBK.QA",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "QGTS.QA",
+      "rows": 2628,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "QFLS.QA",
+      "rows": 2631,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "QEWS.QA",
+      "rows": 2628,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "MARK.QA",
+      "rows": 2628,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "QATI.QA",
+      "rows": 2629,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "NBK.KW",
+      "rows": 2590,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "KFH.KW",
+      "rows": 2590,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ZAIN.KW",
+      "rows": 2589,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BOUBYAN.KW",
+      "rows": 2590,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "GBK.KW",
+      "rows": 2590,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "MABANEE.KW",
+      "rows": 2590,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "HUMANSOFT.KW",
+      "rows": 2606,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "COMI.CA",
+      "rows": 2585,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "HRHO.CA",
+      "rows": 2587,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "JUFO.CA",
+      "rows": 2581,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "FPH.NZ",
+      "rows": 2621,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "AIA.NZ",
+      "rows": 2621,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "MEL.NZ",
+      "rows": 2621,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "MFT.NZ",
+      "rows": 2621,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "IFT.NZ",
+      "rows": 2621,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "EBO.NZ",
+      "rows": 2622,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CEN.NZ",
+      "rows": 2621,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SPK.NZ",
+      "rows": 2621,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "MCY.NZ",
+      "rows": 2621,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "RYM.NZ",
+      "rows": 2621,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ATM.NZ",
+      "rows": 2622,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "FBU.NZ",
+      "rows": 2621,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "LUCK.KA",
+      "rows": 2709,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "HBL.KA",
+      "rows": 2709,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "PPL.KA",
+      "rows": 2709,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "MEBL.KA",
+      "rows": 2709,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CEZ.PR",
+      "rows": 2622,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "KOMB.PR",
+      "rows": 2622,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "OTP.BD",
+      "rows": 2638,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "MOL.BD",
+      "rows": 2638,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "4IG.BD",
+      "rows": 2638,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "OPUS.BD",
+      "rows": 2638,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "TLV.RO",
+      "rows": 2660,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SNP.RO",
+      "rows": 2660,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SNG.RO",
+      "rows": 2660,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "SNN.RO",
+      "rows": 2660,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BRD.RO",
+      "rows": 2660,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BVB.RO",
+      "rows": 2660,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ETE.AT",
+      "rows": 2598,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "EUROB.AT",
+      "rows": 2581,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "TPEIR.AT",
+      "rows": 2597,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "HTO.AT",
+      "rows": 2598,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "BELA.AT",
+      "rows": 2598,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "MOH.AT",
+      "rows": 2598,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "PPC.AT",
+      "rows": 2598,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "ALWN.AT",
+      "rows": 2598,
+      "source": "migrated",
+      "at": "2026-06-19T17:02:45.607Z"
+    },
+    {
+      "symbol": "CHPT",
+      "rows": 1698,
+      "source": "yahoo",
+      "at": "2026-06-19T17:07:44.857Z"
+    },
+    {
+      "symbol": "BE",
+      "rows": 1985,
+      "source": "yahoo",
+      "at": "2026-06-19T17:07:46.321Z"
+    },
+    {
+      "symbol": "PL",
+      "rows": 1293,
+      "source": "yahoo",
+      "at": "2026-06-19T17:07:47.627Z"
+    },
+    {
+      "symbol": "VLTO",
+      "rows": 678,
+      "source": "yahoo",
+      "at": "2026-06-19T17:07:48.824Z"
+    },
+    {
+      "symbol": "VAL",
+      "rows": 1288,
+      "source": "yahoo",
+      "at": "2026-06-19T17:07:50.078Z"
+    },
+    {
+      "symbol": "NE",
+      "rows": 1262,
+      "source": "yahoo",
+      "at": "2026-06-19T17:07:51.387Z"
+    },
+    {
+      "symbol": "ACHR",
+      "rows": 1379,
+      "source": "yahoo",
+      "at": "2026-06-19T17:07:52.701Z"
+    },
+    {
+      "symbol": "ZIM",
+      "rows": 1353,
+      "source": "yahoo",
+      "at": "2026-06-19T17:07:54.045Z"
+    },
+    {
+      "symbol": "ARRY",
+      "rows": 1424,
+      "source": "yahoo",
+      "at": "2026-06-19T17:07:56.459Z"
+    },
+    {
+      "symbol": "BEAM",
+      "rows": 1599,
+      "source": "yahoo",
+      "at": "2026-06-19T17:07:57.825Z"
+    },
+    {
+      "symbol": "TXG",
+      "rows": 1700,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:00.161Z"
+    },
+    {
+      "symbol": "LUNR",
+      "rows": 1149,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:01.442Z"
+    },
+    {
+      "symbol": "SYM",
+      "rows": 1326,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:03.060Z"
+    },
+    {
+      "symbol": "EVGO",
+      "rows": 1398,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:05.381Z"
+    },
+    {
+      "symbol": "RGTI",
+      "rows": 1295,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:06.637Z"
+    },
+    {
+      "symbol": "QBTS",
+      "rows": 1384,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:07.957Z"
+    },
+    {
+      "symbol": "CART",
+      "rows": 689,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:09.355Z"
+    },
+    {
+      "symbol": "U",
+      "rows": 1443,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:10.698Z"
+    },
+    {
+      "symbol": "UPST",
+      "rows": 1381,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:12.037Z"
+    },
+    {
+      "symbol": "STNE",
+      "rows": 1920,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:13.461Z"
+    },
+    {
+      "symbol": "6525.T",
+      "rows": 645,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:14.648Z"
+    },
+    {
+      "symbol": "SYENS.BR",
+      "rows": 642,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:51.954Z"
+    },
+    {
+      "symbol": "EXO.AS",
+      "rows": 984,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:53.203Z"
+    },
+    {
+      "symbol": "SWIGGY.NS",
+      "rows": 397,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:54.227Z"
+    },
+    {
+      "symbol": "316140.KS",
+      "rows": 1795,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:55.606Z"
+    },
+    {
+      "symbol": "373220.KS",
+      "rows": 1069,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:56.835Z"
+    },
+    {
+      "symbol": "323410.KS",
+      "rows": 1185,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:58.059Z"
+    },
+    {
+      "symbol": "377300.KS",
+      "rows": 1128,
+      "source": "yahoo",
+      "at": "2026-06-19T17:08:59.298Z"
+    },
+    {
+      "symbol": "S",
+      "rows": 1247,
+      "source": "yahoo",
+      "at": "2026-06-19T17:09:34.813Z"
+    },
+    {
+      "symbol": "MNDY",
+      "rows": 1261,
+      "source": "yahoo",
+      "at": "2026-06-19T17:09:36.055Z"
+    },
+    {
+      "symbol": "GLBE",
+      "rows": 1281,
+      "source": "yahoo",
+      "at": "2026-06-19T17:09:37.288Z"
+    },
+    {
+      "symbol": "MBLY",
+      "rows": 913,
+      "source": "yahoo",
+      "at": "2026-06-19T17:09:38.495Z"
+    },
+    {
+      "symbol": "PLTK",
+      "rows": 1360,
+      "source": "yahoo",
+      "at": "2026-06-19T17:09:39.764Z"
+    },
+    {
+      "symbol": "ODD",
+      "rows": 732,
+      "source": "yahoo",
+      "at": "2026-06-19T17:09:40.907Z"
+    },
+    {
+      "symbol": "FVRR",
+      "rows": 1763,
+      "source": "yahoo",
+      "at": "2026-06-19T17:09:42.201Z"
+    },
+    {
+      "symbol": "ASTOR.IS",
+      "rows": 854,
+      "source": "yahoo",
+      "at": "2026-06-19T17:10:06.583Z"
+    },
+    {
+      "symbol": "JFC.PS",
+      "rows": 19,
+      "source": "yahoo",
+      "at": "2026-06-19T17:11:07.431Z"
+    },
+    {
+      "symbol": "FWRY.CA",
+      "rows": 1665,
+      "source": "yahoo",
+      "at": "2026-06-19T17:11:13.897Z"
+    },
+    {
+      "symbol": "RICHT.BD",
+      "rows": 1,
+      "source": "yahoo",
+      "at": "2026-06-19T17:11:14.892Z"
+    },
+    {
+      "symbol": "MTEL.BD",
+      "rows": 1,
+      "source": "yahoo",
+      "at": "2026-06-19T17:11:15.896Z"
+    },
+    {
+      "symbol": "H2O.RO",
+      "rows": 719,
+      "source": "yahoo",
+      "at": "2026-06-19T17:11:16.990Z"
+    },
+    {
+      "symbol": "ALPHA.AT",
+      "rows": 238,
+      "source": "yahoo",
+      "at": "2026-06-19T17:11:18.056Z"
+    },
+    {
+      "symbol": "TITC.AT",
+      "rows": 1713,
+      "source": "yahoo",
+      "at": "2026-06-19T17:11:20.274Z"
+    }
+  ],
+  "failed": [
+    {
+      "symbol": "WBA",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:07:55.101Z"
+    },
+    {
+      "symbol": "EXAS",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:07:58.797Z"
+    },
+    {
+      "symbol": "SKX",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:04.069Z"
+    },
+    {
+      "symbol": "G.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:15.638Z"
+    },
+    {
+      "symbol": "AENA.MC",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:16.656Z"
+    },
+    {
+      "symbol": "AMS.MC",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:17.638Z"
+    },
+    {
+      "symbol": "CLNX.MC",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:18.629Z"
+    },
+    {
+      "symbol": "NTGY.MC",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:19.609Z"
+    },
+    {
+      "symbol": "ELE.MC",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:20.597Z"
+    },
+    {
+      "symbol": "SAB.MC",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:21.588Z"
+    },
+    {
+      "symbol": "BKT.MC",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:22.567Z"
+    },
+    {
+      "symbol": "ACS.MC",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:23.557Z"
+    },
+    {
+      "symbol": "GRF.MC",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:24.553Z"
+    },
+    {
+      "symbol": "MAP.MC",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:25.539Z"
+    },
+    {
+      "symbol": "ANA.MC",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:26.513Z"
+    },
+    {
+      "symbol": "RED.MC",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:27.559Z"
+    },
+    {
+      "symbol": "MB.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:28.539Z"
+    },
+    {
+      "symbol": "BAMI.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:29.531Z"
+    },
+    {
+      "symbol": "PRY.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:30.530Z"
+    },
+    {
+      "symbol": "MONC.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:31.532Z"
+    },
+    {
+      "symbol": "REC.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:32.506Z"
+    },
+    {
+      "symbol": "SRG.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:33.543Z"
+    },
+    {
+      "symbol": "PST.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:34.527Z"
+    },
+    {
+      "symbol": "CPR.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:35.511Z"
+    },
+    {
+      "symbol": "NEXI.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:36.534Z"
+    },
+    {
+      "symbol": "FBK.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:37.519Z"
+    },
+    {
+      "symbol": "BMED.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:38.493Z"
+    },
+    {
+      "symbol": "PIRC.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:39.491Z"
+    },
+    {
+      "symbol": "TIT.MI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:40.482Z"
+    },
+    {
+      "symbol": "EGL.LS",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:41.472Z"
+    },
+    {
+      "symbol": "SON.LS",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:42.515Z"
+    },
+    {
+      "symbol": "COR.LS",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:43.552Z"
+    },
+    {
+      "symbol": "NVG.LS",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:44.524Z"
+    },
+    {
+      "symbol": "SEM.LS",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:45.518Z"
+    },
+    {
+      "symbol": "RENE.LS",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:46.792Z"
+    },
+    {
+      "symbol": "CTT.LS",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:47.770Z"
+    },
+    {
+      "symbol": "KYGA.IR",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:48.786Z"
+    },
+    {
+      "symbol": "A5G.IR",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:49.781Z"
+    },
+    {
+      "symbol": "GL9.IR",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:08:50.760Z"
+    },
+    {
+      "symbol": "247540.KQ",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:00.283Z"
+    },
+    {
+      "symbol": "MRFG3.SA",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:01.265Z"
+    },
+    {
+      "symbol": "NTCO3.SA",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:02.271Z"
+    },
+    {
+      "symbol": "CCRO3.SA",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:03.264Z"
+    },
+    {
+      "symbol": "S63.SI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:04.288Z"
+    },
+    {
+      "symbol": "C38U.SI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:05.491Z"
+    },
+    {
+      "symbol": "A17U.SI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:06.563Z"
+    },
+    {
+      "symbol": "M44U.SI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:07.570Z"
+    },
+    {
+      "symbol": "Y92.SI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:08.747Z"
+    },
+    {
+      "symbol": "G07.SI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:09.758Z"
+    },
+    {
+      "symbol": "C09.SI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:10.757Z"
+    },
+    {
+      "symbol": "U14.SI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:11.739Z"
+    },
+    {
+      "symbol": "H78.SI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:12.748Z"
+    },
+    {
+      "symbol": "D01.SI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:13.743Z"
+    },
+    {
+      "symbol": "5E2.SI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:14.723Z"
+    },
+    {
+      "symbol": "BS6.SI",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:15.709Z"
+    },
+    {
+      "symbol": "2280.SR",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:16.714Z"
+    },
+    {
+      "symbol": "2082.SR",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:17.710Z"
+    },
+    {
+      "symbol": "4190.SR",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:18.689Z"
+    },
+    {
+      "symbol": "2020.SR",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:19.669Z"
+    },
+    {
+      "symbol": "1140.SR",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:20.649Z"
+    },
+    {
+      "symbol": "4013.SR",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:21.666Z"
+    },
+    {
+      "symbol": "CPI.JO",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:22.648Z"
+    },
+    {
+      "symbol": "SHP.JO",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:23.628Z"
+    },
+    {
+      "symbol": "WHL.JO",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:24.655Z"
+    },
+    {
+      "symbol": "CLS.JO",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:25.635Z"
+    },
+    {
+      "symbol": "BVT.JO",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:26.647Z"
+    },
+    {
+      "symbol": "BID.JO",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:27.638Z"
+    },
+    {
+      "symbol": "SLM.JO",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:28.629Z"
+    },
+    {
+      "symbol": "OMU.JO",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:29.653Z"
+    },
+    {
+      "symbol": "DSY.JO",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:30.642Z"
+    },
+    {
+      "symbol": "GFI.JO",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:31.622Z"
+    },
+    {
+      "symbol": "ANG.JO",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:32.595Z"
+    },
+    {
+      "symbol": "CYBR",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:33.577Z"
+    },
+    {
+      "symbol": "BBCA.JK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:43.189Z"
+    },
+    {
+      "symbol": "BBNI.JK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:44.175Z"
+    },
+    {
+      "symbol": "TPIA.JK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:45.243Z"
+    },
+    {
+      "symbol": "BREN.JK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:46.214Z"
+    },
+    {
+      "symbol": "UNVR.JK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:47.193Z"
+    },
+    {
+      "symbol": "ICBP.JK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:48.166Z"
+    },
+    {
+      "symbol": "INDF.JK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:49.142Z"
+    },
+    {
+      "symbol": "PGAS.JK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:50.192Z"
+    },
+    {
+      "symbol": "ANTM.JK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:51.178Z"
+    },
+    {
+      "symbol": "HMSP.JK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:52.201Z"
+    },
+    {
+      "symbol": "FPT.VN",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:53.187Z"
+    },
+    {
+      "symbol": "MWG.VN",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:54.163Z"
+    },
+    {
+      "symbol": "GAS.VN",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:55.145Z"
+    },
+    {
+      "symbol": "VRE.VN",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:56.143Z"
+    },
+    {
+      "symbol": "CTG.VN",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:57.690Z"
+    },
+    {
+      "symbol": "MBB.VN",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:58.685Z"
+    },
+    {
+      "symbol": "VJC.VN",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:09:59.668Z"
+    },
+    {
+      "symbol": "SAB.VN",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:00.799Z"
+    },
+    {
+      "symbol": "PLX.VN",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:01.885Z"
+    },
+    {
+      "symbol": "SSI.VN",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:02.927Z"
+    },
+    {
+      "symbol": "PNJ.VN",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:05.402Z"
+    },
+    {
+      "symbol": "FAB.AB",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:07.656Z"
+    },
+    {
+      "symbol": "EMAAR.AE",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:08.660Z"
+    },
+    {
+      "symbol": "DIB.AE",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:09.693Z"
+    },
+    {
+      "symbol": "EMIRATESNBD.AE",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:10.657Z"
+    },
+    {
+      "symbol": "ALDAR.AB",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:11.742Z"
+    },
+    {
+      "symbol": "IHC.AB",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:12.718Z"
+    },
+    {
+      "symbol": "ADNOCGAS.AB",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:13.696Z"
+    },
+    {
+      "symbol": "ADNOCDRILL.AB",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:14.666Z"
+    },
+    {
+      "symbol": "ETISALAT.AB",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:15.640Z"
+    },
+    {
+      "symbol": "TAQA.AB",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:16.629Z"
+    },
+    {
+      "symbol": "ADIB.AB",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:17.625Z"
+    },
+    {
+      "symbol": "ADCB.AB",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:18.609Z"
+    },
+    {
+      "symbol": "BOROUGE.AB",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:19.591Z"
+    },
+    {
+      "symbol": "AMR.AB",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:20.583Z"
+    },
+    {
+      "symbol": "DEWA.AE",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:21.569Z"
+    },
+    {
+      "symbol": "SALIK.AE",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:22.533Z"
+    },
+    {
+      "symbol": "TALABAT.AE",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:23.548Z"
+    },
+    {
+      "symbol": "AIRARABIA.AE",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:24.534Z"
+    },
+    {
+      "symbol": "PARKIN.AE",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:25.539Z"
+    },
+    {
+      "symbol": "5183.KL",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:26.518Z"
+    },
+    {
+      "symbol": "5681.KL",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:27.489Z"
+    },
+    {
+      "symbol": "6033.KL",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:28.474Z"
+    },
+    {
+      "symbol": "5225.KL",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:29.507Z"
+    },
+    {
+      "symbol": "3816.KL",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:30.905Z"
+    },
+    {
+      "symbol": "6888.KL",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:31.888Z"
+    },
+    {
+      "symbol": "1066.KL",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:32.894Z"
+    },
+    {
+      "symbol": "5819.KL",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:33.872Z"
+    },
+    {
+      "symbol": "1082.KL",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:34.883Z"
+    },
+    {
+      "symbol": "3182.KL",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:35.911Z"
+    },
+    {
+      "symbol": "4715.KL",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:36.913Z"
+    },
+    {
+      "symbol": "PTTEP.BK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:37.909Z"
+    },
+    {
+      "symbol": "OR.BK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:38.892Z"
+    },
+    {
+      "symbol": "SCC.BK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:40.199Z"
+    },
+    {
+      "symbol": "BDMS.BK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:41.186Z"
+    },
+    {
+      "symbol": "BH.BK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:42.170Z"
+    },
+    {
+      "symbol": "CPAXT.BK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:43.145Z"
+    },
+    {
+      "symbol": "CPF.BK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:44.128Z"
+    },
+    {
+      "symbol": "CPN.BK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:45.238Z"
+    },
+    {
+      "symbol": "KTB.BK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:46.220Z"
+    },
+    {
+      "symbol": "TTB.BK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:47.212Z"
+    },
+    {
+      "symbol": "TRUE.BK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:48.194Z"
+    },
+    {
+      "symbol": "HMPRO.BK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:49.190Z"
+    },
+    {
+      "symbol": "DELTA.BK",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:50.187Z"
+    },
+    {
+      "symbol": "ALE.WA",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:51.171Z"
+    },
+    {
+      "symbol": "DNP.WA",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:52.212Z"
+    },
+    {
+      "symbol": "PEO.WA",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:53.223Z"
+    },
+    {
+      "symbol": "SPL.WA",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:54.200Z"
+    },
+    {
+      "symbol": "MBK.WA",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:55.186Z"
+    },
+    {
+      "symbol": "OPL.WA",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:56.229Z"
+    },
+    {
+      "symbol": "PCO.WA",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:57.232Z"
+    },
+    {
+      "symbol": "CCC.WA",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:58.215Z"
+    },
+    {
+      "symbol": "BDX.WA",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:10:59.234Z"
+    },
+    {
+      "symbol": "SM.PS",
+      "reason": "FMP HTTP 404 | Yahoo no rows after filter",
+      "at": "2026-06-19T17:11:00.256Z"
+    },
+    {
+      "symbol": "BDO.PS",
+      "reason": "FMP HTTP 404 | Yahoo no rows after filter",
+      "at": "2026-06-19T17:11:01.244Z"
+    },
+    {
+      "symbol": "ICT.PS",
+      "reason": "FMP HTTP 404 | Yahoo no rows after filter",
+      "at": "2026-06-19T17:11:02.233Z"
+    },
+    {
+      "symbol": "SMPH.PS",
+      "reason": "FMP HTTP 404 | Yahoo no rows after filter",
+      "at": "2026-06-19T17:11:03.249Z"
+    },
+    {
+      "symbol": "BPI.PS",
+      "reason": "FMP HTTP 404 | Yahoo no rows after filter",
+      "at": "2026-06-19T17:11:04.262Z"
+    },
+    {
+      "symbol": "AC.PS",
+      "reason": "FMP HTTP 404 | Yahoo no rows after filter",
+      "at": "2026-06-19T17:11:05.348Z"
+    },
+    {
+      "symbol": "ALI.PS",
+      "reason": "FMP HTTP 404 | Yahoo no rows after filter",
+      "at": "2026-06-19T17:11:06.352Z"
+    },
+    {
+      "symbol": "GLO.PS",
+      "reason": "FMP HTTP 404 | Yahoo no rows after filter",
+      "at": "2026-06-19T17:11:08.449Z"
+    },
+    {
+      "symbol": "MER.PS",
+      "reason": "FMP HTTP 404 | Yahoo no rows after filter",
+      "at": "2026-06-19T17:11:09.651Z"
+    },
+    {
+      "symbol": "TEL.PS",
+      "reason": "FMP HTTP 404 | Yahoo no rows after filter",
+      "at": "2026-06-19T17:11:10.632Z"
+    },
+    {
+      "symbol": "PFBCOLOM.CL",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:11:11.674Z"
+    },
+    {
+      "symbol": "AGLTY.KW",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:11:12.661Z"
+    },
+    {
+      "symbol": "MYTIL.AT",
+      "reason": "FMP HTTP 404 | Yahoo HTTP 404",
+      "at": "2026-06-19T17:11:19.038Z"
+    }
+  ],
+  "updatedAt": "2026-06-19T17:11:20.274Z"
+}
