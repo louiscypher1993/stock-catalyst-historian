@@ -490,3 +490,35 @@ export async function getInsiderTransactions(
     return [];
   }
 }
+
+/**
+ * Aggregates EDGAR Form 4 insider transactions in the 30 days before `date` into
+ * the same shape as FMPService's getFMPInsiderTrading, for use as a fallback when
+ * FMP has no insider data (free tier, rate-limited, or confirmed-empty result).
+ */
+export async function getEdgarInsiderSummary(
+  symbol: string,
+  date: string
+): Promise<{ insider_net_shares_30d: number | null; insider_buy_count_30d: number; insider_sell_count_30d: number }> {
+  const fromDate = new Date(new Date(date).getTime() - 30 * 86400000).toISOString().split('T')[0];
+  const transactions = await getInsiderTransactions(symbol, fromDate, date);
+
+  let buyShares = 0;
+  let sellShares = 0;
+  let buyCount = 0;
+  let sellCount = 0;
+
+  for (const tx of transactions) {
+    const txType = (tx.transactionType || '').toUpperCase();
+    if (txType.startsWith('P') || txType === 'A') {
+      buyShares += tx.shares;
+      buyCount++;
+    } else if (txType.startsWith('S')) {
+      sellShares += tx.shares;
+      sellCount++;
+    }
+  }
+
+  const netShares = (buyCount > 0 || sellCount > 0) ? Math.round(buyShares - sellShares) : null;
+  return { insider_net_shares_30d: netShares, insider_buy_count_30d: buyCount, insider_sell_count_30d: sellCount };
+}

@@ -93,3 +93,6 @@ ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS earnings_primary_concern 
 
 -- Digital exhaust velocity composite (StockTwits + Google Trends + Wikipedia z-scores)
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS digital_exhaust_velocity_14d REAL;
+
+-- Alpha Vantage NEWS_SENTIMENT, live run only (free tier budget too small for backfill)
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS alphavantage_sentiment_avg REAL;

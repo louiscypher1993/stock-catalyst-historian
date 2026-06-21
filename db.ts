@@ -582,6 +582,14 @@ try {
       cached_at TEXT NOT NULL,
       PRIMARY KEY (symbol, date)
     );
+    CREATE TABLE IF NOT EXISTS alphavantage_news_sentiment_cache (
+      symbol TEXT,
+      date TEXT,
+      sentiment_avg REAL,
+      relevance_count INTEGER NOT NULL DEFAULT 0,
+      cached_at TEXT NOT NULL,
+      PRIMARY KEY (symbol, date)
+    );
     CREATE TABLE IF NOT EXISTS fmp_insider_trading_cache (
       symbol TEXT,
       date TEXT,
@@ -794,6 +802,25 @@ export function setCachedFmpNewsSentiment(symbol: string, date: string, sentimen
       cached_at = excluded.cached_at
   `);
   stmt.run(symbol, date, sentimentAvg, articleCount, new Date().toISOString());
+}
+
+export function getCachedAlphaVantageNewsSentiment(symbol: string, date: string): { sentimentAvg: number | null; relevanceCount: number } | null {
+  const stmt = db.prepare('SELECT sentiment_avg, relevance_count FROM alphavantage_news_sentiment_cache WHERE symbol = ? AND date = ?');
+  const row = stmt.get(symbol, date) as { sentiment_avg: number | null; relevance_count: number } | undefined;
+  if (row) return { sentimentAvg: row.sentiment_avg, relevanceCount: row.relevance_count };
+  return null;
+}
+
+export function setCachedAlphaVantageNewsSentiment(symbol: string, date: string, sentimentAvg: number | null, relevanceCount: number): void {
+  const stmt = db.prepare(`
+    INSERT INTO alphavantage_news_sentiment_cache (symbol, date, sentiment_avg, relevance_count, cached_at)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(symbol, date) DO UPDATE SET
+      sentiment_avg = excluded.sentiment_avg,
+      relevance_count = excluded.relevance_count,
+      cached_at = excluded.cached_at
+  `);
+  stmt.run(symbol, date, sentimentAvg, relevanceCount, new Date().toISOString());
 }
 
 export function getCachedFmpInsiderTrading(symbol: string, date: string): { netShares: number | null; buyCount: number; sellCount: number } | null {

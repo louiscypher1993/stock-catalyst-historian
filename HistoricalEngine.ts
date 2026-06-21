@@ -43,7 +43,7 @@ import {
   getHistoricalImpliedVolatility,
   getDailyPutCallRatio,
 } from "./PolygonService";
-import { getRecentFilings } from "./EdgarService";
+import { getRecentFilings, getEdgarInsiderSummary } from "./EdgarService";
 import { getFullCompanyContext, getEarningsTranscript, getSocialSentiment, getEstimateRevisions, getFMPNewsSentiment, getFMPInsiderTrading, getFMPInstitutionalOwnership, getFMPEarningsSurprise, getFMPAnalystGrades, getFMPPriceTargetConsensus } from "./FMPService";
 import { getTopPeers } from "./PeerDataService";
 import { getDarkPoolActivity, getBorrowRate, getFMPShortInterest } from "./ShortDataService";
@@ -4636,7 +4636,13 @@ Provide a JSON array containing the results mapping perfectly back using the sta
             promises.push(
               (async () => {
                 try {
-                  const insider = await getFMPInsiderTrading(uppercaseSymbol, a.date);
+                  let insider = await getFMPInsiderTrading(uppercaseSymbol, a.date);
+                  if (!insider || (insider.insider_buy_count_30d === 0 && insider.insider_sell_count_30d === 0)) {
+                    const edgarInsider = await getEdgarInsiderSummary(uppercaseSymbol, a.date);
+                    if (edgarInsider.insider_buy_count_30d > 0 || edgarInsider.insider_sell_count_30d > 0) {
+                      insider = edgarInsider;
+                    }
+                  }
                   if (insider) {
                     (a.analysis as any).insider_net_shares_30d = insider.insider_net_shares_30d;
                     (a.analysis as any).insider_buy_count_30d = insider.insider_buy_count_30d;

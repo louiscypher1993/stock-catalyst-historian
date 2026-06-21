@@ -14,6 +14,7 @@ import { getTrendsSummary } from './GoogleTrendsService';
 import { detectWikipediaSpike } from './WikipediaService';
 import { getShortInterest } from './FinraShortInterestService';
 import { getCongressionalNetFlow } from './CongressionalTradingService';
+import { getEdgarInsiderSummary } from './EdgarService';
 import { scoreManagementConfidence, getTranscriptFromAlternativeSources } from './EarningsSentimentService';
 
 const BATCH_SIZE = 500;
@@ -141,7 +142,13 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
           }
 
           if (isUsListed && (forceAll || features.insider_net_shares_30d === undefined)) {
-            const result = await getFMPInsiderTrading(row.symbol, row.date);
+            let result = await getFMPInsiderTrading(row.symbol, row.date);
+            if (!result || (result.insider_buy_count_30d === 0 && result.insider_sell_count_30d === 0)) {
+              const edgarResult = await getEdgarInsiderSummary(row.symbol, row.date);
+              if (edgarResult.insider_buy_count_30d > 0 || edgarResult.insider_sell_count_30d > 0) {
+                result = edgarResult;
+              }
+            }
             if (result !== null) {
               features.insider_net_shares_30d = result.insider_net_shares_30d;
               features.insider_buy_count_30d = result.insider_buy_count_30d;

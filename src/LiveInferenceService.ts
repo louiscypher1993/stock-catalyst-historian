@@ -16,6 +16,7 @@ import { fetchFREDSeries } from '../FREDService';
 import type { EdgarFiling } from './types';
 import { getEarningsTranscript, isFmpPremium } from '../FMPService';
 import { scoreManagementConfidence } from '../EarningsSentimentService';
+import { getAlphaVantageNewsSentiment } from '../AlphaVantageService';
 import { evaluateRun, type PotInferenceResult } from './PotService';
 
 // Local copy — cannot import from HistoricalEngine (circular dependency).
@@ -600,7 +601,8 @@ export async function writeResultToSupabase(
   trendContext: TrendContext | null,
   edgarSummary: string | null,
   managementScore: { confidence_score: number; primary_concern: string } | null,
-  digitalExhaustVelocity: number | null
+  digitalExhaustVelocity: number | null,
+  alphavantageSentimentAvg: number | null
 ): Promise<void> {
   try {
     const { supabase } = await import('./db/supabaseClient');
@@ -635,6 +637,7 @@ export async function writeResultToSupabase(
       management_confidence_score: managementScore?.confidence_score ?? null,
       earnings_primary_concern: managementScore?.primary_concern ?? null,
       digital_exhaust_velocity_14d: digitalExhaustVelocity,
+      alphavantage_sentiment_avg: alphavantageSentimentAvg,
     }, { onConflict: 'run_date,symbol' });
 
     if (error) {
@@ -869,7 +872,15 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
           })))
         : null;
 
-      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted, trendContext, edgarSummary, managementScore, digitalExhaust);
+      let alphavantageSentimentAvg: number | null = null;
+      try {
+        const avSentiment = await getAlphaVantageNewsSentiment(symbol, runDate);
+        if (avSentiment) alphavantageSentimentAvg = avSentiment.sentiment_avg;
+      } catch (err: any) {
+        console.warn(`[LiveInference] Alpha Vantage news sentiment failed for ${symbol}:`, err.message);
+      }
+
+      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted, trendContext, edgarSummary, managementScore, digitalExhaust, alphavantageSentimentAvg);
 
       potResults.push({
         symbol:                      anomaly.symbol,
