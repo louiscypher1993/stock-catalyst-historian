@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import json
+import pickle
 import pandas as pd
 import xgboost as xgb
 from pathlib import Path
@@ -25,6 +26,17 @@ MODEL_A_COLS = [
 def load_models():
     model_a = xgb.XGBClassifier()
     model_a.load_model(ML_DIR / 'model_a_v8.json')
+    # Load isotonic calibrator for Model A — trained on val fold in
+    # train_all_models_v9.py. Falls back gracefully if file absent
+    # (e.g. running v8 models before v9 training completes).
+    _calibrator_path = ML_DIR / 'calibrator_a_v9.pkl'
+    calibrator_a = None
+    if _calibrator_path.exists():
+        with open(_calibrator_path, 'rb') as _f:
+            calibrator_a = pickle.load(_f)
+    else:
+        print(f"[infer] WARNING: {_calibrator_path} not found — "
+              "Model A will use raw (uncalibrated) probabilities.")
     model_b = xgb.XGBRegressor()
     model_b.load_model(ML_DIR / 'model_b_v8.json')
     model_c = xgb.XGBRegressor()
@@ -41,7 +53,7 @@ def load_models():
     model_d5.load_model(ML_DIR / 'model_d5_v8.json')
     model_e = xgb.XGBClassifier()
     model_e.load_model(ML_DIR / 'model_e_v8.json')
-    return model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e
+    return model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e, calibrator_a
 
 
 # v6 shim - not needed in v7 (flat schema)
@@ -113,7 +125,7 @@ def load_models():
 
 
 def infer(feature_vector: dict) -> dict:
-    model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e = load_models()
+    model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e, calibrator_a = load_models()
 
     with open(ML_DIR / 'feature_metadata_v8.json') as f:
         metadata = json.load(f)
@@ -123,7 +135,12 @@ def infer(feature_vector: dict) -> dict:
     # Model A: uses flat features directly — do NOT remap
     a_row = {col: feature_vector.get(col, 0.0) for col in MODEL_A_COLS}
     df_a = pd.DataFrame([a_row])[MODEL_A_COLS]
-    model_a_conf = float(model_a.predict_proba(df_a)[0][1])
+    _raw_prob_a  = float(model_a.predict_proba(df_a)[0][1])
+    model_a_conf = (
+        float(calibrator_a.transform([_raw_prob_a])[0])
+        if calibrator_a is not None
+        else _raw_prob_a
+    )
 
     # remapped = remap_vector(feature_vector)  # v6 shim - not needed in v7 (flat schema)
     remapped = feature_vector

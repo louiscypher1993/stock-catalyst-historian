@@ -47,13 +47,14 @@ import shap
 import xgboost as xgb
 from sklearn.isotonic import IsotonicRegression
 from sklearn.metrics import (
+    average_precision_score,
     brier_score_loss,
     confusion_matrix,
+    matthews_corrcoef,
     mean_absolute_error,
     mean_squared_error,
     roc_auc_score,
 )
-from sklearn.model_selection import train_test_split
 
 ML_DIR = Path(__file__).parent
 DOCS_DIR = ML_DIR.parent.parent / 'docs'
@@ -140,7 +141,12 @@ script_warnings = []
 
 def compute_sample_weights(df):
     """VIX-inverse x liquidity instance weights, normalised to mean=1."""
-    vix = df.get('vix_close', pd.Series(20.0, index=df.index)).fillna(20.0)
+    vix_col = next((c for c in df.columns if 'vix' in c.lower()), None)
+    if vix_col:
+        vix = df[vix_col].fillna(20.0)
+    else:
+        print("[WARN] No VIX column found in dataframe — instance weighting uses flat VIX=20")
+        vix = pd.Series(20.0, index=df.index)
     vix_weight = 1.0 / vix.clip(lower=5.0)
     vix_weight = vix_weight / vix_weight.mean()
 
@@ -175,16 +181,48 @@ def rmse(y_true, y_pred):
 
 
 def split_train_val_test(X, y, stratify=False):
-    """70/15/15 split. Stratified on y for classifiers, random for regressors."""
-    strat1 = y if stratify else None
-    X_train, X_tmp, y_train, y_tmp = train_test_split(
-        X, y, test_size=0.30, random_state=RANDOM_STATE, stratify=strat1
+    """
+    DEPRECATED — retained so any accidental call raises immediately.
+    All splits must go through split_train_val_test_temporal.
+    """
+    raise RuntimeError(
+        "split_train_val_test: random splits are invalid for time-series financial data. "
+        "Use split_train_val_test_temporal instead."
     )
-    strat2 = y_tmp if stratify else None
-    X_val, X_test, y_val, y_test = train_test_split(
-        X_tmp, y_tmp, test_size=0.50, random_state=RANDOM_STATE, stratify=strat2
+
+
+def split_train_val_test_temporal(dates_series, X, y, embargo_days=21):
+    """
+    Chronological 70/15/15 split with embargo gaps between folds.
+
+    dates_series: pd.Series of date strings/datetimes, indexed identically to X and y.
+    embargo_days: rows within this many days of each boundary are dropped from
+                  the earlier fold to prevent forward leakage (label overlap).
+
+    Returns: X_train, X_val, X_test, y_train, y_val, y_test
+    Note: stratification is intentionally absent — chronological order takes
+    priority. Check class balance in the test fold after splitting.
+    """
+    dates = pd.to_datetime(dates_series.loc[X.index])
+    n = len(dates)
+    sorted_dates = dates.sort_values()
+
+    cutoff_train = sorted_dates.iloc[int(n * 0.70)]
+    cutoff_val   = sorted_dates.iloc[int(n * 0.85)]
+    embargo      = pd.Timedelta(days=embargo_days)
+
+    train_mask = dates < (cutoff_train - embargo)
+    val_mask   = (dates >= cutoff_train) & (dates < (cutoff_val - embargo))
+    test_mask  = dates >= cutoff_val
+
+    print(f"  Temporal split: train={train_mask.sum()} val={val_mask.sum()} "
+          f"test={test_mask.sum()} (embargo={embargo_days}d, "
+          f"dropped={n - train_mask.sum() - val_mask.sum() - test_mask.sum()} rows near boundaries)")
+
+    return (
+        X[train_mask], X[val_mask], X[test_mask],
+        y[train_mask], y[val_mask], y[test_mask],
     )
-    return X_train, X_val, X_test, y_train, y_val, y_test
 
 
 def get_importances(model, feature_cols):
@@ -256,7 +294,7 @@ def plot_shap_summary(model, X_sample, filename, title):
     plt.close(fig)
 
 
-def train_regressor(name, file_name, df, feature_cols, label_col, shap_store=None):
+def train_regressor(name, file_name, df, feature_cols, label_col, shap_store=None, embargo_days=21):
     if label_col not in df.columns:
         script_warnings.append(f"Model {name}: label '{label_col}' not in features.csv, skipped")
         print(f"[{name}] label={label_col} -> SKIPPED (column not in features.csv)")
@@ -270,7 +308,10 @@ def train_regressor(name, file_name, df, feature_cols, label_col, shap_store=Non
 
     X = sub[feature_cols]
     y = sub[label_col]
-    X_train, X_val, X_test, y_train, y_val, y_test = split_train_val_test(X, y, stratify=False)
+    sub_dates = pd.to_datetime(sub['date'])
+    X_train, X_val, X_test, y_train, y_val, y_test = split_train_val_test_temporal(
+        sub_dates, X, y, embargo_days=embargo_days
+    )
 
     sw_train = compute_sample_weights(sub.loc[X_train.index])
 
@@ -310,6 +351,21 @@ def main():
     df = pd.read_csv(ML_DIR / 'features.csv')
     print(f"Loaded features.csv: {len(df)} rows, {len(df.columns)} columns")
 
+    # Explicit US-listed flag — FMP fundamentals are structurally absent for
+    # non-US symbols. XGBoost handles NaN natively but benefits from knowing
+    # WHY fundamentals are missing, not just that they are.
+    _INTL_SUFFIXES = {
+        '.L', '.PA', '.AS', '.BR', '.DE', '.F', '.HK', '.SS', '.SZ',
+        '.T', '.TO', '.AX', '.NS', '.BO', '.KS', '.TW', '.SW', '.ST',
+        '.OL', '.CO', '.HE', '.ME', '.SA', '.BA', '.MX', '.IS', '.NZ',
+    }
+    df['is_us_listed'] = df['symbol'].apply(
+        lambda s: 0 if any(str(s).upper().endswith(sfx) for sfx in _INTL_SUFFIXES) else 1
+    ).astype(int)
+    us_count = int(df['is_us_listed'].sum())
+    intl_count = len(df) - us_count
+    print(f"is_us_listed: {us_count} US rows, {intl_count} international rows")
+
     null_indicator_cols = [c for c in df.columns if c.endswith('_is_null')]
     print(f"NULL_INDICATOR_COLS ({len(null_indicator_cols)}): {null_indicator_cols}")
 
@@ -341,9 +397,11 @@ def main():
     X_a = a_df[MODEL_A_COLS]
     y_a = a_df['is_event']
 
-    X_train_a, X_val_a, X_test_a, y_train_a, y_val_a, y_test_a = split_train_val_test(
-        X_a, y_a, stratify=True
+    a_dates = pd.to_datetime(a_df['date'])
+    X_train_a, X_val_a, X_test_a, y_train_a, y_val_a, y_test_a = split_train_val_test_temporal(
+        a_dates, X_a, y_a
     )
+    print(f"[A] Test set class balance: {y_test_a.mean():.3f} positive rate")
     sw_train_a = compute_sample_weights(a_df.loc[X_train_a.index])
 
     pos = int((y_train_a == 1).sum())
@@ -361,23 +419,27 @@ def main():
         pickle.dump(calibrator, f)
 
     test_probs = model_a.predict_proba(X_test_a)[:, 1]
+    test_pred_a = model_a.predict(X_test_a)
     cal_probs = calibrator.transform(test_probs)
     brier_raw = brier_score_loss(y_test_a, test_probs)
     brier_cal = brier_score_loss(y_test_a, cal_probs)
     auc_a = roc_auc_score(y_test_a, test_probs)
+    pr_auc_a = average_precision_score(y_test_a, test_probs)
+    mcc_a    = matthews_corrcoef(y_test_a, test_pred_a)
+    print(f"[A] ROC-AUC: {auc_a:.4f}  PR-AUC: {pr_auc_a:.4f}  MCC: {mcc_a:.4f}")
 
     model_a.save_model(str(ML_DIR / 'model_a_v9.json'))
     results.append({
         'model': 'A', 'file': 'model_a_v9.json', 'label': 'is_event',
         'train_rows': len(X_train_a), 'val_rows': len(X_val_a), 'test_rows': len(X_test_a),
-        'metric': 'AUC-ROC', 'score': f'{auc_a:.4f}',
+        'metric': 'ROC-AUC / PR-AUC / MCC',
+        'score': f'{auc_a:.4f} / {pr_auc_a:.4f} / {mcc_a:.4f}',
     })
     print(f"\n[A] label=is_event train={len(X_train_a)} val={len(X_val_a)} test={len(X_test_a)} "
           f"scale_pos_weight={scale_pos_weight:.4f} AUC={auc_a:.4f} -> model_a_v9.json")
     print(f"[A] Brier score (raw):        {brier_raw:.4f}")
     print(f"[A] Brier score (calibrated): {brier_cal:.4f} -> calibrator_a_v9.pkl")
 
-    test_pred_a = model_a.predict(X_test_a)
     plot_confusion_matrix_a(y_test_a, test_pred_a, 'confusion_matrix_a.png')
 
     # --- Models B / C / D1-D5 ---
@@ -416,9 +478,11 @@ def main():
 
     X_e = e_df[model_bcde_cols]
     y_e = e_df[e_label]
-    X_train_e, X_val_e, X_test_e, y_train_e, y_val_e, y_test_e = split_train_val_test(
-        X_e, y_e, stratify=True
+    e_dates = pd.to_datetime(e_df['date'])
+    X_train_e, X_val_e, X_test_e, y_train_e, y_val_e, y_test_e = split_train_val_test_temporal(
+        e_dates, X_e, y_e
     )
+    print(f"[E] Test set class balance: {y_test_e.mean():.3f} positive rate")
     sw_train_e = compute_sample_weights(e_df.loc[X_train_e.index])
 
     model_e = xgb.XGBClassifier(**CLF_PARAMS)
@@ -465,6 +529,9 @@ def main():
         'n_training_rows': len(df),
         'brier_score_raw': float(brier_raw),
         'brier_score_calibrated': float(brier_cal),
+        'roc_auc_a':  float(auc_a),
+        'pr_auc_a':   float(pr_auc_a),
+        'mcc_a':      float(mcc_a),
         'instance_weighting': True,
         'asymmetric_loss': {'alpha': ASYMMETRIC_ALPHA, 'beta': ASYMMETRIC_BETA},
     }
@@ -483,6 +550,7 @@ def main():
     print(MODEL_A_COLS)
 
     print(f"\nModel A Brier (raw / calibrated): {brier_raw:.4f} / {brier_cal:.4f}")
+    print(f"Model A ROC-AUC / PR-AUC / MCC: {auc_a:.4f} / {pr_auc_a:.4f} / {mcc_a:.4f}")
     print("Instance weighting: enabled (mean_weight=1.0)")
     print(f"Asymmetric loss: alpha={ASYMMETRIC_ALPHA} beta={ASYMMETRIC_BETA}")
 

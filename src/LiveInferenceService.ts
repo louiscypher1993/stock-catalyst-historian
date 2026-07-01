@@ -648,6 +648,43 @@ export async function writeResultToSupabase(
   }
 }
 
+async function fetchAlphaVantageNewsSentiment(symbol: string): Promise<number | null> {
+  const apiKey = process.env.ALPHAVANTAGE_API_KEY;
+  if (!apiKey) return null;
+  try {
+    const url = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=${encodeURIComponent(symbol)}&limit=10&apikey=${apiKey}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) return null;
+    const data: any = await res.json();
+    const feed: any[] = Array.isArray(data?.feed) ? data.feed : [];
+
+    let weightedSum = 0;
+    let totalWeight = 0;
+    let relevantCount = 0;
+
+    for (const article of feed) {
+      const tickerEntry = Array.isArray(article.ticker_sentiment)
+        ? article.ticker_sentiment.find((t: any) => String(t.ticker).toUpperCase() === symbol.toUpperCase())
+        : null;
+      if (!tickerEntry) continue;
+      const relevance = parseFloat(tickerEntry.relevance_score);
+      if (!Number.isFinite(relevance) || relevance < 0.3) continue;
+      const score = parseFloat(tickerEntry.ticker_sentiment_score);
+      if (!Number.isFinite(score)) continue;
+      weightedSum += score * relevance;
+      totalWeight += relevance;
+      relevantCount++;
+    }
+
+    if (relevantCount < 2) return null;
+    const avg = Math.max(-1, Math.min(1, weightedSum / totalWeight));
+    console.log(`[LiveInference] ${symbol} AV sentiment: ${avg.toFixed(4)} (${relevantCount} articles)`);
+    return avg;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchRecentEdgarFilings(
   symbol: string,
   exchange: string | null,
@@ -811,12 +848,23 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
 
       const isActualAnomaly = Math.abs(anomaly.zScore) > Z_SCORE_THRESHOLD;
 
+      const avSentiment: number | null = isActualAnomaly
+        ? await fetchAlphaVantageNewsSentiment(symbol)
+        : null;
+
       const trendContext = computeTrendContext(bars, anomaly.zScore);
 
       anomalyCount++;
       console.log(`[LiveInference] ${isWatchlisted && !isActualAnomaly ? 'Watchlist' : 'Anomaly'} detected: ${symbol} z=${anomaly.zScore.toFixed(2)} trend=${trendContext.trendAlignment} (10d: ${(trendContext.pre_return_10d * 100).toFixed(1)}%)`);
 
       const enrichment = await getSymbolSnapshot(symbol);
+      if (avSentiment !== null) {
+        if (enrichment.snap !== null) {
+          enrichment.snap.av_news_sentiment = avSentiment;
+        } else {
+          enrichment.snap = { av_news_sentiment: avSentiment };
+        }
+      }
       const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, enrichment);
       const digitalExhaust = computeDigitalExhaustVelocity(enrichment.snap);
       const scores = runInference(featureVector);

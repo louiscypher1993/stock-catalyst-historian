@@ -162,6 +162,7 @@ const NUMERIC_ACCESSORS: Record<string, (f: Json, snap: Json | null) => number |
   price_target_upside_pct: (f, s) => numOrNull(f.price_target_upside_pct ?? s?.price_target_upside_pct),
   fmp_news_sentiment_avg: (f, s) => numOrNull(f.fmp_news_sentiment_avg ?? s?.fmp_news_sentiment_avg),
   fmp_news_article_count_7d: (f, s) => numOrNull(f.fmp_news_article_count_7d ?? s?.fmp_news_article_count_7d),
+  av_news_sentiment: (f, s) => numOrNull(s?.av_news_sentiment ?? f.av_news_sentiment),
   digital_exhaust_velocity_14d: (f, s) => {
     const stocktwitsZ = numOrNull(s?.stocktwits_virality_z);
     const googleZ     = numOrNull(s?.google_trends_z);
