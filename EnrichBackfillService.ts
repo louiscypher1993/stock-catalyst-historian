@@ -109,7 +109,7 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
               features.fmp_news_sentiment_avg !== undefined &&
               features.insider_net_shares_30d !== undefined &&
               features.institutional_ownership_pct !== undefined &&
-              (features.eps_surprise_pct !== undefined && features.eps_surprise_pct !== null) &&
+              features.eps_surprise_pct !== undefined &&
               features.confidence_tier !== undefined &&
               features.competitor_event_density !== undefined &&
               features.signal_snapshot?.digital_exhaust_velocity !== undefined &&

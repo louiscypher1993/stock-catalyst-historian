@@ -4,17 +4,20 @@ on:
   schedule:
     # 8:00 AM BST (7:00 UTC) — pre-market London open
     - cron: '0 7 * * 1-5'
-    # 4:30 PM BST (15:30 UTC) — post-market London close  
+    # 4:30 PM BST (15:30 UTC) — post-market London close
     - cron: '30 15 * * 1-5'
     # 9:00 PM BST (20:00 UTC) — post US market close
     - cron: '0 20 * * 1-5'
   workflow_dispatch: # allow manual trigger
 
+permissions:
+  contents: read
+
 jobs:
   infer:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -50,5 +53,6 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
           PIPELINE_RUN_SLOT: ${{ steps.slot.outputs.slot }}
         run: npx tsx src/LiveInferenceService.ts

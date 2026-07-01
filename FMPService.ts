@@ -1143,7 +1143,7 @@ export async function getFMPInstitutionalOwnership(
   date: string
 ): Promise<{ institutional_ownership_pct: number | null; institutional_ownership_change_qoq: number | null } | null> {
   if (!isFmpPremium()) return { institutional_ownership_pct: null, institutional_ownership_change_qoq: null };
-  if (_institutionalOwnershipUnavailable) return null;
+  if (_institutionalOwnershipUnavailable) return { institutional_ownership_pct: null, institutional_ownership_change_qoq: null };
   if (!checkAndIncrementFmpBudget()) return null;
   if (isSourceRateLimited('fmp')) return null;
 
