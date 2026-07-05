@@ -10,12 +10,12 @@ import {
   getEarningsTranscript,
   isFmpPremium,
 } from './FMPService';
-import { getTrendsSummary } from './GoogleTrendsService';
+import { getTrendsSummary, isGoogleTrendsRateLimited } from './GoogleTrendsService';
 import { detectWikipediaSpike } from './WikipediaService';
 import { getShortInterest } from './FinraShortInterestService';
 import { getCongressionalNetFlow } from './CongressionalTradingService';
 import { getEdgarInsiderSummary } from './EdgarService';
-import { scoreManagementConfidence, getTranscriptFromAlternativeSources } from './EarningsSentimentService';
+import { scoreManagementConfidence, getTranscriptFromAlternativeSources, isGeminiRateLimited } from './EarningsSentimentService';
 
 const BATCH_SIZE = 500;
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -76,7 +76,7 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
       .get(...(upperSymbols as unknown[])) as { count: number };
     state.total = countRow.count;
 
-    const dataQuery = `SELECT cache_key, symbol, date, features_json, signal_snapshot_json FROM event_features ${whereClause} ORDER BY date DESC`;
+    const dataQuery = `SELECT cache_key, symbol, date, features_json, signal_snapshot_json FROM event_features ${whereClause} ORDER BY date ASC`;
 
     let offset = 0;
     while (offset < state.total) {
@@ -254,8 +254,8 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
                 features.signal_snapshot.google_trends_z = null;
               } else {
                 try {
-                  await new Promise(r => setTimeout(r, 3000));
-                  const trends = await getTrendsSummary(row.symbol, companyName, row.date);
+                  if (!isGoogleTrendsRateLimited()) await new Promise(r => setTimeout(r, 3000));
+                  const trends = isGoogleTrendsRateLimited() ? null : await getTrendsSummary(row.symbol, companyName, row.date);
                   if (trends && typeof trends.google_trends_shock_ratio === 'number') {
                     googleZ = trends.google_trends_shock_ratio - 1;
                     features.signal_snapshot.google_trends_z = googleZ;
@@ -318,7 +318,8 @@ export async function startBackfill(symbols?: string[], forceAll = false): Promi
           if (
             features.signal_snapshot &&
             (forceAll || features.signal_snapshot.management_confidence_score === undefined) &&
-            process.env.GEMINI_API_KEY
+            process.env.GEMINI_API_KEY &&
+            !isGeminiRateLimited()
           ) {
             try {
               let transcript: string | null = null;

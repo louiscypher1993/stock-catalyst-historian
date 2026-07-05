@@ -1,6 +1,19 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { getRecentFilings } from "./EdgarService";
 
+let geminiRateLimitedUntil = 0;
+
+export function isGeminiRateLimited(): boolean {
+  return Date.now() < geminiRateLimitedUntil;
+}
+
+function handleGemini429(err: any): void {
+  if (err?.status === 429 || String(err).includes('429') || String(err).includes('RESOURCE_EXHAUSTED')) {
+    geminiRateLimitedUntil = Date.now() + 24 * 60 * 60 * 1000; // 24h — credits depleted
+    console.warn('[EarningsSentimentService] Gemini credits exhausted — skipping all Gemini calls for this session.');
+  }
+}
+
 // SEC fair-access policy requires a descriptive User-Agent identifying the requester
 const EDGAR_USER_AGENT = "MarketEcosystemIntelligence lewispiper1993@gmail.com";
 
@@ -34,6 +47,7 @@ function looksLikeRealTranscript(text: string): boolean {
 }
 
 export async function scoreManagementConfidence(transcriptText: string): Promise<{ confidence_score: number, primary_concern: string } | null> {
+  if (isGeminiRateLimited()) return null;
   if (transcriptText.length < 200) return null;
   const lowerInput = transcriptText.substring(0, 1000).toLowerCase();
   if (NON_TRANSCRIPT_SIGNALS.some(p => lowerInput.includes(p))) return null;
@@ -93,6 +107,7 @@ ${transcriptText.substring(0, 80000)}` // Safeguard transcript length
     }
     return null;
   } catch (error) {
+    handleGemini429(error);
     console.error("[EarningsSentimentService] Error scoring management confidence:", error);
     return null;
   }
@@ -177,6 +192,7 @@ async function fetchEdgar8KTranscript(symbol: string, eventDate: string): Promis
 // SOURCE C — Gemini grounding fallback: ask Gemini to summarize management
 // sentiment from its own knowledge when no transcript text is available.
 async function fetchGeminiGroundingSummary(symbol: string, eventDate: string): Promise<string | null> {
+  if (isGeminiRateLimited()) return null;
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
     const prompt = `You are analysing management sentiment for ${symbol} around ${eventDate}. Based on your knowledge of this company's earnings calls and management communications around this date, provide a brief assessment of management confidence, tone, and key concerns. If you have no specific knowledge of this date, say so clearly. Keep response under 200 words.`;
@@ -198,6 +214,7 @@ async function fetchGeminiGroundingSummary(symbol: string, eventDate: string): P
     if (NON_TRANSCRIPT_SIGNALS.some(p => lowerText.includes(p))) return null;
     return text;
   } catch (error) {
+    handleGemini429(error);
     console.error("[EarningsSentimentService] Gemini grounding fallback error:", error);
     return null;
   }

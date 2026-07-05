@@ -4,6 +4,12 @@ import { logFetch, googleTrendsThrottler } from "./DataSourceRegistry";
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+let rateLimitedUntil = 0;
+
+export function isGoogleTrendsRateLimited(): boolean {
+  return Date.now() < rateLimitedUntil;
+}
+
 export async function getSearchTrends(
   symbol: string,
   companyName: string,
@@ -12,6 +18,10 @@ export async function getSearchTrends(
 ): Promise<TrendsDataPoint[]> {
   const start = Date.now();
   const symbolUpper = symbol.toUpperCase().trim();
+
+  if (isGoogleTrendsRateLimited()) {
+    return [];
+  }
 
   try {
     // Random 2-5 second delay before each Trends call to reduce CAPTCHA-blocking
@@ -72,6 +82,10 @@ export async function getSearchTrends(
 
     return points;
   } catch (err: any) {
+    if (err?.requestBody?.includes('429') || String(err).includes('429')) {
+      rateLimitedUntil = Date.now() + 30 * 60 * 1000;
+      console.warn(`[GoogleTrendsService] 429 rate limit hit — skipping Google Trends for 30 minutes.`);
+    }
     console.error(`[GoogleTrendsService] Error fetching trends for ${companyName}:`, err);
     logFetch({
       sourceId: "google_trends",
