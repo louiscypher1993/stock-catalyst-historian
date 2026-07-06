@@ -1,5 +1,5 @@
 import { HistoricalEngine } from "./HistoricalEngine";
-import { fmpDailyRequestCount, FMP_DAILY_BUDGET } from "./FMPService";
+import { fmpDailyRequestCount, getFmpDailyBudget } from "./FMPService";
 import {
   initBatchScanProgress,
   markBatchScanComplete,
@@ -55,7 +55,7 @@ export class BatchScanner {
         break;
       }
 
-      if (fmpDailyRequestCount >= FMP_DAILY_BUDGET - 20) {
+      if (fmpDailyRequestCount >= getFmpDailyBudget() - 20) {
         await this._sleepUntilMidnightUTC();
       }
 
@@ -141,7 +141,7 @@ export class BatchScanner {
     ));
     const ms = midnight.getTime() - now.getTime();
     console.log(
-      `[BatchScanner] FMP budget near limit (${fmpDailyRequestCount}/${FMP_DAILY_BUDGET}). ` +
+      `[BatchScanner] FMP budget near limit (${fmpDailyRequestCount}/${getFmpDailyBudget()}). ` +
       `Pausing ${Math.round(ms / 60000)} min until UTC midnight.`
     );
     await this._sleep(ms);

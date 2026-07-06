@@ -25,7 +25,7 @@ MODEL_A_COLS = [
 
 def load_models():
     model_a = xgb.XGBClassifier()
-    model_a.load_model(ML_DIR / 'model_a_v8.json')
+    model_a.load_model(ML_DIR / 'model_a_v9.json')
     # Load isotonic calibrator for Model A — trained on val fold in
     # train_all_models_v9.py. Falls back gracefully if file absent
     # (e.g. running v8 models before v9 training completes).
@@ -38,21 +38,21 @@ def load_models():
         print(f"[infer] WARNING: {_calibrator_path} not found — "
               "Model A will use raw (uncalibrated) probabilities.")
     model_b = xgb.XGBRegressor()
-    model_b.load_model(ML_DIR / 'model_b_v8.json')
+    model_b.load_model(ML_DIR / 'model_b_v9.json')
     model_c = xgb.XGBRegressor()
-    model_c.load_model(ML_DIR / 'model_c_v8.json')
+    model_c.load_model(ML_DIR / 'model_c_v9.json')
     model_d1 = xgb.XGBRegressor()
-    model_d1.load_model(ML_DIR / 'model_d1_v8.json')
+    model_d1.load_model(ML_DIR / 'model_d1_v9.json')
     model_d2 = xgb.XGBRegressor()
-    model_d2.load_model(ML_DIR / 'model_d2_v8.json')
+    model_d2.load_model(ML_DIR / 'model_d2_v9.json')
     model_d3 = xgb.XGBRegressor()
-    model_d3.load_model(ML_DIR / 'model_d3_v8.json')
+    model_d3.load_model(ML_DIR / 'model_d3_v9.json')
     model_d4 = xgb.XGBRegressor()
-    model_d4.load_model(ML_DIR / 'model_d4_v8.json')
+    model_d4.load_model(ML_DIR / 'model_d4_v9.json')
     model_d5 = xgb.XGBRegressor()
-    model_d5.load_model(ML_DIR / 'model_d5_v8.json')
+    model_d5.load_model(ML_DIR / 'model_d5_v9.json')
     model_e = xgb.XGBClassifier()
-    model_e.load_model(ML_DIR / 'model_e_v8.json')
+    model_e.load_model(ML_DIR / 'model_e_v9.json')
     return model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e, calibrator_a
 
 
@@ -127,10 +127,12 @@ def load_models():
 def infer(feature_vector: dict) -> dict:
     model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e, calibrator_a = load_models()
 
-    with open(ML_DIR / 'feature_metadata_v8.json') as f:
+    with open(ML_DIR / 'feature_metadata_v9.json') as f:
         metadata = json.load(f)
 
-    model_bcde_cols = metadata['model_bcde_cols']
+    # v9 metadata renamed this key to 'full_feature_cols'; fall back to the
+    # legacy 'model_bcde_cols' name for older metadata files.
+    model_bcde_cols = metadata.get('full_feature_cols') or metadata['model_bcde_cols']
 
     # Model A: uses flat features directly — do NOT remap
     a_row = {col: feature_vector.get(col, 0.0) for col in MODEL_A_COLS}

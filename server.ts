@@ -10,7 +10,7 @@ import { getCachedAnalysis, setCachedAnalysis, getLatestIntelligenceReport, save
 import { findSimilarEvents, computeAnalogueOutcomes } from "./HistoricalSimilarityService";
 import { generateIntelligenceReport, getCompetitorMap } from "./ExecutiveIntelligence";
 import { generateStockProfile } from "./StockProfileService";
-import { getCompanyProfile, fmpDailyRequestCount, FMP_DAILY_BUDGET } from "./FMPService";
+import { getCompanyProfile, fmpDailyRequestCount, getFmpDailyBudget } from "./FMPService";
 import { computeCompetitorImpact } from "./CorrelationEngine";
 import { fetchInternationalPriceHistory } from "./EODHDService";
 import { ExecutiveEvent } from "./src/types";
@@ -691,10 +691,11 @@ app.get("/api/cache-stats", (req, res) => {
 });
 
 app.get("/api/fmp-budget", (req, res) => {
+  const budgetLimit = getFmpDailyBudget();
   res.json({
     requestsUsed: fmpDailyRequestCount,
-    budgetLimit: FMP_DAILY_BUDGET,
-    remainingToday: Math.max(0, FMP_DAILY_BUDGET - fmpDailyRequestCount),
+    budgetLimit,
+    remainingToday: Math.max(0, budgetLimit - fmpDailyRequestCount),
     resetsAt: "midnight UTC"
   });
 });

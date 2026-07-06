@@ -14,8 +14,7 @@ import {
 import { getRecentFilings as getEdgarFilings } from '../EdgarService';
 import { fetchFREDSeries } from '../FREDService';
 import type { EdgarFiling } from './types';
-import { getEarningsTranscript, isFmpPremium } from '../FMPService';
-import { scoreManagementConfidence } from '../EarningsSentimentService';
+import { isFmpPremium } from '../FMPService';
 import { getAlphaVantageNewsSentiment } from '../AlphaVantageService';
 import { evaluateRun, type PotInferenceResult } from './PotService';
 
@@ -38,16 +37,6 @@ function isUsListed(exchange: string | null): boolean {
   if (!exchange) return false;
   const ex = exchange.toLowerCase();
   return ex.includes('nyse') || ex.includes('nasdaq') || ex.includes('otc');
-}
-
-function getMostRecentEarningsQuarter(runDate: string): { year: number; quarter: number } {
-  const d = new Date(runDate);
-  const month = d.getMonth() + 1; // 1-12
-  const year = d.getFullYear();
-  if (month <= 3) return { year: year - 1, quarter: 4 };
-  if (month <= 6) return { year, quarter: 1 };
-  if (month <= 9) return { year, quarter: 2 };
-  return { year, quarter: 3 };
 }
 
 function computeDigitalExhaustVelocity(snap: Record<string, any> | null): number | null {
@@ -393,6 +382,13 @@ export function buildFeatureVectorForAnomaly(bars: YahooBar[], anomaly: AnomalyS
     return vol30Avg > 0 && w.length > 0 ? (w.reduce((s, b) => s + b.volume, 0) / w.length) / vol30Avg : 0;
   };
 
+  // is_us_listed: same derivation as EnrichBackfillService.ts and
+  // train_all_models_v9.py so the live feature matches training (build_df in
+  // infer.py defaults absent features to 0, which would mislabel every symbol
+  // as non-US otherwise).
+  const sym = anomaly.symbol;
+  const isUsListed = !sym.includes('.') || sym.endsWith('.NYSE') || sym.endsWith('.NASDAQ');
+
   return {
     ...buildLiveFeatureVector(features, snap, context),
     pre_return_3d: preRet(3),
@@ -401,6 +397,7 @@ export function buildFeatureVectorForAnomaly(bars: YahooBar[], anomaly: AnomalyS
     pre_return_21d: preRet(21),
     pre_vol_ratio_5d: volRatio(5),
     pre_vol_ratio_10d: volRatio(10),
+    is_us_listed: isUsListed ? 1 : 0,
   };
 }
 
@@ -648,43 +645,6 @@ export async function writeResultToSupabase(
   }
 }
 
-async function fetchAlphaVantageNewsSentiment(symbol: string): Promise<number | null> {
-  const apiKey = process.env.ALPHAVANTAGE_API_KEY;
-  if (!apiKey) return null;
-  try {
-    const url = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=${encodeURIComponent(symbol)}&limit=10&apikey=${apiKey}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-    if (!res.ok) return null;
-    const data: any = await res.json();
-    const feed: any[] = Array.isArray(data?.feed) ? data.feed : [];
-
-    let weightedSum = 0;
-    let totalWeight = 0;
-    let relevantCount = 0;
-
-    for (const article of feed) {
-      const tickerEntry = Array.isArray(article.ticker_sentiment)
-        ? article.ticker_sentiment.find((t: any) => String(t.ticker).toUpperCase() === symbol.toUpperCase())
-        : null;
-      if (!tickerEntry) continue;
-      const relevance = parseFloat(tickerEntry.relevance_score);
-      if (!Number.isFinite(relevance) || relevance < 0.3) continue;
-      const score = parseFloat(tickerEntry.ticker_sentiment_score);
-      if (!Number.isFinite(score)) continue;
-      weightedSum += score * relevance;
-      totalWeight += relevance;
-      relevantCount++;
-    }
-
-    if (relevantCount < 2) return null;
-    const avg = Math.max(-1, Math.min(1, weightedSum / totalWeight));
-    console.log(`[LiveInference] ${symbol} AV sentiment: ${avg.toFixed(4)} (${relevantCount} articles)`);
-    return avg;
-  } catch {
-    return null;
-  }
-}
-
 async function fetchRecentEdgarFilings(
   symbol: string,
   exchange: string | null,
@@ -848,8 +808,11 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
 
       const isActualAnomaly = Math.abs(anomaly.zScore) > Z_SCORE_THRESHOLD;
 
+      // Single Alpha Vantage news-sentiment call per symbol (budget-checked and
+      // SQLite-cached in AlphaVantageService). Only fired for real anomalies; the
+      // result feeds both enrichment.snap and the Supabase write below.
       const avSentiment: number | null = isActualAnomaly
-        ? await fetchAlphaVantageNewsSentiment(symbol)
+        ? (await getAlphaVantageNewsSentiment(symbol, runDate))?.sentiment_avg ?? null
         : null;
 
       const trendContext = computeTrendContext(bars, anomaly.zScore);
@@ -892,17 +855,12 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
         console.log(`[LiveInference] ${symbol}: ${edgarFilings.length} recent 8-K(s) — ${edgarFilings.map(f => f.description).join(' | ')}`);
       }
 
-      let managementScore: { confidence_score: number; primary_concern: string } | null = null;
-      if (isUsListed(exchange) && process.env.GEMINI_API_KEY && isFmpPremium()) {
-        const { year, quarter } = getMostRecentEarningsQuarter(runDate);
-        const transcript = await getEarningsTranscript(symbol, year, quarter);
-        if (transcript) {
-          managementScore = await scoreManagementConfidence(transcript);
-          if (managementScore) {
-            console.log(`[LiveInference] ${symbol} management confidence: ${managementScore.confidence_score}/100 — ${managementScore.primary_concern}`);
-          }
-        }
-      }
+      // Management-confidence scoring from FMP earnings transcripts is disabled in
+      // the live path: the FMP transcript endpoint 404s on our tier and isFmpPremium()
+      // is false after premium expiry. managementScore stays null so the
+      // writeResultToSupabase / generateNarrative signatures are unchanged. (The
+      // backfill-side scoring in EnrichBackfillService is unaffected.)
+      const managementScore: { confidence_score: number; primary_concern: string } | null = null;
 
       let narrative = '';
       if ((isActualAnomaly && scores.model_a_confidence >= NARRATIVE_CONFIDENCE_THRESHOLD) || rec.recommendation === 'SELL' || rec.recommendation === 'REDUCE') {
@@ -920,15 +878,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
           })))
         : null;
 
-      let alphavantageSentimentAvg: number | null = null;
-      try {
-        const avSentiment = await getAlphaVantageNewsSentiment(symbol, runDate);
-        if (avSentiment) alphavantageSentimentAvg = avSentiment.sentiment_avg;
-      } catch (err: any) {
-        console.warn(`[LiveInference] Alpha Vantage news sentiment failed for ${symbol}:`, err.message);
-      }
-
-      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted, trendContext, edgarSummary, managementScore, digitalExhaust, alphavantageSentimentAvg);
+      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted, trendContext, edgarSummary, managementScore, digitalExhaust, avSentiment);
 
       potResults.push({
         symbol:                      anomaly.symbol,

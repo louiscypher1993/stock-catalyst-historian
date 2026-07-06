@@ -13,10 +13,12 @@ async function fetchWithTimeout(url: string, timeoutMs = 8000): Promise<Response
   }
 }
 
-// Free tier: 25 requests/day. Cap at 20 to leave headroom.
+// Free tier: 25 requests/day (hard limit). The counter is in-memory per process
+// and GitHub Actions runs 3x/day with a fresh process + fresh SQLite cache, so
+// 3 x 8 = 24 stays under the daily limit.
 let avDailyRequestCount = 0;
 let avDailyResetDate = new Date().toISOString().split('T')[0];
-const ALPHAVANTAGE_DAILY_BUDGET = 20;
+const ALPHAVANTAGE_DAILY_BUDGET = 8;
 
 export function checkAndIncrementAlphaVantageBudget(): boolean {
   const today = new Date().toISOString().split('T')[0];
@@ -77,7 +79,11 @@ export async function getAlphaVantageNewsSentiment(
       return { sentiment_avg: null, relevance_count: 0 };
     }
 
-    const scores: number[] = [];
+    // Relevance-weighted aggregation of the per-ticker sentiment score. Only
+    // articles with relevance >= 0.3 qualify, and a minimum of 2 qualifying
+    // articles is required before we report a non-null average. Result is
+    // clamped to [-1, 1].
+    const qualifying: { score: number; relevance: number }[] = [];
     for (const article of feed) {
       const tickerEntry = Array.isArray(article.ticker_sentiment)
         ? article.ticker_sentiment.find((t: any) => String(t.ticker).toUpperCase() === uppercaseSymbol)
@@ -85,16 +91,21 @@ export async function getAlphaVantageNewsSentiment(
       if (!tickerEntry) continue;
 
       const relevance = parseFloat(tickerEntry.relevance_score);
-      if (!Number.isFinite(relevance) || relevance <= 0) continue;
+      if (!Number.isFinite(relevance) || relevance < 0.3) continue;
 
-      const overallScore = parseFloat(article.overall_sentiment_score);
-      if (Number.isFinite(overallScore)) scores.push(overallScore);
+      const score = parseFloat(tickerEntry.ticker_sentiment_score);
+      if (!Number.isFinite(score)) continue;
+      qualifying.push({ score, relevance });
     }
 
-    const relevanceCount = scores.length;
-    const sentimentAvg = relevanceCount > 0
-      ? Math.round((scores.reduce((a, b) => a + b, 0) / relevanceCount) * 10000) / 10000
-      : null;
+    const relevanceCount = qualifying.length;
+    let sentimentAvg: number | null = null;
+    if (relevanceCount >= 2) {
+      const weightedSum = qualifying.reduce((a, q) => a + q.score * q.relevance, 0);
+      const totalWeight = qualifying.reduce((a, q) => a + q.relevance, 0);
+      const raw = Math.max(-1, Math.min(1, weightedSum / totalWeight));
+      sentimentAvg = Math.round(raw * 10000) / 10000;
+    }
 
     setCachedAlphaVantageNewsSentiment(uppercaseSymbol, date, sentimentAvg, relevanceCount);
     logDataSourceFetch({

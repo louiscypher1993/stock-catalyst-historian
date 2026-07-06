@@ -354,13 +354,15 @@ def main():
     # Explicit US-listed flag — FMP fundamentals are structurally absent for
     # non-US symbols. XGBoost handles NaN natively but benefits from knowing
     # WHY fundamentals are missing, not just that they are.
-    _INTL_SUFFIXES = {
-        '.L', '.PA', '.AS', '.BR', '.DE', '.F', '.HK', '.SS', '.SZ',
-        '.T', '.TO', '.AX', '.NS', '.BO', '.KS', '.TW', '.SW', '.ST',
-        '.OL', '.CO', '.HE', '.ME', '.SA', '.BA', '.MX', '.IS', '.NZ',
-    }
+    # Derivation MUST match EnrichBackfillService.ts (the flag that gated which
+    # US-only fields got populated), otherwise is_us_listed would contradict the
+    # nullness of the fundamentals: US-listed iff the symbol has no dot, or ends
+    # with '.NYSE' / '.NASDAQ'.
     df['is_us_listed'] = df['symbol'].apply(
-        lambda s: 0 if any(str(s).upper().endswith(sfx) for sfx in _INTL_SUFFIXES) else 1
+        lambda s: 1 if ('.' not in str(s))
+        or str(s).endswith('.NYSE')
+        or str(s).endswith('.NASDAQ')
+        else 0
     ).astype(int)
     us_count = int(df['is_us_listed'].sum())
     intl_count = len(df) - us_count

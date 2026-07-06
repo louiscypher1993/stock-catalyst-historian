@@ -11,37 +11,47 @@ export function isFmpPremium(): boolean {
 
 export let fmpDailyRequestCount = 0;
 export let fmpDailyResetDate = new Date().toISOString().split('T')[0];
-export const FMP_DAILY_BUDGET = Number(
-  process.env.FMP_DAILY_BUDGET ?? (isFmpPremium() ? 1000000 : 250)
-);
+
+// Budget/limit are resolved at call time (not module load) so a long-running
+// process started before premium expiry does not retain premium limits after
+// the tier flips. Env overrides take precedence, then tier defaults.
+export function getFmpDailyBudget(): number {
+  return Number(
+    process.env.FMP_DAILY_BUDGET ?? (isFmpPremium() ? 1000000 : 250)
+  );
+}
 
 let fmpMinuteRequestCount = 0;
 let fmpMinuteResetTime = Date.now() + 60000;
-const FMP_MINUTE_LIMIT = Number(
-  process.env.FMP_MINUTE_LIMIT ?? (isFmpPremium() ? 700 : 5)
-);
+export function getFmpMinuteLimit(): number {
+  return Number(
+    process.env.FMP_MINUTE_LIMIT ?? (isFmpPremium() ? 700 : 5)
+  );
+}
 
 export function checkAndIncrementFmpBudget(): boolean {
+  const dailyBudget = getFmpDailyBudget();
+  const minuteLimit = getFmpMinuteLimit();
   const today = new Date().toISOString().split('T')[0];
   if (today !== fmpDailyResetDate) {
     fmpDailyRequestCount = 0;
     fmpDailyResetDate = today;
   }
-  if (fmpDailyRequestCount >= FMP_DAILY_BUDGET) {
-    console.warn(`[FMP] Daily budget of ${FMP_DAILY_BUDGET} requests reached.\n        No further FMP calls will be made today. Resets at midnight UTC.`);
+  if (fmpDailyRequestCount >= dailyBudget) {
+    console.warn(`[FMP] Daily budget of ${dailyBudget} requests reached.\n        No further FMP calls will be made today. Resets at midnight UTC.`);
     return false;
   }
   if (Date.now() > fmpMinuteResetTime) {
     fmpMinuteRequestCount = 0;
     fmpMinuteResetTime = Date.now() + 60000;
   }
-  if (fmpMinuteRequestCount >= FMP_MINUTE_LIMIT) {
-    console.warn(`[FMP] Per-minute limit of ${FMP_MINUTE_LIMIT} requests reached — throttling.`);
+  if (fmpMinuteRequestCount >= minuteLimit) {
+    console.warn(`[FMP] Per-minute limit of ${minuteLimit} requests reached — throttling.`);
     return false;
   }
   fmpDailyRequestCount++;
   fmpMinuteRequestCount++;
-  console.log(`[FMP] Request ${fmpDailyRequestCount}/${FMP_DAILY_BUDGET} used today.`);
+  console.log(`[FMP] Request ${fmpDailyRequestCount}/${dailyBudget} used today.`);
   return true;
 }
 
