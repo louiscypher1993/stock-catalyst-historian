@@ -53,6 +53,32 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 app.use(express.json({ limit: "10mb" }));
 
+// CORS: allow the hosted GitHub Pages dashboard to call this local server
+// (Scan Now, live-inference trigger). Same-origin localhost requests are
+// unaffected. Chrome's Private Network Access spec additionally requires the
+// Allow-Private-Network preflight header for public https -> localhost calls.
+const CORS_ALLOWED_ORIGINS = new Set([
+  "https://louiscypher1993.github.io",
+]);
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && CORS_ALLOWED_ORIGINS.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    if (req.headers["access-control-request-private-network"] === "true") {
+      res.setHeader("Access-Control-Allow-Private-Network", "true");
+    }
+    if (req.method === "OPTIONS") {
+      res.sendStatus(204);
+      return;
+    }
+  }
+  next();
+});
+
 // Lazy initialization of Gemini GoogleGenAI SDK client
 let aiClient: GoogleGenAI | null = null;
 function getAIClient(): GoogleGenAI {
