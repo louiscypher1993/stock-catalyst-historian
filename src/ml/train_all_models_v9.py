@@ -97,6 +97,11 @@ EXCLUDE_COLS = [
 ZERO_FILL_COLS = [
     'digital_exhaust_velocity_14d', 'gdelt_tone_z', 'dark_pool_index',
     'institutional_ownership_pct', 'put_call_ratio_t_minus_1',
+    # short_interest_pct_float is 0% filled across every real source path
+    # (confirmed permanent structural gap, not train/serve skew) — excluded
+    # from the model feature set so it does not enter model_bcde_cols as a
+    # dead constant column, same rationale as digital_exhaust_velocity_14d.
+    'short_interest_pct_float',
 ]
 
 PRE_RETURN_COLS = [
@@ -417,7 +422,7 @@ def main():
     val_labels = y_val_a.values
     calibrator = IsotonicRegression(out_of_bounds='clip')
     calibrator.fit(val_probs, val_labels)
-    with open(ML_DIR / 'calibrator_a_v9.pkl', 'wb') as f:
+    with open(ML_DIR / 'calibrator_a_v9.1.pkl', 'wb') as f:
         pickle.dump(calibrator, f)
 
     test_probs = model_a.predict_proba(X_test_a)[:, 1]
@@ -430,36 +435,36 @@ def main():
     mcc_a    = matthews_corrcoef(y_test_a, test_pred_a)
     print(f"[A] ROC-AUC: {auc_a:.4f}  PR-AUC: {pr_auc_a:.4f}  MCC: {mcc_a:.4f}")
 
-    model_a.save_model(str(ML_DIR / 'model_a_v9.json'))
+    model_a.save_model(str(ML_DIR / 'model_a_v9.1.json'))
     results.append({
-        'model': 'A', 'file': 'model_a_v9.json', 'label': 'is_event',
+        'model': 'A', 'file': 'model_a_v9.1.json', 'label': 'is_event',
         'train_rows': len(X_train_a), 'val_rows': len(X_val_a), 'test_rows': len(X_test_a),
         'metric': 'ROC-AUC / PR-AUC / MCC',
         'score': f'{auc_a:.4f} / {pr_auc_a:.4f} / {mcc_a:.4f}',
     })
     print(f"\n[A] label=is_event train={len(X_train_a)} val={len(X_val_a)} test={len(X_test_a)} "
-          f"scale_pos_weight={scale_pos_weight:.4f} AUC={auc_a:.4f} -> model_a_v9.json")
+          f"scale_pos_weight={scale_pos_weight:.4f} AUC={auc_a:.4f} -> model_a_v9.1.json")
     print(f"[A] Brier score (raw):        {brier_raw:.4f}")
-    print(f"[A] Brier score (calibrated): {brier_cal:.4f} -> calibrator_a_v9.pkl")
+    print(f"[A] Brier score (calibrated): {brier_cal:.4f} -> calibrator_a_v9.1.pkl")
 
     plot_confusion_matrix_a(y_test_a, test_pred_a, 'confusion_matrix_a.png')
 
     # --- Models B / C / D1-D5 ---
     shap_store = {}
-    train_regressor('B', 'model_b_v9.json', df, model_bcde_cols, 'forward_return_1m', shap_store)
-    train_regressor('C', 'model_c_v9.json', df, model_bcde_cols, 'max_adverse_excursion_1m', shap_store)
+    train_regressor('B', 'model_b_v9.1.json', df, model_bcde_cols, 'forward_return_1m', shap_store)
+    train_regressor('C', 'model_c_v9.1.json', df, model_bcde_cols, 'max_adverse_excursion_1m', shap_store)
 
     d1_label = 'forward_return_3m'
     if d1_label not in df.columns:
         script_warnings.append("forward_return_3m absent -> D1 falling back to forward_return_1m")
         d1_label = 'forward_return_1m'
     print(f"\n[D1] using label: {d1_label}")
-    train_regressor('D1', 'model_d1_v9.json', df, model_bcde_cols, d1_label)
+    train_regressor('D1', 'model_d1_v9.1.json', df, model_bcde_cols, d1_label)
 
-    train_regressor('D2', 'model_d2_v9.json', df, model_bcde_cols, 'forward_return_6m')
-    train_regressor('D3', 'model_d3_v9.json', df, model_bcde_cols, 'forward_return_2d')
-    train_regressor('D4', 'model_d4_v9.json', df, model_bcde_cols, 'forward_return_3d')
-    train_regressor('D5', 'model_d5_v9.json', df, model_bcde_cols, 'forward_return_2w')
+    train_regressor('D2', 'model_d2_v9.1.json', df, model_bcde_cols, 'forward_return_6m')
+    train_regressor('D3', 'model_d3_v9.1.json', df, model_bcde_cols, 'forward_return_2d')
+    train_regressor('D4', 'model_d4_v9.1.json', df, model_bcde_cols, 'forward_return_3d')
+    train_regressor('D5', 'model_d5_v9.1.json', df, model_bcde_cols, 'forward_return_2w')
 
     # --- Model E: 12-month outperformer classifier ---
     if 'outperform_12m' in df.columns:
@@ -491,14 +496,14 @@ def main():
     model_e.fit(X_train_e, y_train_e, sample_weight=sw_train_e)
     proba_e = model_e.predict_proba(X_test_e)[:, 1]
     auc_e = roc_auc_score(y_test_e, proba_e)
-    model_e.save_model(str(ML_DIR / 'model_e_v9.json'))
+    model_e.save_model(str(ML_DIR / 'model_e_v9.1.json'))
     results.append({
-        'model': 'E', 'file': 'model_e_v9.json', 'label': e_label,
+        'model': 'E', 'file': 'model_e_v9.1.json', 'label': e_label,
         'train_rows': len(X_train_e), 'val_rows': len(X_val_e), 'test_rows': len(X_test_e),
         'metric': 'AUC-ROC', 'score': f'{auc_e:.4f}',
     })
     print(f"[E] label={e_label} train={len(X_train_e)} val={len(X_val_e)} test={len(X_test_e)} "
-          f"AUC={auc_e:.4f} -> model_e_v9.json")
+          f"AUC={auc_e:.4f} -> model_e_v9.1.json")
 
     # --- Feature importance + SHAP plots (Models A/B/C), to src/ml/ and docs/ ---
     print("\nWriting feature_importance.png ...")
@@ -524,7 +529,7 @@ def main():
 
     # --- Feature metadata ---
     metadata = {
-        'version': 'v9',
+        'version': 'v9.1',
         'trained_at': datetime.now(timezone.utc).isoformat(),
         'model_a_features': MODEL_A_COLS,
         'full_feature_cols': model_bcde_cols,
@@ -537,9 +542,9 @@ def main():
         'instance_weighting': True,
         'asymmetric_loss': {'alpha': ASYMMETRIC_ALPHA, 'beta': ASYMMETRIC_BETA},
     }
-    with open(ML_DIR / 'feature_metadata_v9.json', 'w') as f:
+    with open(ML_DIR / 'feature_metadata_v9.1.json', 'w') as f:
         json.dump(metadata, f, indent=2)
-    print("\nWrote feature_metadata_v9.json")
+    print("\nWrote feature_metadata_v9.1.json")
 
     # --- Summary ---
     print("\nModel | File | Label | Train rows | Val rows | Test rows | Metric | Score")

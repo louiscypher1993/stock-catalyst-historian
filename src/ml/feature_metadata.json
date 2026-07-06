@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-06T16:06:59.664Z",
+  "generated_at": "2026-07-06T17:20:40.370Z",
   "row_count": 66834,
-  "column_count": 127,
+  "column_count": 128,
   "null_fill_value": 0,
   "null_indicator_threshold": 0.1,
   "columns": [
@@ -444,6 +444,14 @@
     },
     {
       "name": "congressional_net_flow_30d",
+      "type": "number",
+      "null_count": 0,
+      "null_rate": 0,
+      "fill_rate": 1,
+      "has_null_indicator": false
+    },
+    {
+      "name": "competitor_event_density",
       "type": "number",
       "null_count": 0,
       "null_rate": 0,

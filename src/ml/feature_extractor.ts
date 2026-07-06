@@ -151,6 +151,7 @@ const NUMERIC_ACCESSORS: Record<string, (f: Json, snap: Json | null) => number |
   peer_average_return: (f) => numOrNull(f.peer_average_return),
   peer_contagion_delta: (f) => numOrNull(f.peer_contagion_delta),
   congressional_net_flow_30d: (f, s) => numOrNull(f.congressional_net_flow_30d ?? s?.congressional_net_flow),
+  competitor_event_density: (f) => numOrNull(f.competitor_event_density),
   insider_net_shares_30d: (f, s) => numOrNull(f.insider_net_shares_30d ?? s?.insider_net_shares_30d),
   institutional_ownership_pct: (f, s) => numOrNull(f.institutional_ownership_pct ?? s?.institutional_ownership_pct),
   eps_surprise_pct: (f, s) => numOrNull(f.eps_surprise_pct ?? s?.eps_surprise_pct),
