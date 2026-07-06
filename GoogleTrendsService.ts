@@ -28,8 +28,14 @@ export async function getSearchTrends(
     // on bulk historical queries
     await delay(2000 + Math.random() * 3000);
 
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('<html> timeout — Google Trends hung')), 10000)
+    );
     const rawResultStr = await googleTrendsThrottler.enqueue<string>(
-      () => googleTrends.interestOverTime({ keyword: companyName, startTime: new Date(fromDate), endTime: new Date(toDate), geo: "US" }),
+      () => Promise.race([
+        googleTrends.interestOverTime({ keyword: companyName, startTime: new Date(fromDate), endTime: new Date(toDate), geo: "US" }),
+        timeout
+      ]) as Promise<string>,
       2500
     );
 
@@ -82,9 +88,9 @@ export async function getSearchTrends(
 
     return points;
   } catch (err: any) {
-    if (err?.requestBody?.includes('429') || String(err).includes('429')) {
-      rateLimitedUntil = Date.now() + 30 * 60 * 1000;
-      console.warn(`[GoogleTrendsService] 429 rate limit hit — skipping Google Trends for 30 minutes.`);
+    if (err?.requestBody?.includes('429') || String(err).includes('429') || err?.requestBody?.includes('<html') || String(err?.message).includes('<html')) {
+      rateLimitedUntil = Date.now() + 4 * 60 * 60 * 1000;
+      console.warn(`[GoogleTrendsService] Blocked by Google (rate limit/CAPTCHA) — skipping Google Trends for 4 hours.`);
     }
     console.error(`[GoogleTrendsService] Error fetching trends for ${companyName}:`, err);
     logFetch({

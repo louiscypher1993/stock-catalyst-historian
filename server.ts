@@ -1291,8 +1291,8 @@ app.post("/api/enrich-backfill", (req, res) => {
   if (getBackfillStatus().isRunning) {
     return res.status(409).json({ error: "Backfill already running.", status: getBackfillStatus() });
   }
-  const { symbols, forceAll } = req.body as { symbols?: string[]; forceAll?: boolean };
-  startBackfill(symbols, forceAll ?? false).catch(err => {
+  const { symbols, forceAll, fmpOnly } = req.body as { symbols?: string[]; forceAll?: boolean; fmpOnly?: boolean };
+  startBackfill(symbols, forceAll ?? false, fmpOnly ?? false).catch(err => {
     console.error("[Backfill] Unhandled error:", err);
   });
   return res.json({ started: true, status: getBackfillStatus() });
