@@ -45,12 +45,15 @@ def load_models():
     model_d1.load_model(ML_DIR / 'model_d1_v9.1.json')
     model_d2 = xgb.XGBRegressor()
     model_d2.load_model(ML_DIR / 'model_d2_v9.1.json')
+    # D3/D4/D5 relabeled + retrained on corrected forward_return_2d/3d/2w (v9.2).
+    # A/B/C/D1/D2/E stay on v9.1 -- confirmed bit-identical inputs/labels, no reason
+    # to move them.
     model_d3 = xgb.XGBRegressor()
-    model_d3.load_model(ML_DIR / 'model_d3_v9.1.json')
+    model_d3.load_model(ML_DIR / 'model_d3_v9.2.json')
     model_d4 = xgb.XGBRegressor()
-    model_d4.load_model(ML_DIR / 'model_d4_v9.1.json')
+    model_d4.load_model(ML_DIR / 'model_d4_v9.2.json')
     model_d5 = xgb.XGBRegressor()
-    model_d5.load_model(ML_DIR / 'model_d5_v9.1.json')
+    model_d5.load_model(ML_DIR / 'model_d5_v9.2.json')
     model_e = xgb.XGBClassifier()
     model_e.load_model(ML_DIR / 'model_e_v9.1.json')
     return model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e, calibrator_a

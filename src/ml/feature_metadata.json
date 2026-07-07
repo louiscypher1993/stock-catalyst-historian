@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-06T17:20:40.370Z",
+  "generated_at": "2026-07-07T18:21:36.163Z",
   "row_count": 66834,
   "column_count": 128,
   "null_fill_value": 0,
@@ -963,9 +963,9 @@
     {
       "name": "forward_return_3d",
       "type": "number",
-      "null_count": 482,
-      "null_rate": 0.007211898135679445,
-      "fill_rate": 0.9927881018643205,
+      "null_count": 481,
+      "null_rate": 0.0071969356914145495,
+      "fill_rate": 0.9928030643085854,
       "has_null_indicator": false
     },
     {
