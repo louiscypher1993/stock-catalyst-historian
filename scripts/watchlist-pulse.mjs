@@ -92,7 +92,13 @@ async function sb(pathAndQuery, options = {}) {
     throw new Error(`Supabase ${pathAndQuery} -> HTTP ${res.status}: ${body.slice(0, 300)}`);
   }
   if (res.status === 204) return null;
-  return res.json();
+  // PostgREST upserts without `Prefer: return=representation` come back
+  // 200 OK with an EMPTY body (confirmed empirically against this project:
+  // Content-Length: 0), not 204 -- res.json() throws SyntaxError on that.
+  // Read as text first and only parse if non-empty.
+  const text = await res.text();
+  if (!text) return null;
+  return JSON.parse(text);
 }
 
 function sleep(ms) {
