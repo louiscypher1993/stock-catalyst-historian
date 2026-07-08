@@ -177,13 +177,77 @@ function resolveTierFromConfig(value: number, cfg: HorizonTierConfig): string {
   return 'HOLD';
 }
 
+// model_c_max_drawdown percentile breakpoints, from historical_inference_
+// results' 10,051-row fold (as of 2026-07-08). Recalibrate after any future
+// Model C retrain. Confirmed sign convention (Spearman +0.285 signed
+// correlation against realized max_adverse_excursion_1m): higher modelC is
+// safer (smaller drawdown), lower/negative modelC is riskier -- a long
+// negative outlier tail (min -1.4857) is why this uses percentile rank via
+// interpolation between real breakpoints rather than a linear min-max scale,
+// same reasoning as the percentile-based tier thresholds above.
+const MODEL_C_PERCENTILE_BREAKPOINTS: Array<[number, number]> = [
+  [0.00, -1.4857],
+  [0.01, -0.0958],
+  [0.02, -0.0717],
+  [0.05, -0.0440],
+  [0.10, -0.0201],
+  [0.20,  0.0235],
+  [0.30,  0.0562],
+  [0.40,  0.0686],
+  [0.50,  0.0770],
+  [0.60,  0.0821],
+  [0.70,  0.0862],
+  [0.80,  0.0921],
+  [0.90,  0.0975],
+  [0.95,  0.1002],
+  [0.98,  0.1002],
+  [0.99,  0.1009],
+  [1.00,  0.1009],
+];
+
+/** Percentile rank (0-1) of a model_c_max_drawdown value within the historical fold. */
+function modelCPercentileRank(value: number): number {
+  const bp = MODEL_C_PERCENTILE_BREAKPOINTS;
+  if (value <= bp[0][1]) return bp[0][0];
+  if (value >= bp[bp.length - 1][1]) return bp[bp.length - 1][0];
+  for (let i = 1; i < bp.length; i++) {
+    const [pHi, vHi] = bp[i];
+    const [pLo, vLo] = bp[i - 1];
+    if (value <= vHi) {
+      if (vHi === vLo) return pHi; // degenerate flat segment (p95-p98 tie)
+      const frac = (value - vLo) / (vHi - vLo);
+      return pLo + frac * (pHi - pLo);
+    }
+  }
+  return 1;
+}
+
 /**
  * Resolves recommendation tier, riskScore, and riskReward for a pot's specific
  * patience horizon -- computed lazily per pot from fields already on `result`,
- * not precomputed upstream. Mirrors getRecommendation()'s riskScore/riskReward
- * formulas exactly, substituting the horizon-specific expected return in place
- * of the single modelB argument; model_a_confidence and model_c_max_drawdown
- * have no per-horizon variants so are reused as-is.
+ * not precomputed upstream.
+ *
+ * riskScore's three terms, fixed from the diagnostic that found the original
+ * Math.abs(modelC)*40 + (1-modelA)*30 + (value<0?30:0) formula anti-correlated
+ * with realized risk (Spearman -0.131 vs. realized max_adverse_excursion_1m):
+ *   1. Model A confidence -- unchanged, no per-horizon variant exists.
+ *   2. Model C, via percentile rank in its own historical distribution instead
+ *      of |modelC|. |modelC| was wrong because modelC is positive ~85% of the
+ *      time while its own label is negative ~94% of the time -- taking the
+ *      absolute value treated "no drawdown predicted" the same as "large
+ *      drawdown predicted". Percentile rank respects the confirmed sign
+ *      convention directly: a low percentile (historically-riskiest tail)
+ *      contributes close to the full 40 points, a high percentile (historically
+ *      safe) contributes close to 0.
+ *   3. Reuses the SAME per-field SELL threshold already established for tier
+ *      resolution (cfg.sell), instead of a raw value<0 check. D1/D2/B have no
+ *      data-supported bottom tier -- cfg.sell is undefined for them, so this
+ *      term is always 0 for those horizons. Their riskScore rests on the other
+ *      two terms only; that's an accurate reflection of what the data
+ *      supports, not a gap to paper over.
+ *
+ * riskReward is unchanged -- only riskScore's construction was diagnosed as
+ * broken.
  */
 function resolveHorizonSignal(result: PipelineResult, patience: number): {
   tier: string; riskScore: number; riskReward: number;
@@ -196,10 +260,12 @@ function resolveHorizonSignal(result: PipelineResult, patience: number): {
   const modelA = result.model_a_confidence;
   const modelC = result.model_c_max_drawdown;
 
+  const confidenceTerm = (1 - modelA) * 30;
+  const drawdownTerm   = (1 - modelCPercentileRank(modelC)) * 40;
+  const tailRiskTerm   = cfg.sell?.(value) ? 30 : 0;
+
   const riskScore = Math.round(Math.min(100, Math.max(0,
-    (Math.abs(modelC) * 40) +
-    ((1 - modelA) * 30) +
-    (value < 0 ? 30 : 0)
+    drawdownTerm + confidenceTerm + tailRiskTerm
   )));
 
   const riskReward = modelC !== 0
