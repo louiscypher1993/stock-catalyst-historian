@@ -79,10 +79,18 @@ const normaliseSuspectedCatalyst = (val: any): string | undefined => {
 };
 
 // Exchange suffixes that Yahoo Finance preserves with a dot (international markets).
+// Synced to the 52-entry allowlist in LiveInferenceService.ts / scripts/watchlist-pulse.mjs
+// (cross-checked against every distinct suffix in marketsData.ts against Yahoo's real chart
+// API). `.AB` (Abu Dhabi) and `.PS` (Philippine Stock Exchange) are deliberately excluded --
+// a Yahoo data-coverage gap, not a suffix-mapping bug -- so they fall through to the
+// dash-fallback below same as before.
 const YAHOO_INTL_SUFFIXES = new Set([
-  '.L', '.PA', '.AS', '.BR', '.DE', '.F', '.HK', '.SS', '.SZ',
-  '.T', '.TO', '.AX', '.NS', '.BO', '.KS', '.TW', '.SW', '.ST',
-  '.OL', '.CO', '.HE', '.ME', '.SA', '.BA', '.MX', '.IS', '.NZ',
+  '.AE', '.AS', '.AT', '.AX', '.BA', '.BD', '.BK', '.BO', '.BR',
+  '.CA', '.CL', '.CO', '.DE', '.F', '.HE', '.HK', '.IR', '.IS',
+  '.JK', '.JO', '.KA', '.KL', '.KQ', '.KS', '.KW', '.L', '.LM',
+  '.LS', '.MC', '.ME', '.MI', '.MX', '.NS', '.NZ', '.OL', '.PA',
+  '.PR', '.QA', '.RO', '.SA', '.SI', '.SN', '.SR', '.SS', '.ST',
+  '.SW', '.SZ', '.T', '.TO', '.TW', '.VN', '.WA',
 ]);
 
 /**
