@@ -17,8 +17,8 @@ on:
   # Sunday included (cron day range 0-5, i.e. Sun-Fri) because the universe
   # includes Sunday-trading markets (e.g. .SR/Tadawul); Saturday excluded
   # (no market in this universe trades Saturday).
-  # schedule:
-  #   - cron: '*/15 * * * 0-5'
+  schedule:
+    - cron: '*/15 * * * 0-5'
 
 permissions:
   contents: read
