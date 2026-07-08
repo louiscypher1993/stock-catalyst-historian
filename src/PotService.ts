@@ -114,6 +114,101 @@ function meetsMinRec(rec: string, minRec: string): boolean {
   return (REC_RANK[rec] ?? -99) >= (REC_RANK[minRec] ?? 99);
 }
 
+// ── Per-horizon tier resolution ────────────────────────────────────────────────
+//
+// getRecommendation() in LiveInferenceService.ts is single-canonical and stays
+// untouched -- the dashboard (docs/index.html) and GET /api/scan-symbol both
+// depend on its modelB(1-month)-basis recommendation/riskScore/riskReward as one
+// coherent value per symbol. This is a separate, additive mechanism consumed
+// only inside PotService's in-memory pipeline: each pot resolves its OWN tier
+// from the return field its own patience actually reads (reusing
+// patienceHorizon/expectedReturnForHorizon exactly as-is), instead of every pot
+// reading the same 1-month-basis recommendation regardless of horizon.
+//
+// Cutoffs below are from the decile diagnostic against historical_inference_
+// results' 10,051-row fold (as of 2026-07-08). Recalibrate after any future
+// D1/D2/D3/D5 retrain -- these are not universal constants.
+
+interface HorizonTierConfig {
+  strongBuy?: (v: number) => boolean;
+  buy?:       (v: number) => boolean;
+  sell?:      (v: number) => boolean;
+}
+
+const HORIZON_TIER_CONFIG: Partial<Record<keyof PipelineResult, HorizonTierConfig>> = {
+  model_d3_return_2d: {
+    strongBuy: v => v >= 0.0187,
+    sell:      v => v <= 0.0096,
+    // No BUY/ADD/REDUCE -- decile diagnostic found no meaningful divergence
+    // from the population mean anywhere between the two tails.
+  },
+  model_d5_return_2w: {
+    strongBuy: v => v >= 0.1575,
+    buy:       v => v >= 0.1489 && v < 0.1575,
+    sell:      v => v <= 0.1341,
+  },
+  model_d1_return_3m: {
+    strongBuy: v => v >= 0.0682,
+    // No bottom tier -- bottom decile was small and noisy (-2.67 std but only
+    // -0.004 in absolute terms), not a clean tail like D3/D5's.
+  },
+  model_d2_return_6m: {
+    // Strict > only: 0.2206 is a degenerate tie (p75 == p90 in the raw
+    // distribution), so >= would fire for far more than the intended top decile.
+    // BUY, not STRONG_BUY: this is the weakest/noisiest of the four signals
+    // (+1.83 std vs D3's +8.10/D5's +11.91/D1's +4.97 in the decile diagnostic,
+    // and borderline against the 1.5-std bar used there) -- STRONG_BUY is what
+    // ambitionTier's highest-conviction pots require, and reserving it for
+    // genuinely strong separation (not this borderline one) keeps that meaning
+    // intact. No bottom tier -- bottom decile was positive, not negative.
+    buy: v => v > 0.2206,
+  },
+  model_b_return_1m: {
+    // Deliberately empty -- always resolves HOLD. The decile diagnostic found
+    // no meaningful divergence in either tail for this field at all; this is
+    // not a placeholder awaiting a threshold, it's the finding.
+  },
+};
+
+function resolveTierFromConfig(value: number, cfg: HorizonTierConfig): string {
+  if (cfg.strongBuy?.(value)) return 'STRONG_BUY';
+  if (cfg.buy?.(value))       return 'BUY';
+  if (cfg.sell?.(value))      return 'SELL';
+  return 'HOLD';
+}
+
+/**
+ * Resolves recommendation tier, riskScore, and riskReward for a pot's specific
+ * patience horizon -- computed lazily per pot from fields already on `result`,
+ * not precomputed upstream. Mirrors getRecommendation()'s riskScore/riskReward
+ * formulas exactly, substituting the horizon-specific expected return in place
+ * of the single modelB argument; model_a_confidence and model_c_max_drawdown
+ * have no per-horizon variants so are reused as-is.
+ */
+function resolveHorizonSignal(result: PipelineResult, patience: number): {
+  tier: string; riskScore: number; riskReward: number;
+} {
+  const h     = patienceHorizon(patience);
+  const value = expectedReturnForHorizon(result, patience);
+  const cfg   = HORIZON_TIER_CONFIG[h.returnField] ?? {};
+  const tier  = resolveTierFromConfig(value, cfg);
+
+  const modelA = result.model_a_confidence;
+  const modelC = result.model_c_max_drawdown;
+
+  const riskScore = Math.round(Math.min(100, Math.max(0,
+    (Math.abs(modelC) * 40) +
+    ((1 - modelA) * 30) +
+    (value < 0 ? 30 : 0)
+  )));
+
+  const riskReward = modelC !== 0
+    ? Math.round((Math.abs(value) / Math.abs(modelC)) * 100) / 100
+    : 0;
+
+  return { tier, riskScore, riskReward };
+}
+
 // ── Date helpers ───────────────────────────────────────────────────────────────
 
 function addCalendarDays(dateStr: string, days: number): string {
@@ -177,12 +272,13 @@ function meetsEntryConditions(
 ): boolean {
   const tier    = ambitionTier(pot.ambition);
   const minConf = minConfidence(pot.boldness);
+  const signal  = resolveHorizonSignal(result, pot.patience);
 
-  if (!meetsMinRec(result.recommendation, tier.minRec))                    return false;
-  if (result.risk_score > pot.boldness * 10)                               return false;
+  if (!meetsMinRec(signal.tier, tier.minRec))                              return false;
+  if (signal.riskScore > pot.boldness * 10)                                return false;
   if (expectedReturnForHorizon(result, pot.patience) < tier.minReturn)     return false;
   if (result.model_a_confidence < minConf)                                 return false;
-  if (result.risk_reward_ratio < pot.ambition / 5)                         return false;
+  if (signal.riskReward < pot.ambition / 5)                                return false;
   if (openCount >= pot.focus)                                              return false;
   if (heldSyms.has(result.symbol))                                         return false;
   return true;
@@ -274,12 +370,15 @@ async function processPot(
 
     // P2: Reactivity exit — new SELL/REDUCE AND R-B >= 2 (longs only)
     if (pos.direction === 'long' && rMinusB >= 2) {
-      const signal = results.find(r => r.symbol === pos.symbol);
-      if (signal && (signal.recommendation === 'SELL' || signal.recommendation === 'REDUCE')) {
-        await closePosition(pos, cp, returnSoFar, 'reactivity', todayStr, runDateStr, supabase, realisedPnlThisRun);
-        closedIds.add(pos.id);
-        console.log(`[PotService] ${pot.name}: REACTIVITY_EXIT ${pos.symbol} (new ${signal.recommendation})`);
-        continue;
+      const signalResult = results.find(r => r.symbol === pos.symbol);
+      if (signalResult) {
+        const sig = resolveHorizonSignal(signalResult, P);
+        if (sig.tier === 'SELL' || sig.tier === 'REDUCE') {
+          await closePosition(pos, cp, returnSoFar, 'reactivity', todayStr, runDateStr, supabase, realisedPnlThisRun);
+          closedIds.add(pos.id);
+          console.log(`[PotService] ${pot.name}: REACTIVITY_EXIT ${pos.symbol} (new ${sig.tier})`);
+          continue;
+        }
       }
     }
 
@@ -321,7 +420,8 @@ async function processPot(
 
       // Find a qualifying long signal that beats worst's expected return
       const replacementSignal = results.find(r => {
-        if (!['STRONG_BUY', 'BUY', 'ADD'].includes(r.recommendation)) return false;
+        const sig = resolveHorizonSignal(r, P);
+        if (!['STRONG_BUY', 'BUY', 'ADD'].includes(sig.tier)) return false;
         // One slot freed (remaining.length - 1 open after closing worst)
         if (!meetsEntryConditions(r, pot, remaining.length - 1, heldWithoutWorst)) return false;
         const newExpected = expectedReturnForHorizon(r, P);
@@ -352,7 +452,8 @@ async function processPot(
   // Long entries — STRONG_BUY / BUY / ADD signals
   for (const result of results) {
     if (openCount >= F) break;
-    if (!['STRONG_BUY', 'BUY', 'ADD'].includes(result.recommendation)) continue;
+    const entrySignal = resolveHorizonSignal(result, P);
+    if (!['STRONG_BUY', 'BUY', 'ADD'].includes(entrySignal.tier)) continue;
     if (!meetsEntryConditions(result, pot, openCount, heldSyms)) continue;
 
     const positionGBP = portfolioValue * (1 / F);
@@ -409,13 +510,14 @@ async function processPot(
     if (openCount >= F) break;
     if (heldSyms.has(result.symbol)) continue;
 
-    const canShort = (result.recommendation === 'SELL'   && ss >= 7.0) ||
-                     (result.recommendation === 'REDUCE' && ss >= 8.5);
+    const shortSignal = resolveHorizonSignal(result, P);
+    const canShort = (shortSignal.tier === 'SELL'   && ss >= 7.0) ||
+                     (shortSignal.tier === 'REDUCE' && ss >= 8.5);
     if (!canShort) continue;
 
     // For shorts, check confidence and risk score (recommendation tier check skipped)
     if (result.model_a_confidence < minConf) continue;
-    if (result.risk_score > B * 10) continue;
+    if (shortSignal.riskScore > B * 10) continue;
     // Ensure model predicts meaningful downside
     const downside = Math.abs(expectedReturnForHorizon(result, P));
     if (downside < tier.minReturn) continue;
