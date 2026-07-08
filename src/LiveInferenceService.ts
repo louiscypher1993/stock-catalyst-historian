@@ -57,11 +57,20 @@ function computeDigitalExhaustVelocity(snap: Record<string, any> | null): number
 }
 
 const Z_SCORE_THRESHOLD = 2.15;
-const WATCHLIST_Z_SCORE_THRESHOLD = 1.25;
 const ROLLING_WINDOW = 90;
 const NARRATIVE_CONFIDENCE_THRESHOLD = 0.65;
 const ML_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'ml');
 const YAHOO_REQUEST_DELAY_MS = 75;
+
+// When PULSE_MODE=1 (set by watchlist-pulse.yml's conditional trigger phase),
+// this run skips PotService evaluation, Gemini narrative generation, and the
+// macro snapshot -- notifications still fire with recommendation/return/risk
+// numbers, just with an empty narrative. Rationale: pots are designed around
+// 3 scheduled slots/day (pulse-triggered trading would silently change the
+// experiment's semantics), Gemini quota is shared with the 3x/day main runs,
+// and macro regime doesn't move at intraday granularity anyway. Absent the
+// flag, behavior is byte-identical to today.
+const PULSE_MODE = process.env.PULSE_MODE === '1';
 
 interface YahooBar {
   date: string;
@@ -168,7 +177,7 @@ export async function fetchYahooDailyHistory(symbol: string, range: string = '1y
 // Mirrors HistoricalEngine.ts's idiosyncratic-return z-score: a 90-day rolling window of
 // SPY-excess returns establishes the baseline mean/stddev, and an anomaly is any day whose
 // excess return deviates from that baseline by more than Z_SCORE_THRESHOLD standard deviations.
-export function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], spyReturn: number, forceSignal: boolean = false): AnomalySignal | null {
+export function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], spyReturn: number, bypassZGate: boolean = false): AnomalySignal | null {
   if (bars.length < 12) return null;
 
   const last = bars[bars.length - 1];
@@ -190,7 +199,13 @@ export function detectAnomaly(symbol: string, companyName: string, bars: YahooBa
   const rollingStd = Math.sqrt(sumSquaredDiffs / Math.max(1, windowReturns.length - 1));
 
   const zScore = calculatePriceZScore(excessReturn, rollingMean, rollingStd);
-  if (Math.abs(zScore) <= (forceSignal ? WATCHLIST_Z_SCORE_THRESHOLD : Z_SCORE_THRESHOLD)) return null;
+  // Force-analyzed symbols (watchlist + open POTS positions) skip the z-gate
+  // entirely so held/watched names get continuous B/D-head tracking regardless
+  // of move size, not just when they anomaly-spike. Small |z| naturally yields
+  // low model_a_confidence by construction (z is Model A's primary driver) --
+  // expected, not a bug; the value here is the ongoing tracking + notifications
+  // on held/watched names, not the anomaly signal itself.
+  if (!bypassZGate && Math.abs(zScore) <= Z_SCORE_THRESHOLD) return null;
 
   const vol20Window = bars.slice(-21, -1);
   const vol20Avg = vol20Window.reduce((sum, b) => sum + b.volume, 0) / Math.max(1, vol20Window.length);
@@ -788,6 +803,26 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
     console.warn('[LiveInference] Could not fetch watchlist:', err.message);
   }
 
+  // Force-analyze set: watchlist above, plus any symbol currently held in an
+  // open POTS position -- continuous tracking of held names, not just
+  // watchlist adds. These symbols skip detectAnomaly's z-gate entirely.
+  const forceAnalyzeSymbols = new Set<string>(watchlistSymbols);
+  try {
+    const { supabase } = await import('./db/supabaseClient');
+    const { data, error } = await supabase
+      .from('pot_positions')
+      .select('symbol')
+      .eq('status', 'open');
+    if (error) {
+      console.warn('[LiveInference] Open positions fetch error:', error.message);
+    } else if (data) {
+      data.forEach(r => forceAnalyzeSymbols.add(r.symbol.toUpperCase()));
+    }
+    console.log(`[LiveInference] Force-analyze set (watchlist + open positions): ${forceAnalyzeSymbols.size} symbols`);
+  } catch (err: any) {
+    console.warn('[LiveInference] Could not fetch open positions:', err.message);
+  }
+
   const aiClient = process.env.GEMINI_API_KEY
     ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
     : null;
@@ -803,7 +838,8 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       await sleep(YAHOO_REQUEST_DELAY_MS);
 
       const isWatchlisted = watchlistSymbols.has(symbol.toUpperCase());
-      const anomaly = detectAnomaly(symbol, companyName, bars, spyReturn, isWatchlisted);
+      const isForced = forceAnalyzeSymbols.has(symbol.toUpperCase());
+      const anomaly = detectAnomaly(symbol, companyName, bars, spyReturn, isForced);
       if (!anomaly) continue;
 
       const isActualAnomaly = Math.abs(anomaly.zScore) > Z_SCORE_THRESHOLD;
@@ -862,8 +898,10 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       // backfill-side scoring in EnrichBackfillService is unaffected.)
       const managementScore: { confidence_score: number; primary_concern: string } | null = null;
 
+      // PULSE_MODE skips Gemini narrative generation (shared quota with main
+      // runs) -- notifications below still fire with an empty narrative.
       let narrative = '';
-      if ((isActualAnomaly && scores.model_a_confidence >= NARRATIVE_CONFIDENCE_THRESHOLD) || rec.recommendation === 'SELL' || rec.recommendation === 'REDUCE') {
+      if (!PULSE_MODE && ((isActualAnomaly && scores.model_a_confidence >= NARRATIVE_CONFIDENCE_THRESHOLD) || rec.recommendation === 'SELL' || rec.recommendation === 'REDUCE')) {
         narrative = aiClient
           ? await generateNarrative(aiClient, anomaly, clampedScores, rec, trendContext, edgarFilings, managementScore)
           : `${symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence.`;
@@ -899,7 +937,9 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       });
 
       const shouldNotify = rec.recommendation === 'STRONG_BUY' || rec.recommendation === 'BUY';
-      if (shouldNotify && (isActualAnomaly || isWatchlisted)) {
+      // isForced (watchlist + open positions) supersedes isWatchlisted here so
+      // held-only positions also get notified, not just watchlist names.
+      if (shouldNotify && (isActualAnomaly || isForced)) {
         const titlePrefix = isWatchlisted && !isActualAnomaly ? 'WATCHLIST' : rec.recommendation;
         await sendNtfyNotification(symbol, titlePrefix, clampedReturn, rec.riskScore, narrative);
         notificationCount++;
@@ -911,7 +951,9 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
 
   console.log(`[LiveInference] Done. Anomalies: ${anomalyCount}, Narratives: ${narrativeCount}, Notifications: ${notificationCount}`);
 
-  if (potResults.length > 0) {
+  if (PULSE_MODE) {
+    console.log('[LiveInference] PULSE_MODE=1 -- skipping PotService evaluation (pots run on 3 scheduled slots/day; pulse-triggered trading would change the experiment semantics).');
+  } else if (potResults.length > 0) {
     console.log(`[LiveInference] Running PotService with ${potResults.length} signals (slot: ${determineRunSlot()})...`);
     try {
       await evaluateRun(potResults, new Date(), determineRunSlot());
@@ -920,8 +962,12 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
     }
   }
 
-  const macro = await fetchMacroEnvironment(runDate);
-  await writeMacroSnapshot(runDate, macro);
+  if (PULSE_MODE) {
+    console.log('[LiveInference] PULSE_MODE=1 -- skipping macro snapshot (macro regime does not move at intraday granularity).');
+  } else {
+    const macro = await fetchMacroEnvironment(runDate);
+    await writeMacroSnapshot(runDate, macro);
+  }
 }
 
 // Run directly when executed as a script (GitHub Actions)

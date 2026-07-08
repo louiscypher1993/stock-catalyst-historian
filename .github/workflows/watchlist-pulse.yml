@@ -1,0 +1,102 @@
+name: Watchlist Pulse
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_symbols:
+        description: 'Space-separated symbols to force a full score run for (testing only, bypasses the price-move gate)'
+        required: false
+        type: string
+  # Cron ships commented out deliberately -- manual dispatch testing first,
+  # uncommenting is a separate follow-up commit.
+  #
+  # Public repo -> unlimited Actions minutes -> */15 is fine. If this repo
+  # ever goes private, switch to */30 (2,000 free min/month is shared with
+  # live-inference.yml's 3x/day runs + keep-alive.yml).
+  #
+  # Sunday included (cron day range 0-5, i.e. Sun-Fri) because the universe
+  # includes Sunday-trading markets (e.g. .SR/Tadawul); Saturday excluded
+  # (no market in this universe trades Saturday).
+  # schedule:
+  #   - cron: '*/15 * * * 0-5'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: watchlist-pulse
+  cancel-in-progress: false
+
+jobs:
+  pulse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Phase 1 (always, cheap): dependency-free price check. Runs before
+      # `npm ci` so a no-op pulse (nothing moved enough) costs under a minute.
+      - name: Run pulse check
+        id: pulse
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: node scripts/watchlist-pulse.mjs
+
+      - name: Determine triggered symbols
+        id: symbols
+        run: |
+          if [ -n "${{ github.event.inputs.force_symbols }}" ]; then
+            echo "list=${{ github.event.inputs.force_symbols }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "list=${{ steps.pulse.outputs.triggered_symbols }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Phase 2 (conditional): only pay for npm ci / pip install / inference
+      # when something actually triggered.
+      - name: Set up Node dependencies
+        if: steps.symbols.outputs.list != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Node dependencies
+        if: steps.symbols.outputs.list != ''
+        run: npm ci
+
+      - name: Set up Python
+        if: steps.symbols.outputs.list != ''
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        if: steps.symbols.outputs.list != ''
+        run: pip install xgboost scikit-learn pandas numpy
+
+      - name: Run triggered inference (PULSE_MODE)
+        if: steps.symbols.outputs.list != ''
+        env:
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
+          PULSE_MODE: '1'
+        run: npx tsx src/LiveInferenceService.ts ${{ steps.symbols.outputs.list }}
+
+      # Only mark symbols as freshly scored after the inference step above
+      # actually succeeds -- a failed run must not falsely mark them fresh.
+      - name: Mark triggered symbols as freshly scored
+        if: steps.symbols.outputs.list != ''
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: node scripts/watchlist-pulse.mjs --mark-scored ${{ steps.symbols.outputs.list }}
