@@ -47,11 +47,21 @@ function convertSymbolToEODHD(yahooSymbol: string): string {
       return `${ticker}.SZ`;
     case "AX":
       return `${ticker}.AU`;
+    case "KS":
+      // Yahoo's KOSPI (Korea Stock Exchange) suffix is .KS; EODHD's real
+      // code is .KO -- confirmed via EODHD's own /exchanges-list/ API
+      // ({"Name":"Korea Stock Exchange","Code":"KO",...}) and a live /eod/
+      // fetch (005930.KO returns real Samsung data; 005930.KS, the previous
+      // pass-through behavior, returns "Ticker Not Found").
+      return `${ticker}.KO`;
     case "HK":
     case "PA":
     case "AS":
     case "MC":
-      // These naturally match EODHD's format, just pass them through without a warning.
+    case "KQ":
+      // These naturally match EODHD's format, just pass them through without
+      // a warning. KQ (KOSDAQ) confirmed via a live /eod/ fetch returning
+      // real data unmodified.
       return symbolUpper;
     default:
       console.warn(`[EODHD] Unrecognized Yahoo Finance suffix: .${suffix}. Keeping as is.`);

@@ -34,16 +34,22 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 // Local copy of LiveInferenceService.ts's normaliseForYahoo (itself a local
 // copy of HistoricalEngine.ts's version, duplicated there because of a
 // circular-import constraint). This is a third copy, required here by the
-// zero-npm-import constraint. NOTE: any suffix not in this set falls through
-// to dot->dash replacement, which is wrong for some real Yahoo tickers (e.g.
-// Warsaw's ".WA", used by PKO.WA in the current open-positions set, isn't in
-// this list) -- a pre-existing gap inherited from the original, not
-// introduced here. Affected symbols will fail the price fetch below and get
-// logged + skipped, not silently mis-priced.
+// zero-npm-import constraint -- kept in sync with LiveInferenceService.ts's
+// allowlist, which was cross-checked against every distinct suffix in
+// marketsData.ts against Yahoo's real chart API (not guessed). Two suffixes
+// present in marketsData.ts are deliberately excluded: `.B` is correctly
+// handled by the dash-fallback below (BRK.B -> BRK-B is genuinely correct
+// for US multi-class shares); `.AB` (Abu Dhabi) and `.PS` (intended as
+// Philippine Stock Exchange) 404 or resolve to unrelated data under every
+// format tried -- a Yahoo data-coverage gap, not a suffix-mapping bug, so
+// left unfixed rather than guessed at.
 const YAHOO_INTL_SUFFIXES = new Set([
-  '.L', '.PA', '.AS', '.BR', '.DE', '.F', '.HK', '.SS', '.SZ',
-  '.T', '.TO', '.AX', '.NS', '.BO', '.KS', '.TW', '.SW', '.ST',
-  '.OL', '.CO', '.HE', '.ME', '.SA', '.BA', '.MX', '.IS', '.NZ',
+  '.AE', '.AS', '.AT', '.AX', '.BA', '.BD', '.BK', '.BO', '.BR',
+  '.CA', '.CL', '.CO', '.DE', '.F', '.HE', '.HK', '.IR', '.IS',
+  '.JK', '.JO', '.KA', '.KL', '.KQ', '.KS', '.KW', '.L', '.LM',
+  '.LS', '.MC', '.ME', '.MI', '.MX', '.NS', '.NZ', '.OL', '.PA',
+  '.PR', '.QA', '.RO', '.SA', '.SI', '.SN', '.SR', '.SS', '.ST',
+  '.SW', '.SZ', '.T', '.TO', '.TW', '.VN', '.WA',
 ]);
 function normaliseForYahoo(symbol) {
   const upper = symbol.toUpperCase().trim();

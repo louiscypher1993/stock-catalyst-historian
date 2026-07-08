@@ -19,10 +19,33 @@ import { getAlphaVantageNewsSentiment } from '../AlphaVantageService';
 import { evaluateRun, type PotInferenceResult } from './PotService';
 
 // Local copy — cannot import from HistoricalEngine (circular dependency).
+// NOTE: HistoricalEngine.ts's own copy of this list has the identical gap
+// documented below -- this fix has not been ported there (out of scope here).
+//
+// Suffixes below are every distinct exchange suffix in marketsData.ts's
+// symbol list, cross-checked against Yahoo's real chart API (not guessed):
+// each one returns real price data unmodified but 404s when dash-converted,
+// same failure mode originally found on PKO.WA. Two suffixes present in
+// marketsData.ts are deliberately NOT in this list because dot->dash
+// preservation didn't fix them either:
+//   .B  -- correctly handled by the existing dash-fallback below (e.g.
+//          BRK.B -> BRK-B is genuinely Yahoo's real format for US
+//          multi-class shares, not an international suffix).
+//   .AB -- Abu Dhabi Securities Exchange tickers 404 under every format
+//          tried (raw, dashed, and a .AD hypothesis) -- looks like a Yahoo
+//          data-coverage gap, not a suffix-mapping bug.
+//   .PS -- intended as Philippine Stock Exchange, but resolves (200 OK) to
+//          an unrelated US synthetic/mutual-fund placeholder under Yahoo's
+//          internal "YHD" pseudo-exchange, not real PSE data, under every
+//          format tried. Not a dot/dash issue; needs real investigation
+//          before touching, not a guess.
 const _YAHOO_INTL_SUFFIXES = new Set([
-  '.L', '.PA', '.AS', '.BR', '.DE', '.F', '.HK', '.SS', '.SZ',
-  '.T', '.TO', '.AX', '.NS', '.BO', '.KS', '.TW', '.SW', '.ST',
-  '.OL', '.CO', '.HE', '.ME', '.SA', '.BA', '.MX', '.IS', '.NZ',
+  '.AE', '.AS', '.AT', '.AX', '.BA', '.BD', '.BK', '.BO', '.BR',
+  '.CA', '.CL', '.CO', '.DE', '.F', '.HE', '.HK', '.IR', '.IS',
+  '.JK', '.JO', '.KA', '.KL', '.KQ', '.KS', '.KW', '.L', '.LM',
+  '.LS', '.MC', '.ME', '.MI', '.MX', '.NS', '.NZ', '.OL', '.PA',
+  '.PR', '.QA', '.RO', '.SA', '.SI', '.SN', '.SR', '.SS', '.ST',
+  '.SW', '.SZ', '.T', '.TO', '.TW', '.VN', '.WA',
 ]);
 function normaliseForYahoo(symbol: string): string {
   const upper = symbol.toUpperCase().trim();
