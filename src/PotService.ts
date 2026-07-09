@@ -67,9 +67,24 @@ const REC_RANK: Record<string, number> = {
 
 // ── Pure parameter derivations ─────────────────────────────────────────────────
 
+/**
+ * Floor stop-loss magnitude by patience horizon -- anchored to p25 max-adverse-
+ * excursion-from-entry measured against real daily_prices history per horizon
+ * bucket (recon 2026-07-09). Without this, a low-conviction/low-boldness pot's
+ * stop can be tighter than the terrain a long hold ordinarily requires to
+ * survive, causing premature stop-outs unrelated to the position actually
+ * being wrong -- confirmed via the 40,000-pot sweep's worst-20 cluster
+ * (Boldness 3-3.5, Patience 7-10): 71.6% of their closes were stop_loss, and
+ * stop width was inversely correlated with that rate (Spearman -0.60).
+ */
+const HORIZON_STOP_FLOOR: Record<string, number> = {
+  '2D': 0.03, '2W': 0.06, '1M': 0.09, '3M': 0.16, '6M': 0.20,
+};
+
 /** Stop loss threshold — always negative. Trigger when returnSoFar <= this value. */
-function stopLossPct(conviction: number, boldness: number): number {
-  return -(conviction * 0.03 + boldness * 0.02);
+function stopLossPct(conviction: number, boldness: number, horizonLabel: string): number {
+  const floor = HORIZON_STOP_FLOOR[horizonLabel] ?? 0;
+  return -Math.max(conviction * 0.03 + boldness * 0.02, floor);
 }
 
 /** Minimum model_a_confidence for entry */
@@ -246,9 +261,26 @@ function modelCPercentileRank(value: number): number {
  *      two terms only; that's an accurate reflection of what the data
  *      supports, not a gap to paper over.
  *
- * riskReward is unchanged -- only riskScore's construction was diagnosed as
- * broken.
+ * riskReward, fixed from the diagnostic that found it weak-but-correctly-
+ * signed overall (Spearman +0.115 vs. realized |return1m|/|MAE1m|) but with a
+ * severe division-by-near-zero problem independent of that: dividing by raw
+ * |modelC| blew up to as much as 771x whenever modelC landed near zero (true
+ * for ~9-22% of the population), and those blowups increasingly dominated
+ * which rows passed meetsEntryConditions' riskReward gate at higher ambition
+ * thresholds (51% of passers at the amb=10 threshold were blowup artifacts,
+ * not genuine signal). Now divides by (1 - modelCPercentileRank(modelC))
+ * instead of |modelC| -- same percentile-rank substitution as riskScore's
+ * fix, reusing the same confirmed sign convention (high percentile = safe).
+ * RISK_REWARD_FLOOR bounds the denominator so the ratio can never blow up:
+ * 0.15 sits in the same p10-p25-style band used for the stopLossPct floor,
+ * and independently lines up with where modelC's raw distribution starts
+ * compressing into its tight safe-side cluster (~p80-90, modelC ~0.095-0.10)
+ * -- past that point the raw values barely vary anyway, so treating them as
+ * hitting a common risk floor rather than ever-decreasing risk is consistent
+ * with why percentile rank was adopted over the raw scale in the first place.
  */
+const RISK_REWARD_FLOOR = 0.15;
+
 function resolveHorizonSignal(result: PipelineResult, patience: number): {
   tier: string; riskScore: number; riskReward: number;
 } {
@@ -259,18 +291,19 @@ function resolveHorizonSignal(result: PipelineResult, patience: number): {
 
   const modelA = result.model_a_confidence;
   const modelC = result.model_c_max_drawdown;
+  const modelCRank = modelCPercentileRank(modelC);
 
   const confidenceTerm = (1 - modelA) * 30;
-  const drawdownTerm   = (1 - modelCPercentileRank(modelC)) * 40;
+  const drawdownTerm   = (1 - modelCRank) * 40;
   const tailRiskTerm   = cfg.sell?.(value) ? 30 : 0;
 
   const riskScore = Math.round(Math.min(100, Math.max(0,
     drawdownTerm + confidenceTerm + tailRiskTerm
   )));
 
-  const riskReward = modelC !== 0
-    ? Math.round((Math.abs(value) / Math.abs(modelC)) * 100) / 100
-    : 0;
+  const riskReward = Math.round(
+    (Math.abs(value) / Math.max(1 - modelCRank, RISK_REWARD_FLOOR)) * 100
+  ) / 100;
 
   return { tier, riskScore, riskReward };
 }
@@ -344,7 +377,7 @@ function meetsEntryConditions(
   if (signal.riskScore > pot.boldness * 10)                                return false;
   if (expectedReturnForHorizon(result, pot.patience) < tier.minReturn)     return false;
   if (result.model_a_confidence < minConf)                                 return false;
-  if (signal.riskReward < pot.ambition / 5)                                return false;
+  if (signal.riskReward < pot.ambition / 40)                               return false;
   if (openCount >= pot.focus)                                              return false;
   if (heldSyms.has(result.symbol))                                         return false;
   return true;
@@ -460,7 +493,7 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
   const ph      = patienceHorizon(P);
   const tier    = ambitionTier(A);
   const minConf = minConfidence(B);
-  const stopPct = stopLossPct(C, B);
+  const stopPct = stopLossPct(C, B, ph.label);
   const ss      = shortScore(B, R, A);
   const rMinusB = R - B;
 
