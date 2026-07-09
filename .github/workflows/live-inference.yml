@@ -13,6 +13,20 @@ on:
 permissions:
   contents: read
 
+# Prevent overlapping evaluateRun executions -- two concurrent runs (one
+# schedule-triggered ~3.5h late, one manual workflow_dispatch) raced for 57s
+# on 2026-07-09 and one of them silently dropped pot_snapshots writes for
+# 7/20 pots (transient write contention during the overlap, not a decidePot
+# bug -- see that day's investigation). Static group name (not scoped to
+# ref/branch) so ANY two runs of this workflow are mutually exclusive
+# regardless of trigger type. cancel-in-progress: false -- a queued run
+# should wait and run after the in-progress one finishes, not get cancelled
+# and skip its cycle (a skipped cycle means a missed price check and missed
+# patience-timeout evaluation for every pot, which is worse than a delay).
+concurrency:
+  group: live-inference
+  cancel-in-progress: false
+
 jobs:
   infer:
     runs-on: ubuntu-latest
