@@ -350,59 +350,112 @@ function meetsEntryConditions(
   return true;
 }
 
-// ── Position close helper ──────────────────────────────────────────────────────
+// ── Decision / persistence split ────────────────────────────────────────────────
+//
+// decidePot is pure: given a snapshot of state (pot config, this run's inference
+// results, currently open positions, a price map, prior realised P&L, and the
+// run's date strings -- all supplied by the caller) it returns the list of
+// actions that should happen. It makes no Supabase calls, no HTTP calls, and
+// reads no wall-clock time -- todayStr/runDateStr come in via the input instead
+// of being read internally, exactly like priceMap already decouples the price
+// source. applyPotActions is the only place those actions become real writes,
+// so a backtest caller can swap in an in-memory ledger + historical daily_prices
+// without touching a line of decision logic; the live caller (evaluateRun,
+// below) wires the real Supabase client and the existing priceMap/
+// fetchCurrentPrice logic exactly as before.
+//
+// PHASE 4 in the pre-split code reloaded open positions from Supabase before
+// snapshotting. That reload was always reading back exactly what this same
+// call had just written or left untouched a moment earlier -- no concurrent
+// writer touches a pot's positions mid-run -- so decidePot reconstructs that
+// same view purely in memory (remaining pre-existing positions + newly opened
+// ones tracked as they're decided) instead of a round trip. The numbers are
+// identical by construction, not merely close.
 
-async function closePosition(
-  pos:              Position,
-  exitPrice:        number,
-  returnSoFar:      number,
-  reason:           string,
-  todayStr:         string,
-  runDateStr:       string,
-  supabase:         any,
-  realisedPnlOut:   number[]
-): Promise<void> {
-  const realisedPnl = returnSoFar * pos.position_size_gbp;
-  realisedPnlOut.push(realisedPnl);
-
-  const action = pos.direction === 'long' ? 'SELL' : 'COVER';
-
-  await supabase
-    .from('pot_positions')
-    .update({
-      status:              'closed',
-      exit_date:           todayStr,
-      exit_price:          exitPrice,
-      realised_pnl:        parseFloat(realisedPnl.toFixed(4)),
-      realised_return_pct: parseFloat(returnSoFar.toFixed(6)),
-      exit_reason:         reason,
-    })
-    .eq('id', pos.id);
-
-  await supabase.from('pot_trades').insert({
-    pot_id:            pos.pot_id,
-    symbol:            pos.symbol,
-    action,
-    price:             exitPrice,
-    shares:            pos.shares,
-    position_size_gbp: pos.position_size_gbp,
-    reason,
-    run_date:          runDateStr,
-  });
+export interface PotDecisionInput {
+  pot:             Pot;
+  results:         PipelineResult[];
+  openPositions:   Position[];
+  priceMap:        Record<string, number>;
+  prevRealisedPnl: number;
+  runDateStr:      string;
+  todayStr:        string;
 }
 
-// ── Per-pot processor ──────────────────────────────────────────────────────────
+interface PriceUpdateFields {
+  currentPrice:        number;
+  currentValueGbp:     number;
+  unrealisedPnl:       number;
+  unrealisedReturnPct: number;
+}
 
-async function processPot(
-  pot:              Pot,
-  results:          PipelineResult[],
-  openPositions:    Position[],
-  priceMap:         Record<string, number>,
-  prevRealisedPnl:  number,
-  runDateStr:       string,
-  todayStr:         string,
-  supabase:         any
-): Promise<void> {
+export interface CloseAction {
+  kind:              'close';
+  potId:             number;
+  positionId:        number;
+  symbol:            string;
+  tradeAction:       'SELL' | 'COVER';
+  exitPrice:         number;
+  exitDate:          string;
+  realisedPnl:       number;
+  realisedReturnPct: number;
+  reason:            string;
+  shares:            number;
+  positionSizeGbp:   number;
+  runDateStr:        string;
+  logMessage:        string;
+}
+
+export interface OpenAction {
+  kind:                  'open';
+  potId:                 number;
+  symbol:                string;
+  direction:             'long' | 'short';
+  entryDate:             string;
+  entryPrice:            number;
+  shares:                number;
+  positionSizeGbp:       number;
+  expectedReturnAtEntry: number;
+  patienceHorizonLabel:  string;
+  exitDeadline:          string;
+  tradeAction:           'BUY' | 'SHORT';
+  tradeReason:           string;
+  runDateStr:            string;
+  logMessage:            string;
+  /** Only set for BUY (long) -- matches the original code, which logged insert
+   *  errors for the long branch but had no error log at all for the short branch. */
+  skipLogMessage?:       string;
+  /** Present only if priceMap already had this symbol at decide-time -- mirrors
+   *  the original PHASE 5 loop's `if (!cp) continue` gate exactly. */
+  postOpenPriceUpdate?:  PriceUpdateFields;
+}
+
+export interface SnapshotAction {
+  kind:                  'snapshot';
+  potId:                 number;
+  potName:               string;
+  runDateStr:            string;
+  portfolioValue:        number;
+  cashBalance:           number;
+  openPositionsCount:    number;
+  unrealisedPnl:         number;
+  realisedPnlCumulative: number;
+}
+
+export interface PositionUpdateAction extends PriceUpdateFields {
+  kind:       'positionUpdate';
+  positionId: number;
+}
+
+export interface SkipAction {
+  kind:       'skip';
+  logMessage: string;
+}
+
+export type PotAction = CloseAction | OpenAction | SnapshotAction | PositionUpdateAction | SkipAction;
+
+export function decidePot(input: PotDecisionInput): PotAction[] {
+  const { pot, results, openPositions, priceMap, prevRealisedPnl, runDateStr, todayStr } = input;
   const { boldness: B, ambition: A, patience: P, conviction: C, focus: F, reactivity: R } = pot;
   const ph      = patienceHorizon(P);
   const tier    = ambitionTier(A);
@@ -411,8 +464,48 @@ async function processPot(
   const ss      = shortScore(B, R, A);
   const rMinusB = R - B;
 
-  const closedIds          = new Set<number>();
-  const realisedPnlThisRun: number[] = [];
+  const actions: PotAction[] = [];
+  const closedIds = new Set<number>();
+  let realisedPnlThisRun = 0;
+
+  function priceUpdateFor(
+    symbol: string, direction: 'long' | 'short', entryPrice: number, positionSizeGbp: number
+  ): PriceUpdateFields | undefined {
+    const cp = priceMap[symbol];
+    if (!cp) return undefined;
+    const ret = direction === 'long'
+      ? (cp - entryPrice) / entryPrice
+      : (entryPrice - cp) / entryPrice;
+    const currentValue = positionSizeGbp * (1 + ret);
+    return {
+      currentPrice:        cp,
+      currentValueGbp:     parseFloat(currentValue.toFixed(2)),
+      unrealisedPnl:       parseFloat((currentValue - positionSizeGbp).toFixed(2)),
+      unrealisedReturnPct: parseFloat(ret.toFixed(6)),
+    };
+  }
+
+  function makeCloseAction(pos: Position, exitPrice: number, returnSoFar: number, reason: string, logMessage: string): CloseAction {
+    const realisedPnl = returnSoFar * pos.position_size_gbp;
+    realisedPnlThisRun += realisedPnl;
+    closedIds.add(pos.id);
+    return {
+      kind:              'close',
+      potId:             pos.pot_id,
+      positionId:        pos.id,
+      symbol:            pos.symbol,
+      tradeAction:       pos.direction === 'long' ? 'SELL' : 'COVER',
+      exitPrice,
+      exitDate:          todayStr,
+      realisedPnl:       parseFloat(realisedPnl.toFixed(4)),
+      realisedReturnPct: parseFloat(returnSoFar.toFixed(6)),
+      reason,
+      shares:            pos.shares,
+      positionSizeGbp:   pos.position_size_gbp,
+      runDateStr,
+      logMessage,
+    };
+  }
 
   // ── PHASE 1: EXITS (priority order) ─────────────────────────────────────────
 
@@ -427,10 +520,9 @@ async function processPot(
 
     // P1: Stop loss
     if (returnSoFar <= stopPct) {
-      const reason = pos.direction === 'short' ? 'stop_loss' : 'stop_loss';
-      await closePosition(pos, cp, returnSoFar, reason, todayStr, runDateStr, supabase, realisedPnlThisRun);
-      closedIds.add(pos.id);
-      console.log(`[PotService] ${pot.name}: STOP_LOSS ${pos.direction.toUpperCase()} ${pos.symbol} @ ${cp.toFixed(2)} (${(returnSoFar * 100).toFixed(1)}%)`);
+      const reason = 'stop_loss';
+      const logMessage = `[PotService] ${pot.name}: STOP_LOSS ${pos.direction.toUpperCase()} ${pos.symbol} @ ${cp.toFixed(2)} (${(returnSoFar * 100).toFixed(1)}%)`;
+      actions.push(makeCloseAction(pos, cp, returnSoFar, reason, logMessage));
       continue;
     }
 
@@ -440,9 +532,8 @@ async function processPot(
       if (signalResult) {
         const sig = resolveHorizonSignal(signalResult, P);
         if (sig.tier === 'SELL' || sig.tier === 'REDUCE') {
-          await closePosition(pos, cp, returnSoFar, 'reactivity', todayStr, runDateStr, supabase, realisedPnlThisRun);
-          closedIds.add(pos.id);
-          console.log(`[PotService] ${pot.name}: REACTIVITY_EXIT ${pos.symbol} (new ${sig.tier})`);
+          const logMessage = `[PotService] ${pot.name}: REACTIVITY_EXIT ${pos.symbol} (new ${sig.tier})`;
+          actions.push(makeCloseAction(pos, cp, returnSoFar, 'reactivity', logMessage));
           continue;
         }
       }
@@ -451,9 +542,8 @@ async function processPot(
     // P3/P4: Patience timeout (covers 'short_cover' for shorts)
     if (todayStr >= pos.exit_deadline) {
       const reason = pos.direction === 'short' ? 'short_cover' : 'patience';
-      await closePosition(pos, cp, returnSoFar, reason, todayStr, runDateStr, supabase, realisedPnlThisRun);
-      closedIds.add(pos.id);
-      console.log(`[PotService] ${pot.name}: ${reason.toUpperCase()} ${pos.symbol} @ ${cp.toFixed(2)}`);
+      const logMessage = `[PotService] ${pot.name}: ${reason.toUpperCase()} ${pos.symbol} @ ${cp.toFixed(2)}`;
+      actions.push(makeCloseAction(pos, cp, returnSoFar, reason, logMessage));
     }
   }
 
@@ -497,23 +587,26 @@ async function processPot(
       if (replacementSignal) {
         const cp = priceMap[worst.pos.symbol] ?? worst.pos.entry_price;
         const ret = (cp - worst.pos.entry_price) / worst.pos.entry_price;
-        await closePosition(worst.pos, cp, ret, 'replacement', todayStr, runDateStr, supabase, realisedPnlThisRun);
-        closedIds.add(worst.pos.id);
+        const logMessage = `[PotService] ${pot.name}: REPLACEMENT — closing ${worst.pos.symbol}, opening slot for ${replacementSignal.symbol}`;
+        actions.push(makeCloseAction(worst.pos, cp, ret, 'replacement', logMessage));
         remaining = remaining.filter(p => p.id !== worst.pos.id);
-        console.log(`[PotService] ${pot.name}: REPLACEMENT — closing ${worst.pos.symbol}, opening slot for ${replacementSignal.symbol}`);
       }
     }
   }
 
   // ── PHASE 3: ENTRIES ────────────────────────────────────────────────────────
 
-  const totalRealisedPnl = prevRealisedPnl + realisedPnlThisRun.reduce((a, b) => a + b, 0);
+  const totalRealisedPnl = prevRealisedPnl + realisedPnlThisRun;
   const openPositionGBP  = remaining.reduce((s, p) => s + p.position_size_gbp, 0);
   const cashBalance      = pot.starting_balance + totalRealisedPnl - openPositionGBP;
   const portfolioValue   = pot.starting_balance + totalRealisedPnl; // mark-to-cost for sizing
 
   let openCount  = remaining.length;
   const heldSyms = new Set(remaining.map(p => p.symbol));
+
+  // Positions opened THIS run, tracked in memory -- stands in for the old
+  // post-write Supabase reload (see header comment above).
+  const newlyOpened: Array<{ symbol: string; direction: 'long' | 'short'; entryPrice: number; positionSizeGbp: number }> = [];
 
   // Long entries — STRONG_BUY / BUY / ADD signals
   for (const result of results) {
@@ -530,45 +623,38 @@ async function processPot(
 
     const shares = Math.floor(positionGBP / entryPrice);
     if (shares === 0) {
-      console.log(`[PotService] ${pot.name}: skipping ${result.symbol} — price £${entryPrice} exceeds allocation £${positionGBP.toFixed(2)}`);
+      actions.push({ kind: 'skip', logMessage: `[PotService] ${pot.name}: skipping ${result.symbol} — price £${entryPrice} exceeds allocation £${positionGBP.toFixed(2)}` });
       continue;
     }
     const actualPositionGBP = shares * entryPrice;
+    const positionSizeGbp   = parseFloat(actualPositionGBP.toFixed(2));
 
     const expReturn  = expectedReturnForHorizon(result, P);
     const deadline   = addCalendarDays(todayStr, ph.calendarDays);
 
-    const { error } = await supabase.from('pot_positions').insert({
-      pot_id:                   pot.pot_id,
-      symbol:                   result.symbol,
-      direction:                'long',
-      entry_date:               todayStr,
-      entry_price:              entryPrice,
-      shares:                   shares,
-      position_size_gbp:        parseFloat(actualPositionGBP.toFixed(2)),
-      expected_return_at_entry: parseFloat(expReturn.toFixed(6)),
-      patience_horizon:         ph.label,
-      exit_deadline:            deadline,
-      status:                   'open',
+    actions.push({
+      kind:                  'open',
+      potId:                 pot.pot_id,
+      symbol:                result.symbol,
+      direction:             'long',
+      entryDate:             todayStr,
+      entryPrice,
+      shares,
+      positionSizeGbp,
+      expectedReturnAtEntry: parseFloat(expReturn.toFixed(6)),
+      patienceHorizonLabel:  ph.label,
+      exitDeadline:          deadline,
+      tradeAction:           'BUY',
+      tradeReason:           result.recommendation,
+      runDateStr,
+      logMessage:            `[PotService] ${pot.name}: BUY ${result.symbol} @ ${entryPrice.toFixed(2)} — expected ${(expReturn * 100).toFixed(1)}% over ${ph.label}`,
+      skipLogMessage:        `[PotService] ${pot.name}: BUY insert error for ${result.symbol}:`,
+      postOpenPriceUpdate:   priceUpdateFor(result.symbol, 'long', entryPrice, positionSizeGbp),
     });
 
-    if (!error) {
-      await supabase.from('pot_trades').insert({
-        pot_id:            pot.pot_id,
-        symbol:            result.symbol,
-        action:            'BUY',
-        price:             entryPrice,
-        shares:            shares,
-        position_size_gbp: parseFloat(actualPositionGBP.toFixed(2)),
-        reason:            result.recommendation,
-        run_date:          runDateStr,
-      });
-      heldSyms.add(result.symbol);
-      openCount++;
-      console.log(`[PotService] ${pot.name}: BUY ${result.symbol} @ ${entryPrice.toFixed(2)} — expected ${(expReturn * 100).toFixed(1)}% over ${ph.label}`);
-    } else {
-      console.error(`[PotService] ${pot.name}: BUY insert error for ${result.symbol}:`, error.message);
-    }
+    heldSyms.add(result.symbol);
+    openCount++;
+    newlyOpened.push({ symbol: result.symbol, direction: 'long', entryPrice, positionSizeGbp });
   }
 
   // Short entries — SELL / REDUCE signals (if short_score qualifies)
@@ -596,108 +682,227 @@ async function processPot(
 
     const shares = Math.floor(positionGBP / entryPrice);
     if (shares === 0) {
-      console.log(`[PotService] ${pot.name}: skipping ${result.symbol} — price £${entryPrice} exceeds allocation £${positionGBP.toFixed(2)}`);
+      actions.push({ kind: 'skip', logMessage: `[PotService] ${pot.name}: skipping ${result.symbol} — price £${entryPrice} exceeds allocation £${positionGBP.toFixed(2)}` });
       continue;
     }
     const actualPositionGBP = shares * entryPrice;
+    const positionSizeGbp   = parseFloat(actualPositionGBP.toFixed(2));
 
     // For shorts: expected_return_at_entry is our anticipated profit (price fall → positive for us)
     const expReturn = downside;
     const deadline  = addCalendarDays(todayStr, ph.calendarDays);
 
-    const { error } = await supabase.from('pot_positions').insert({
-      pot_id:                   pot.pot_id,
-      symbol:                   result.symbol,
-      direction:                'short',
-      entry_date:               todayStr,
-      entry_price:              entryPrice,
-      shares:                   shares,
-      position_size_gbp:        parseFloat(actualPositionGBP.toFixed(2)),
-      expected_return_at_entry: parseFloat(expReturn.toFixed(6)),
-      patience_horizon:         ph.label,
-      exit_deadline:            deadline,
-      status:                   'open',
+    actions.push({
+      kind:                  'open',
+      potId:                 pot.pot_id,
+      symbol:                result.symbol,
+      direction:             'short',
+      entryDate:             todayStr,
+      entryPrice,
+      shares,
+      positionSizeGbp,
+      expectedReturnAtEntry: parseFloat(expReturn.toFixed(6)),
+      patienceHorizonLabel:  ph.label,
+      exitDeadline:          deadline,
+      tradeAction:           'SHORT',
+      tradeReason:           result.recommendation,
+      runDateStr,
+      logMessage:            `[PotService] ${pot.name}: SHORT ${result.symbol} @ ${entryPrice.toFixed(2)} (score=${ss.toFixed(1)})`,
+      // No skipLogMessage -- the original short branch had no error log at all.
+      postOpenPriceUpdate:   priceUpdateFor(result.symbol, 'short', entryPrice, positionSizeGbp),
     });
 
-    if (!error) {
-      await supabase.from('pot_trades').insert({
-        pot_id:            pot.pot_id,
-        symbol:            result.symbol,
-        action:            'SHORT',
-        price:             entryPrice,
-        shares:            shares,
-        position_size_gbp: parseFloat(actualPositionGBP.toFixed(2)),
-        reason:            result.recommendation,
-        run_date:          runDateStr,
-      });
-      heldSyms.add(result.symbol);
-      openCount++;
-      console.log(`[PotService] ${pot.name}: SHORT ${result.symbol} @ ${entryPrice.toFixed(2)} (score=${ss.toFixed(1)})`);
-    }
+    heldSyms.add(result.symbol);
+    openCount++;
+    newlyOpened.push({ symbol: result.symbol, direction: 'short', entryPrice, positionSizeGbp });
   }
 
-  // ── PHASE 4: SNAPSHOT ────────────────────────────────────────────────────────
+  // ── PHASE 4: SNAPSHOT (computed purely from remaining + newlyOpened) ───────
 
-  // Reload fresh open positions so snapshot is accurate
-  const { data: freshData } = await supabase
-    .from('pot_positions')
-    .select('id, position_size_gbp, entry_price, shares, direction, symbol')
-    .eq('pot_id', pot.pot_id)
-    .eq('status', 'open');
+  const freshOpenGBP =
+    remaining.reduce((s, p) => s + p.position_size_gbp, 0) +
+    newlyOpened.reduce((s, p) => s + p.positionSizeGbp, 0);
+  const freshCash = pot.starting_balance + totalRealisedPnl - freshOpenGBP;
 
-  const freshOpen: Array<{
-    id: number; position_size_gbp: number; entry_price: number;
-    shares: number; direction: string; symbol: string;
-  }> = freshData ?? [];
-
-  const freshOpenGBP = freshOpen.reduce((s, p) => s + p.position_size_gbp, 0);
-  const freshCash    = pot.starting_balance + totalRealisedPnl - freshOpenGBP;
-
-  const unrealisedPnl = freshOpen.reduce((sum, pos) => {
-    const cp = priceMap[pos.symbol];
-    if (!cp) return sum;
-    const ret = pos.direction === 'long'
-      ? (cp - pos.entry_price) / pos.entry_price
-      : (pos.entry_price - cp) / pos.entry_price;
-    return sum + ret * pos.position_size_gbp;
-  }, 0);
+  const unrealisedPnl =
+    remaining.reduce((sum, pos) => {
+      const cp = priceMap[pos.symbol];
+      if (!cp) return sum;
+      const ret = pos.direction === 'long'
+        ? (cp - pos.entry_price) / pos.entry_price
+        : (pos.entry_price - cp) / pos.entry_price;
+      return sum + ret * pos.position_size_gbp;
+    }, 0) +
+    newlyOpened.reduce((sum, p) => {
+      const cp = priceMap[p.symbol];
+      if (!cp) return sum;
+      const ret = p.direction === 'long'
+        ? (cp - p.entryPrice) / p.entryPrice
+        : (p.entryPrice - cp) / p.entryPrice;
+      return sum + ret * p.positionSizeGbp;
+    }, 0);
 
   const portfolioValueFinal = freshCash + freshOpenGBP + unrealisedPnl;
+  const freshOpenCount = remaining.length + newlyOpened.length;
 
-  const { error: snapErr } = await supabase.from('pot_snapshots').upsert({
-    pot_id:                  pot.pot_id,
-    run_date:                runDateStr,
-    portfolio_value:         parseFloat(portfolioValueFinal.toFixed(2)),
-    cash_balance:            parseFloat(freshCash.toFixed(2)),
-    open_positions_count:    freshOpen.length,
-    unrealised_pnl:          parseFloat(unrealisedPnl.toFixed(2)),
-    realised_pnl_cumulative: parseFloat(totalRealisedPnl.toFixed(2)),
-  }, { onConflict: 'pot_id,run_date' });
+  actions.push({
+    kind:                  'snapshot',
+    potId:                 pot.pot_id,
+    potName:               pot.name,
+    runDateStr,
+    portfolioValue:        parseFloat(portfolioValueFinal.toFixed(2)),
+    cashBalance:           parseFloat(freshCash.toFixed(2)),
+    openPositionsCount:    freshOpenCount,
+    unrealisedPnl:         parseFloat(unrealisedPnl.toFixed(2)),
+    realisedPnlCumulative: parseFloat(totalRealisedPnl.toFixed(2)),
+  });
 
-  if (snapErr) {
-    console.error(`[PotService] ${pot.name}: snapshot write error:`, snapErr.message);
+  // ── PHASE 5: price/value updates on pre-existing remaining positions ────────
+  // (positions opened THIS run carry their own postOpenPriceUpdate on the
+  // 'open' action above -- applyPotActions applies it right after the insert,
+  // using the id Supabase just handed back.)
+
+  for (const pos of remaining) {
+    const upd = priceUpdateFor(pos.symbol, pos.direction, pos.entry_price, pos.position_size_gbp);
+    if (!upd) continue;
+    actions.push({ kind: 'positionUpdate', positionId: pos.id, ...upd });
   }
 
-  // ── PHASE 5: Update current price/value on all open positions ──────────────────
-  for (const pos of freshOpen) {
-    const cp = priceMap[pos.symbol];
-    if (!cp) continue;
+  return actions;
+}
 
-    const unrealisedReturn = pos.direction === 'long'
-      ? (cp - pos.entry_price) / pos.entry_price
-      : (pos.entry_price - cp) / pos.entry_price;
+// ── Persistence ──────────────────────────────────────────────────────────────────
+//
+// The only place PotAction[] becomes real Supabase writes. Live evaluateRun
+// wires the real client below; a backtest caller would implement the same
+// interface over an in-memory ledger instead.
 
-    const currentValue = pos.position_size_gbp * (1 + unrealisedReturn);
+export interface PotPersistence {
+  closePosition(action: CloseAction): Promise<void>;
+  openPosition(action: OpenAction): Promise<void>;
+  writeSnapshot(action: SnapshotAction): Promise<void>;
+  updatePosition(action: PositionUpdateAction): Promise<void>;
+}
 
-    await supabase
-      .from('pot_positions')
-      .update({
-        current_price:        cp,
-        current_value_gbp:    parseFloat(currentValue.toFixed(2)),
-        unrealised_pnl:       parseFloat((currentValue - pos.position_size_gbp).toFixed(2)),
-        unrealised_return_pct: parseFloat(unrealisedReturn.toFixed(6)),
-      })
-      .eq('id', pos.id);
+function createSupabasePersistence(supabase: any): PotPersistence {
+  return {
+    async closePosition(action) {
+      await supabase
+        .from('pot_positions')
+        .update({
+          status:              'closed',
+          exit_date:           action.exitDate,
+          exit_price:          action.exitPrice,
+          realised_pnl:        action.realisedPnl,
+          realised_return_pct: action.realisedReturnPct,
+          exit_reason:         action.reason,
+        })
+        .eq('id', action.positionId);
+
+      await supabase.from('pot_trades').insert({
+        pot_id:            action.potId,
+        symbol:            action.symbol,
+        action:            action.tradeAction,
+        price:             action.exitPrice,
+        shares:            action.shares,
+        position_size_gbp: action.positionSizeGbp,
+        reason:            action.reason,
+        run_date:          action.runDateStr,
+      });
+
+      console.log(action.logMessage);
+    },
+
+    async openPosition(action) {
+      const { data, error } = await supabase
+        .from('pot_positions')
+        .insert({
+          pot_id:                   action.potId,
+          symbol:                   action.symbol,
+          direction:                action.direction,
+          entry_date:               action.entryDate,
+          entry_price:              action.entryPrice,
+          shares:                   action.shares,
+          position_size_gbp:        action.positionSizeGbp,
+          expected_return_at_entry: action.expectedReturnAtEntry,
+          patience_horizon:         action.patienceHorizonLabel,
+          exit_deadline:            action.exitDeadline,
+          status:                   'open',
+        })
+        .select('id')
+        .single();
+
+      if (error) {
+        if (action.skipLogMessage) console.error(action.skipLogMessage, error.message);
+        return;
+      }
+
+      await supabase.from('pot_trades').insert({
+        pot_id:            action.potId,
+        symbol:            action.symbol,
+        action:            action.tradeAction,
+        price:             action.entryPrice,
+        shares:            action.shares,
+        position_size_gbp: action.positionSizeGbp,
+        reason:            action.tradeReason,
+        run_date:          action.runDateStr,
+      });
+
+      console.log(action.logMessage);
+
+      if (action.postOpenPriceUpdate && data?.id != null) {
+        const u = action.postOpenPriceUpdate;
+        await supabase
+          .from('pot_positions')
+          .update({
+            current_price:         u.currentPrice,
+            current_value_gbp:     u.currentValueGbp,
+            unrealised_pnl:        u.unrealisedPnl,
+            unrealised_return_pct: u.unrealisedReturnPct,
+          })
+          .eq('id', data.id);
+      }
+    },
+
+    async writeSnapshot(action) {
+      const { error } = await supabase.from('pot_snapshots').upsert({
+        pot_id:                  action.potId,
+        run_date:                action.runDateStr,
+        portfolio_value:         action.portfolioValue,
+        cash_balance:            action.cashBalance,
+        open_positions_count:    action.openPositionsCount,
+        unrealised_pnl:          action.unrealisedPnl,
+        realised_pnl_cumulative: action.realisedPnlCumulative,
+      }, { onConflict: 'pot_id,run_date' });
+
+      if (error) {
+        console.error(`[PotService] ${action.potName}: snapshot write error:`, error.message);
+      }
+    },
+
+    async updatePosition(action) {
+      await supabase
+        .from('pot_positions')
+        .update({
+          current_price:         action.currentPrice,
+          current_value_gbp:     action.currentValueGbp,
+          unrealised_pnl:        action.unrealisedPnl,
+          unrealised_return_pct: action.unrealisedReturnPct,
+        })
+        .eq('id', action.positionId);
+    },
+  };
+}
+
+export async function applyPotActions(actions: PotAction[], persistence: PotPersistence): Promise<void> {
+  for (const action of actions) {
+    switch (action.kind) {
+      case 'skip':           console.log(action.logMessage);           break;
+      case 'close':           await persistence.closePosition(action);  break;
+      case 'open':             await persistence.openPosition(action);   break;
+      case 'snapshot':         await persistence.writeSnapshot(action);  break;
+      case 'positionUpdate':   await persistence.updatePosition(action); break;
+    }
   }
 }
 
@@ -721,6 +926,7 @@ export async function evaluateRun(
   console.log(`\n[PotService] === evaluateRun slot='${runSlot}' results=${results.length} ===`);
 
   const { supabase } = await import('./db/supabaseClient');
+  const persistence = createSupabasePersistence(supabase);
 
   // 1. Load all pots
   const { data: potsData, error: potsErr } = await supabase.from('pots').select('*');
@@ -791,7 +997,16 @@ export async function evaluateRun(
     try {
       const potPositions = allOpenPositions.filter(p => p.pot_id === pot.pot_id);
       const prevPnl      = prevPnlMap[pot.pot_id] ?? 0;
-      await processPot(pot, results, potPositions, priceMap, prevPnl, runDateStr, todayStr, supabase);
+      const actions = decidePot({
+        pot,
+        results,
+        openPositions:   potPositions,
+        priceMap,
+        prevRealisedPnl: prevPnl,
+        runDateStr,
+        todayStr,
+      });
+      await applyPotActions(actions, persistence);
     } catch (err: any) {
       console.error(`[PotService] Error processing pot ${pot.name} (id=${pot.pot_id}):`, err.message);
     }
