@@ -2182,7 +2182,7 @@ function is2dStale(runDate) {
 
     const { data, error } = await sb
       .from('inference_results')
-      .select('run_date, recommendation, model_b_return_1m, model_a_confidence')
+      .select('run_date, recommendation, model_d5_return_2w, model_a_confidence')
       .gte('run_date', ninetyDaysAgo)
       .order('run_date', { ascending: true });
 
@@ -2222,14 +2222,18 @@ function is2dStale(runDate) {
       const buyRows = rowsInWindow.filter(r => r.recommendation === 'BUY');
       const sellRows = rowsInWindow.filter(r => r.recommendation === 'SELL' || r.recommendation === 'REDUCE');
 
+      // Thresholds match PotService.ts's HORIZON_TIER_CONFIG.model_d5_return_2w
+      // (decile-verified this session) -- recommendation basis switched from
+      // model_b_return_1m (no usable signal, confirmed) to model_d5_return_2w.
+      // Keep these in sync if that config is ever recalibrated.
       return {
         period: `${startStr} – ${endStr}`,
         sbCount: sbRows.length,
-        sbHit: hitRate(sbRows, r => r.model_b_return_1m > 0.05),
+        sbHit: hitRate(sbRows, r => r.model_d5_return_2w >= 0.1575),
         buyCount: buyRows.length,
-        buyHit: hitRate(buyRows, r => r.model_b_return_1m > 0.03),
+        buyHit: hitRate(buyRows, r => r.model_d5_return_2w >= 0.1489),
         sellCount: sellRows.length,
-        sellHit: hitRate(sellRows, r => r.model_b_return_1m < -0.02),
+        sellHit: hitRate(sellRows, r => r.model_d5_return_2w <= 0.1341),
       };
     }).filter(r => r.sbCount + r.buyCount + r.sellCount > 0);
 

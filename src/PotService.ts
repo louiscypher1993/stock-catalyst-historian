@@ -144,13 +144,13 @@ function meetsMinRec(rec: string, minRec: string): boolean {
 // results' 10,051-row fold (as of 2026-07-08). Recalibrate after any future
 // D1/D2/D3/D5 retrain -- these are not universal constants.
 
-interface HorizonTierConfig {
+export interface HorizonTierConfig {
   strongBuy?: (v: number) => boolean;
   buy?:       (v: number) => boolean;
   sell?:      (v: number) => boolean;
 }
 
-const HORIZON_TIER_CONFIG: Partial<Record<keyof PipelineResult, HorizonTierConfig>> = {
+export const HORIZON_TIER_CONFIG: Partial<Record<keyof PipelineResult, HorizonTierConfig>> = {
   model_d3_return_2d: {
     strongBuy: v => v >= 0.0187,
     sell:      v => v <= 0.0096,
@@ -185,7 +185,7 @@ const HORIZON_TIER_CONFIG: Partial<Record<keyof PipelineResult, HorizonTierConfi
   },
 };
 
-function resolveTierFromConfig(value: number, cfg: HorizonTierConfig): string {
+export function resolveTierFromConfig(value: number, cfg: HorizonTierConfig): string {
   if (cfg.strongBuy?.(value)) return 'STRONG_BUY';
   if (cfg.buy?.(value))       return 'BUY';
   if (cfg.sell?.(value))      return 'SELL';
@@ -221,7 +221,7 @@ const MODEL_C_PERCENTILE_BREAKPOINTS: Array<[number, number]> = [
 ];
 
 /** Percentile rank (0-1) of a model_c_max_drawdown value within the historical fold. */
-function modelCPercentileRank(value: number): number {
+export function modelCPercentileRank(value: number): number {
   const bp = MODEL_C_PERCENTILE_BREAKPOINTS;
   if (value <= bp[0][1]) return bp[0][0];
   if (value >= bp[bp.length - 1][1]) return bp[bp.length - 1][0];
@@ -279,7 +279,7 @@ function modelCPercentileRank(value: number): number {
  * hitting a common risk floor rather than ever-decreasing risk is consistent
  * with why percentile rank was adopted over the raw scale in the first place.
  */
-const RISK_REWARD_FLOOR = 0.15;
+export const RISK_REWARD_FLOOR = 0.15;
 
 function resolveHorizonSignal(result: PipelineResult, patience: number): {
   tier: string; riskScore: number; riskReward: number;

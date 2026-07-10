@@ -1400,7 +1400,7 @@ app.get('/api/scan-symbol/:symbol', async (req, res, next) => {
     const clampedReturn2d = Math.max(-0.20, Math.min(0.20, scores.model_d3_return_2d));
     const clampedReturn2w = Math.max(-0.35, Math.min(0.35, scores.model_d5_return_2w));
 
-    const rec = getRecommendation(scores.model_a_confidence, clampedReturn, scores.model_c_max_drawdown, trendContext);
+    const rec = getRecommendation(scores.model_a_confidence, clampedReturn2w, scores.model_c_max_drawdown, trendContext);
 
     res.json({
       anomaly: true,

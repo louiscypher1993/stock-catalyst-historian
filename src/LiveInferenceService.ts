@@ -16,7 +16,10 @@ import { fetchFREDSeries } from '../FREDService';
 import type { EdgarFiling } from './types';
 import { isFmpPremium } from '../FMPService';
 import { getAlphaVantageNewsSentiment } from '../AlphaVantageService';
-import { evaluateRun, type PotInferenceResult } from './PotService';
+import {
+  evaluateRun, type PotInferenceResult,
+  HORIZON_TIER_CONFIG, resolveTierFromConfig, modelCPercentileRank, RISK_REWARD_FLOOR,
+} from './PotService';
 
 // Local copy — cannot import from HistoricalEngine (circular dependency).
 // NOTE: HistoricalEngine.ts's own copy of this list has the identical gap
@@ -447,21 +450,47 @@ export function runInference(featureVector: Record<string, number>): ModelScores
   return scores;
 }
 
+/**
+ * Canonical basis: model_d5_return_2w (2-week horizon) -- the only head with
+ * decile-confirmed, robust signal (recon this session: model_b_return_1m,
+ * the 1-month head previously used here, was confirmed to have NO usable
+ * signal in either tail). Tier/riskScore/riskReward reuse the SAME
+ * already-verified formulas as PotService.ts's resolveHorizonSignal for
+ * patience values that resolve to D5 -- imported directly (not duplicated)
+ * so any future recalibration of HORIZON_TIER_CONFIG's D5 thresholds is
+ * picked up here automatically.
+ *
+ * Two behavioural differences from the old modelB-basis logic, both
+ * intentional consequences of reusing the verified D5 logic as-is rather
+ * than re-deriving a new combined rule:
+ *   1. Tier resolution is value-only (resolveTierFromConfig), with no
+ *      separate riskScore gate -- the old logic additionally required
+ *      riskScore <= 40/55 for STRONG_BUY/BUY; PotService.ts's decile
+ *      diagnostic validated the D5 return-value thresholds alone, not a
+ *      combined value+riskScore gate, so that extra gate is dropped here.
+ *   2. Only 4 tiers now exist (STRONG_BUY/BUY/SELL/HOLD) instead of 6
+ *      (no ADD/REDUCE) -- resolveTierFromConfig never returns those.
+ */
 export function getRecommendation(
   modelA: number,
-  modelB: number,
+  modelD5: number,
   modelC: number,
   trendContext: TrendContext
 ): Recommendation {
+  const cfg = HORIZON_TIER_CONFIG.model_d5_return_2w!;
+  const modelCRank = modelCPercentileRank(modelC);
+
+  const confidenceTerm = (1 - modelA) * 30;
+  const drawdownTerm   = (1 - modelCRank) * 40;
+  const tailRiskTerm   = cfg.sell?.(modelD5) ? 30 : 0;
+
   const riskScore = Math.round(Math.min(100, Math.max(0,
-    (Math.abs(modelC) * 40) +
-    ((1 - modelA) * 30) +
-    (modelB < 0 ? 30 : 0)
+    drawdownTerm + confidenceTerm + tailRiskTerm
   )));
 
-  const riskReward = modelC !== 0
-    ? Math.round((Math.abs(modelB) / Math.abs(modelC)) * 100) / 100
-    : 0;
+  const riskReward = Math.round(
+    (Math.abs(modelD5) / Math.max(1 - modelCRank, RISK_REWARD_FLOOR)) * 100
+  ) / 100;
 
   const positionSizePct = Math.round(
     Math.min(10, Math.max(1, modelA * 10 * (1 - riskScore / 100))) * 10
@@ -474,19 +503,13 @@ export function getRecommendation(
     trendAdjustedPositionSize = Math.round(positionSizePct * haircut * 10) / 10;
   }
 
-  let recommendation: string;
-  if (modelA >= 0.80 && modelB >= 0.05 && riskScore <= 40) recommendation = 'STRONG_BUY';
-  else if (modelA >= 0.70 && modelB >= 0.03 && riskScore <= 55) recommendation = 'BUY';
-  else if (modelA >= 0.65 && modelB >= 0.01) recommendation = 'ADD';
-  else if (modelB < -0.05 && riskScore >= 60) recommendation = 'SELL';
-  else if (modelB < -0.02) recommendation = 'REDUCE';
-  else recommendation = 'HOLD';
+  let recommendation = resolveTierFromConfig(modelD5, cfg);
 
-  // Downgrade recommendation one level when strongly opposing the trend
+  // Downgrade recommendation one level when strongly opposing the trend.
+  // Condensed to the 4-tier set: STRONG_BUY -> BUY -> HOLD.
   if (trendContext.trendAlignment === 'OPPOSING' && trendContext.trendStrength > 0.6) {
     if (recommendation === 'STRONG_BUY') recommendation = 'BUY';
-    else if (recommendation === 'BUY') recommendation = 'ADD';
-    else if (recommendation === 'ADD') recommendation = 'HOLD';
+    else if (recommendation === 'BUY') recommendation = 'HOLD';
   }
 
   return { recommendation, riskScore, riskReward, positionSizePct: trendAdjustedPositionSize };
@@ -501,7 +524,7 @@ async function generateNarrative(
   edgarFilings: EdgarFiling[],
   managementScore: { confidence_score: number; primary_concern: string } | null
 ): Promise<string> {
-  const fallback = `${anomaly.symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence. Pre-anomaly trend: ${trendContext.trendAlignment}. Expected 1M return ${(scores.model_b_return_1m * 100).toFixed(2)}% and max drawdown ${(scores.model_c_max_drawdown * 100).toFixed(2)}%.`;
+  const fallback = `${anomaly.symbol}: ${rec.recommendation} signal with ${(scores.model_a_confidence * 100).toFixed(1)}% model confidence. Pre-anomaly trend: ${trendContext.trendAlignment}. Expected 2W return ${(scores.model_d5_return_2w * 100).toFixed(2)}% (recommendation basis) and max drawdown ${(scores.model_c_max_drawdown * 100).toFixed(2)}%.`;
 
   if (!process.env.GEMINI_API_KEY) return fallback;
 
@@ -561,15 +584,15 @@ Model outputs:
 - Expected 3-month return: ${(scores.model_d1_return_3m * 100).toFixed(2)}%
 - Expected 6-month return: ${(scores.model_d2_return_6m * 100).toFixed(2)}%
 - Probability of >10% return over 12 months: ${(scores.model_e_outperform_12m_prob * 100).toFixed(1)}%
-- Recommendation: ${rec.recommendation}
-- Risk score: ${rec.riskScore}/100
-- Risk/reward ratio: ${rec.riskReward}
+- Recommendation: ${rec.recommendation} (based on the 2-week expected return and risk profile, not the 1-month figure above)
+- Risk score: ${rec.riskScore}/100 (2-week horizon)
+- Risk/reward ratio: ${rec.riskReward} (2-week horizon)
 
-Note: a risk/reward ratio below 1.0 is UNFAVOURABLE — it means the expected downside exceeds the expected upside. A ratio above 1.0 is favourable. Always reflect this correctly in the narrative.
+Note: a risk/reward ratio below 1.0 is UNFAVOURABLE — it means the expected downside exceeds the expected upside. A ratio above 1.0 is favourable. Always reflect this correctly in the narrative. The Recommendation/Risk score/Risk-reward ratio above are driven by the 2-week expected return specifically -- when writing the near-term positioning sentence, anchor it to the 2-week figure, not the 1-month one.
 ${edgarSection}
 ${managementSection}
 
-Write a concise, professional narrative covering near-term (1-month) positioning as well as the medium-term (3/6-month) and long-term (12-month) outlook implied by the model outputs above. No emojis. No investment disclaimers. If the pre-anomaly trend is OPPOSING, explicitly note this as a risk factor and reflect it in your conviction level.`;
+Write a concise, professional narrative covering near-term (2-week) positioning as well as the medium-term (1/3/6-month) and long-term (12-month) outlook implied by the model outputs above. No emojis. No investment disclaimers. If the pre-anomaly trend is OPPOSING, explicitly note this as a risk factor and reflect it in your conviction level.`;
 
     const response = await aiClient.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -601,7 +624,7 @@ function sanitiseForHttp(text: string): string {
 }
 
 
-async function sendNtfyNotification(symbol: string, rec: string, modelB: number, riskScore: number, narrative: string): Promise<void> {
+async function sendNtfyNotification(symbol: string, rec: string, modelD5: number, riskScore: number, narrative: string): Promise<void> {
   const topic = process.env.NTFY_TOPIC;
   if (!topic) return;
   await fetch(`https://ntfy.sh/${topic}`, {
@@ -612,7 +635,7 @@ async function sendNtfyNotification(symbol: string, rec: string, modelB: number,
       'Tags': rec === 'STRONG_BUY' ? 'rocket,chart_increasing' : 'chart_increasing',
       'Content-Type': 'text/plain',
     },
-    body: sanitiseForHttp(`Expected return: ${(modelB * 100).toFixed(1)}% | Risk score: ${riskScore}/100\n\n${narrative.slice(0, 280)}`),
+    body: sanitiseForHttp(`Expected return (2W): ${(modelD5 * 100).toFixed(1)}% | Risk score: ${riskScore}/100\n\n${narrative.slice(0, 280)}`),
   });
 }
 
@@ -896,7 +919,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       const clampedReturn2d = Math.max(-0.20, Math.min(0.20, scores.model_d3_return_2d));
       const clampedReturn3d = Math.max(-0.25, Math.min(0.25, scores.model_d4_return_3d));
       const clampedReturn2w = Math.max(-0.35, Math.min(0.35, scores.model_d5_return_2w));
-      const rec = getRecommendation(scores.model_a_confidence, clampedReturn, scores.model_c_max_drawdown, trendContext);
+      const rec = getRecommendation(scores.model_a_confidence, clampedReturn2w, scores.model_c_max_drawdown, trendContext);
       console.log(`[LiveInference]   scores=${JSON.stringify(scores)} rec=${JSON.stringify(rec)}`);
 
       const clampedScores = {
@@ -964,7 +987,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       // held-only positions also get notified, not just watchlist names.
       if (shouldNotify && (isActualAnomaly || isForced)) {
         const titlePrefix = isWatchlisted && !isActualAnomaly ? 'WATCHLIST' : rec.recommendation;
-        await sendNtfyNotification(symbol, titlePrefix, clampedReturn, rec.riskScore, narrative);
+        await sendNtfyNotification(symbol, titlePrefix, clampedReturn2w, rec.riskScore, narrative);
         notificationCount++;
       }
     } catch (err: any) {
