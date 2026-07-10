@@ -20,3 +20,9 @@ market_ecosystem_cache.json
 
 # Python bytecode cache
 __pycache__/
+
+# Downloaded SEC DERA bulk data sets (large, re-downloadable)
+sec_13f_data/
+
+# Scratch ML experiment models -- never deployed, not part of the real pipeline
+src/ml/scratch/
