@@ -24,6 +24,55 @@ const NUMERIC_SIGNAL_KEYS: (keyof NonNullable<import("./src/types").EventFeature
   "wikipedia_spike_z",
   "news_relevance_z",
   "congressional_net_flow",
+  // Added 2026-07-10 recon: 13 of the 22 newer signal_snapshot fields that
+  // existed in the data but were never wired into this service's allowlists.
+  // Population rates checked against a live sample of event_features before
+  // adding (n=13,362, ~20% of the table) -- all confirmed to have real,
+  // non-degenerate variance. Several are sparse (event-conditional fields
+  // only populate near their trigger, e.g. earnings surprises), which is
+  // expected, not a data-quality problem; the service's own minEvents
+  // threshold already handles that by reporting "insufficient data" rather
+  // than a misleading result.
+  "fmp_news_sentiment_avg",
+  // fmp_news_article_count_7d: right-censored -- 82.7% of populated values
+  // are pinned at exactly 50 (an FMP API pagination cap, not a true count),
+  // so correlation results for this one should be read as "low vs. capped
+  // news volume," not a clean continuous signal.
+  "fmp_news_article_count_7d",
+  // ~280 rows in the full dataset (0.4%) -- sparse but real, non-zero values.
+  "insider_net_shares_30d",
+  "eps_surprise_pct",
+  "revenue_surprise_pct",
+  "earnings_date_proximity_days",
+  "analyst_upgrades_30d",
+  "analyst_downgrades_30d",
+  "price_target_consensus",
+  // ~1,646 rows in the full dataset (2.5%) -- sparse but usable.
+  "price_target_upside_pct",
+  "competitor_event_density",
+  // ~110 rows in the full dataset (0.16%) -- very sparse, likely to show
+  // "insufficient data" at most horizons; included for completeness since
+  // it's not degenerate, just rare.
+  "management_confidence_score",
+  "digital_exhaust_velocity",
+  // NOT added, and why (all confirmed via live data sample, not assumed):
+  //   estimate_revision_direction/magnitude, company_credit_proxy,
+  //   institutional_ownership_pct: 0% populated -- structurally empty,
+  //     same tier as the already-known short_interest_pct_float gap.
+  //   short_interest_pct, short_interest_ratio: 0% populated -- confirmed
+  //     this is the SAME structural gap as short_interest_pct_float, not a
+  //     separate working field under a different name.
+  //   congressional_net_flow_30d: 100% populated but every sampled value
+  //     (n=13,362) is exactly 0 -- zero variance, correlation is
+  //     mathematically undefined (this service's own pearson() returns null
+  //     when the signal has no spread), so including it would silently
+  //     report "no meaningful predictive power" for a misleading reason.
+  //   divergence_detected: boolean-typed, and this service's numeric/
+  //     categorical branches only handle `typeof === 'number'` or
+  //     `'string'` -- a boolean matches neither, so it would silently no-op
+  //     if added. Also always `false` in every sampled row (n=13,362) even
+  //     setting the type issue aside. Needs a logic change to support at
+  //     all, out of scope for this array-only extension.
 ];
 
 const CATEGORICAL_SIGNAL_KEYS: (keyof NonNullable<import("./src/types").EventFeatureVector["signal_snapshot"]>)[] = [
@@ -31,6 +80,13 @@ const CATEGORICAL_SIGNAL_KEYS: (keyof NonNullable<import("./src/types").EventFea
   "trend_regime",
   "event_classification",
   "dominant_physics_regime",
+  // earnings_primary_concern NOT added: confirmed via live sample (n=110
+  // populated rows) that this is high-cardinality free text (each value is
+  // close to a unique sentence, e.g. "Rising Traffic Acquisition Costs" /
+  // "UK Housing Market Health"), not a small repeating category set like
+  // vix_regime. This service's categorical bucketing groups by exact string
+  // match, so this field would produce ~110 singleton buckets -- technically
+  // running, but statistically meaningless best/worst category output.
 ];
 
 // Pearson correlation between two equal-length arrays
