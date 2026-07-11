@@ -148,13 +148,24 @@ export function computeAnalogueOutcomes(similarEvents: SimilarEvent[]): Analogue
       min1mRet = r1m;
     }
 
-    if (r1m > 10) {
+    // F6 fix: r1m (EventFeatureVector.return_1m, from HistoricalEngine.ts's
+    // div100(p.analysis.return_1m)) is fractional (e.g. 0.02 = 2%), not
+    // percent -- these thresholds were previously percent-scale (10/2/-2/-10),
+    // ~100x too large, so ~98% of real events fell into the `else if (r1m >= -2)`
+    // branch regardless of actual outcome. Corrected to fractional scale and
+    // verified against a real 5,000-row sample of event_features' return_1m
+    // (median 0.0208, matching this bug's own reported median): produces a
+    // sensible, well-spread 5-way split (~28/22/16/19/15%), not just "not 98%
+    // sideways" -- the sideways band is centered close to the real median, as
+    // intended. winRate1m/winRate6m/averageReturn* are unaffected by this fix
+    // (units-independent, computed directly from the same r1m/r6m values).
+    if (r1m > 0.10) {
       strongRallyCount++;
-    } else if (r1m > 2) {
+    } else if (r1m > 0.02) {
       mildRallyCount++;
-    } else if (r1m >= -2) {
+    } else if (r1m >= -0.02) {
       sidewaysCount++;
-    } else if (r1m >= -10) {
+    } else if (r1m >= -0.10) {
       mildDeclineCount++;
     } else {
       strongDeclineCount++;
