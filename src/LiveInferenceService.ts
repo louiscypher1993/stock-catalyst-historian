@@ -8,7 +8,6 @@ import { buildLiveFeatureVector, LiveFeatureContext } from './ml/feature_extract
 import {
   calculatePriceZScore,
   calculateVolumeRatio,
-  calculateExcessReturn,
   calculateATRMoveNormalization,
 } from './utils/physics';
 import { getRecentFilings as getEdgarFilings } from '../EdgarService';
@@ -201,23 +200,94 @@ export async function fetchYahooDailyHistory(symbol: string, range: string = '1y
   return bars;
 }
 
-// Mirrors HistoricalEngine.ts's idiosyncratic-return z-score: a 90-day rolling window of
-// SPY-excess returns establishes the baseline mean/stddev, and an anomaly is any day whose
-// excess return deviates from that baseline by more than Z_SCORE_THRESHOLD standard deviations.
-export function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], spyReturn: number, bypassZGate: boolean = false): AnomalySignal | null {
+// Builds SPY's own daily return series keyed by date, once per scan run,
+// shared across all symbols (F10) -- avoids re-deriving it per symbol.
+// Exported so other detectAnomaly call sites (e.g. server.ts's single-symbol
+// /api/scan-symbol endpoint) can build the same series consistently.
+export function buildSpyReturnMap(spyBars: YahooBar[]): Map<string, number> {
+  const map = new Map<string, number>();
+  for (let i = 1; i < spyBars.length; i++) {
+    const prev = spyBars[i - 1];
+    const curr = spyBars[i];
+    if (prev.close > 0) map.set(curr.date, (curr.close - prev.close) / prev.close);
+  }
+  return map;
+}
+
+// F10: ports HistoricalEngine.ts:1688-1723's per-symbol, per-day rolling
+// 60-day beta regression against SPY (Cov(stock,spy)/Var(spy), trailing
+// window ending at each day i), replacing the old detectAnomaly construction
+// that subtracted one constant SPY-return scalar from every day in the
+// window -- that constant-scalar subtraction cancels out exactly in the
+// z-score below (proven algebraically in the F10 recon report), making
+// live's "market adjustment" a no-op. This makes it genuinely per-day and
+// per-symbol, matching training. Regression inputs are scaled by 100 (percent),
+// exactly matching training's convention, so the 0.0001 variance-floor
+// threshold behaves identically -- the resulting beta value itself is
+// scale-invariant (the x100 cancels in the covariance/variance ratio), so
+// it's applied directly to the fractional (unscaled) daily/SPY returns
+// below, consistent with live's existing fractional-return convention
+// elsewhere in this function. Returns a parallel array of beta-hedged
+// excess returns, one per index of `bars` (index 0 is always 0, matching
+// training's i=0 boundary).
+function buildBetaHedgedExcessReturns(bars: YahooBar[], spyReturnByDate: Map<string, number>): number[] {
+  const excessReturns: number[] = new Array(bars.length).fill(0);
+  for (let i = 1; i < bars.length; i++) {
+    const dailyReturn = (bars[i].close - bars[i - 1].close) / bars[i - 1].close;
+
+    const betaStartIdx = Math.max(1, i - 59);
+    const stockReturnsPct: number[] = [];
+    const spyReturnsPct: number[] = [];
+    for (let k = betaStartIdx; k <= i; k++) {
+      const spyRet = spyReturnByDate.get(bars[k].date);
+      if (spyRet !== undefined && bars[k - 1].close > 0) {
+        stockReturnsPct.push(((bars[k].close - bars[k - 1].close) / bars[k - 1].close) * 100);
+        spyReturnsPct.push(spyRet * 100);
+      }
+    }
+
+    let beta = 1;
+    if (spyReturnsPct.length >= 10) {
+      const meanSpy = spyReturnsPct.reduce((a, b) => a + b, 0) / spyReturnsPct.length;
+      const meanStock = stockReturnsPct.reduce((a, b) => a + b, 0) / stockReturnsPct.length;
+      let covariance = 0;
+      let varianceSpy = 0;
+      for (let j = 0; j < spyReturnsPct.length; j++) {
+        covariance += (spyReturnsPct[j] - meanSpy) * (stockReturnsPct[j] - meanStock);
+        varianceSpy += Math.pow(spyReturnsPct[j] - meanSpy, 2);
+      }
+      if (varianceSpy > 0.0001) beta = covariance / varianceSpy;
+    }
+
+    const spyReturnToday = spyReturnByDate.get(bars[i].date) ?? 0;
+    excessReturns[i] = dailyReturn - beta * spyReturnToday;
+  }
+  return excessReturns;
+}
+
+// F10: now genuinely mirrors HistoricalEngine.ts's idiosyncratic-return z-score
+// -- a 90-day rolling window of per-day, beta-hedged SPY-excess returns
+// establishes the baseline mean/stddev, and an anomaly is any day whose excess
+// return deviates from that baseline by more than Z_SCORE_THRESHOLD standard
+// deviations. (Previously this comment was aspirational, not actual -- the old
+// constant-scalar SPY subtraction canceled out exactly in the z-score, making
+// live's gate mathematically identical to using raw, non-market-adjusted
+// returns; see the F10 recon report for the algebraic proof.)
+export function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], spyReturnByDate: Map<string, number>, bypassZGate: boolean = false): AnomalySignal | null {
   if (bars.length < 12) return null;
+
+  const excessReturns = buildBetaHedgedExcessReturns(bars, spyReturnByDate);
 
   const last = bars[bars.length - 1];
   const prev = bars[bars.length - 2];
 
   const dailyReturn = (last.close - prev.close) / prev.close;
-  const excessReturn = calculateExcessReturn(dailyReturn, spyReturn);
+  const excessReturn = excessReturns[bars.length - 1];
 
   const windowStart = Math.max(1, bars.length - 1 - ROLLING_WINDOW);
   const windowReturns: number[] = [];
   for (let i = windowStart; i < bars.length - 1; i++) {
-    const r = (bars[i].close - bars[i - 1].close) / bars[i - 1].close;
-    windowReturns.push(calculateExcessReturn(r, spyReturn));
+    windowReturns.push(excessReturns[i]);
   }
   if (windowReturns.length < 10) return null;
 
@@ -1016,18 +1086,20 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
   }
   console.log(`[LiveInference] Universe size: ${universe.length} symbols`);
 
-  let spyReturn = 0;
+  // F10: widened from '1mo' to '1y' -- the beta-hedged excess-return series
+  // needs up to ~150 trading days of SPY history (90-day z-score window +
+  // 60-day trailing beta lookback for the earliest day in that window), not
+  // just the last 2 days. Fetched once per run, shared across all symbols
+  // below (same call site, same frequency as before this fix -- no new API
+  // calls, just a wider range on the existing one).
+  let spyReturnByDate = new Map<string, number>();
   try {
-    const spyBars = await fetchYahooDailyHistory('SPY', '1mo');
-    if (spyBars.length >= 2) {
-      const last = spyBars[spyBars.length - 1];
-      const prev = spyBars[spyBars.length - 2];
-      spyReturn = (last.close - prev.close) / prev.close;
-    }
+    const spyBars = await fetchYahooDailyHistory('SPY', '1y');
+    spyReturnByDate = buildSpyReturnMap(spyBars);
   } catch (err: any) {
     console.warn('[LiveInference] Failed to fetch SPY benchmark:', err.message);
   }
-  console.log(`[LiveInference] SPY benchmark return: ${(spyReturn * 100).toFixed(3)}%`);
+  console.log(`[LiveInference] SPY daily-return series: ${spyReturnByDate.size} days`);
 
   const watchlistSymbols = new Set<string>();
   try {
@@ -1087,7 +1159,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
 
       const isWatchlisted = watchlistSymbols.has(symbol.toUpperCase());
       const isForced = forceAnalyzeSymbols.has(symbol.toUpperCase());
-      const anomaly = detectAnomaly(symbol, companyName, bars, spyReturn, isForced);
+      const anomaly = detectAnomaly(symbol, companyName, bars, spyReturnByDate, isForced);
       if (!anomaly) continue;
 
       const isActualAnomaly = Math.abs(anomaly.zScore) > Z_SCORE_THRESHOLD;

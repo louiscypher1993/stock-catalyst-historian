@@ -27,6 +27,7 @@ import {
   runLiveInference,
   fetchYahooDailyHistory,
   detectAnomaly,
+  buildSpyReturnMap,
   computeTrendContext,
   buildFeatureVectorForAnomaly,
   getSymbolSnapshot,
@@ -1373,19 +1374,18 @@ app.get('/api/scan-symbol/:symbol', async (req, res, next) => {
       return res.json({ anomaly: false, symbol, message: 'No anomaly detected' });
     }
 
-    let spyReturn = 0;
+    // F10: widened from '1mo' to '1y' -- matches LiveInferenceService.ts's
+    // runLiveInference fix, same reasoning (beta-hedged excess-return series
+    // needs ~150 days of SPY history, not just the last 2 days).
+    let spyReturnByDate = new Map<string, number>();
     try {
-      const spyBars = await fetchYahooDailyHistory('SPY', '1mo');
-      if (spyBars.length >= 2) {
-        const last = spyBars[spyBars.length - 1];
-        const prev = spyBars[spyBars.length - 2];
-        spyReturn = (last.close - prev.close) / prev.close;
-      }
+      const spyBars = await fetchYahooDailyHistory('SPY', '1y');
+      spyReturnByDate = buildSpyReturnMap(spyBars);
     } catch (err: any) {
       console.warn('[ScanSymbol] Failed to fetch SPY benchmark:', err.message);
     }
 
-    const anomaly = detectAnomaly(symbol, companyName, bars, spyReturn);
+    const anomaly = detectAnomaly(symbol, companyName, bars, spyReturnByDate);
     if (!anomaly) {
       return res.json({ anomaly: false, symbol, message: 'No anomaly detected' });
     }
