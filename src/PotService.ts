@@ -144,6 +144,36 @@ function shortScore(boldness: number, reactivity: number, ambition: number): num
   return boldness * 0.4 + reactivity * 0.4 + ambition * 0.2;
 }
 
+/**
+ * F4 (documented, not fixed -- data-supported non-decisions, not bugs):
+ * two trait bands are structurally incapable of trading, confirmed against
+ * the 40,000-pot sweep (synthetic_pots/pots_seed_20260709.json):
+ *
+ * 1. Patience (4.5, 6.5] -> '1M' horizon -> model_b_return_1m. See
+ *    HORIZON_TIER_CONFIG.model_b_return_1m below -- deliberately empty,
+ *    the decile diagnostic found no signal at all for this field, in
+ *    either direction. 8,611/40,000 sweep pots (all zero trades, long
+ *    and short both dead -- HOLD can never satisfy meetsMinRec, and can
+ *    never equal 'SELL').
+ * 2. Patience>8.5 ('6M' horizon -> model_d2_return_6m) AND Ambition>6.0
+ *    (not >8.0 as originally audited -- ambitionTier() requires
+ *    STRONG_BUY starting above 6.0, not 8.0; only the minReturn magnitude
+ *    differs between the (6,8] and (8,10] bands). See
+ *    HORIZON_TIER_CONFIG.model_d2_return_6m below -- BUY is D2's ceiling,
+ *    so STRONG_BUY-requiring ambitions can never pass meetsMinRec here.
+ *    1,625/40,000 sweep pots, not the originally-stated 1,022 (the
+ *    corrected (6,8] slice alone adds 603). D2 also has no `sell`
+ *    condition at all, so shorting model_d2_return_6m signals is
+ *    structurally dead for EVERY ambition at this patience band, not
+ *    just the STRONG_BUY-requiring ones.
+ *
+ * Corrected total: 10,236/40,000 = 25.6% of the sweep's trait space
+ * (previously stated as ~24%). Excluded/tagged in future sweep
+ * generation (generateSyntheticPots.ts's dead_band field) so this doesn't
+ * silently dilute aggregate statistics again -- NOT retroactively applied
+ * to the already-completed 40k sweep's results.
+ */
+
 /** Patience → horizon metadata */
 function patienceHorizon(patience: number): {
   label:        string;
@@ -157,7 +187,13 @@ function patienceHorizon(patience: number): {
   return               { label: '6M', returnField: 'model_d2_return_6m', calendarDays: 183 };
 }
 
-/** Ambition → minimum recommendation and expected return */
+/**
+ * Ambition → minimum recommendation and expected return. NOTE (F4): any
+ * ambition>6.0 requires STRONG_BUY, not just ambition>8.0 -- both the
+ * (6,8] and (8,10] bands share the same minRec, differing only in
+ * minReturn. This is the source of the corrected D2/6M dead-zone boundary
+ * documented above patienceHorizon().
+ */
 function ambitionTier(ambition: number): { minRec: string; minReturn: number } {
   if (ambition <= 3.0) return { minRec: 'ADD',        minReturn: 0.03 };
   if (ambition <= 6.0) return { minRec: 'BUY',        minReturn: 0.12 };
@@ -223,12 +259,26 @@ export const HORIZON_TIER_CONFIG: Partial<Record<keyof PipelineResult, HorizonTi
     // ambitionTier's highest-conviction pots require, and reserving it for
     // genuinely strong separation (not this borderline one) keeps that meaning
     // intact. No bottom tier -- bottom decile was positive, not negative.
+    //
+    // F4: BUY as the ceiling (no strongBuy) means any pot requiring
+    // STRONG_BUY -- ambition>6.0, per ambitionTier() above -- can never
+    // pass meetsMinRec at this patience band (>8.5, '6M'). Also no `sell`
+    // condition at any ambition, so shorting is dead here too, universally.
+    // Both are the same data-supported non-decision as the BUY-not-
+    // STRONG_BUY choice just above, not separate bugs. See the F4 comment
+    // above patienceHorizon() for the corrected dead-zone scope (1,625/
+    // 40,000 sweep pots, not the originally-audited 1,022).
     buy: v => v > 0.2206,
   },
   model_b_return_1m: {
     // Deliberately empty -- always resolves HOLD. The decile diagnostic found
     // no meaningful divergence in either tail for this field at all; this is
     // not a placeholder awaiting a threshold, it's the finding.
+    //
+    // F4: HOLD can never satisfy meetsMinRec (ADD/BUY/STRONG_BUY only) nor
+    // equal 'SELL', so Patience (4.5,6.5] ('1M' horizon) is structurally
+    // dead for both longs and shorts, at every other trait value. See the
+    // F4 comment above patienceHorizon() (8,611/40,000 sweep pots).
   },
 };
 

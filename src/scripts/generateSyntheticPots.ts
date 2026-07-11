@@ -139,21 +139,66 @@ export interface SyntheticPot {
   focus: number;
   reactivity: number;
   starting_balance: number;
+  /** F4: true if this pot's (patience, ambition) falls in a known-dead
+   *  trait band -- see isDeadBand() below. Tagged, not excluded, so the
+   *  full archetype/batch structure (10,000/5,000/5,000/10,000/10,000)
+   *  and the SEED's byte-identical-output guarantee both stay intact;
+   *  future sweep ANALYSIS scripts filter on this field before computing
+   *  aggregate statistics, rather than the population never containing
+   *  these pots at all. Does not apply retroactively to the
+   *  already-completed pots_seed_20260709.json on disk -- only pots
+   *  generated after this field was added carry it. */
+  dead_band: boolean;
+}
+
+/**
+ * F4: mirrors PotService.ts's patienceHorizon()/ambitionTier()/
+ * HORIZON_TIER_CONFIG dead-band findings (see the comment above
+ * patienceHorizon() there for the full reasoning and sweep counts).
+ * Duplicated rather than imported -- this generator is deliberately
+ * self-contained (decidePot() itself is untouched by pot generation, per
+ * the file header) -- so if PotService.ts's thresholds ever change,
+ * this must be updated to match or it will silently drift out of sync.
+ *
+ * Dead bands:
+ *   1. Patience (4.5, 6.5] -- '1M' horizon, HORIZON_TIER_CONFIG.
+ *      model_b_return_1m is empty -- HOLD-only, dead for longs and shorts.
+ *   2. Patience>8.5 AND Ambition>6.0 -- '6M' horizon, model_d2_return_6m's
+ *      ceiling is BUY (no strongBuy), so ambition>6.0's STRONG_BUY
+ *      requirement can never pass. (Not >8.0 -- ambitionTier() requires
+ *      STRONG_BUY starting above 6.0, only minReturn differs above 8.0.)
+ */
+export function isDeadBand(patience: number, ambition: number): boolean {
+  const isDead1M = patience > 4.5 && patience <= 6.5;
+  const isDead6M = patience > 8.5 && ambition > 6.0;
+  return isDead1M || isDead6M;
 }
 
 function generateFromArchetype(rng: () => number, archetype: Archetype, count: number, startId: number): SyntheticPot[] {
   const pots: SyntheticPot[] = [];
   for (let i = 0; i < count; i++) {
+    // rng() call order (boldness, ambition, patience, conviction, focus,
+    // reactivity) is UNCHANGED from before the F4 tagging addition --
+    // preserving this exact sequence is required for the SEED's documented
+    // byte-identical-output guarantee. dead_band is computed afterward from
+    // the already-sampled ambition/patience values, consuming no rng() calls.
+    const boldness   = sampleTrait(rng, 'boldness', archetype.boldness);
+    const ambition   = sampleTrait(rng, 'ambition', archetype.ambition);
+    const patience   = sampleTrait(rng, 'patience', archetype.patience);
+    const conviction = sampleTrait(rng, 'conviction', archetype.conviction);
+    const focus      = sampleTrait(rng, 'focus', archetype.focus);
+    const reactivity = sampleTrait(rng, 'reactivity', archetype.reactivity);
     pots.push({
       synthetic_pot_id: startId + i,
       batch_id: archetype.batchId,
-      boldness:   sampleTrait(rng, 'boldness', archetype.boldness),
-      ambition:   sampleTrait(rng, 'ambition', archetype.ambition),
-      patience:   sampleTrait(rng, 'patience', archetype.patience),
-      conviction: sampleTrait(rng, 'conviction', archetype.conviction),
-      focus:      sampleTrait(rng, 'focus', archetype.focus),
-      reactivity: sampleTrait(rng, 'reactivity', archetype.reactivity),
+      boldness,
+      ambition,
+      patience,
+      conviction,
+      focus,
+      reactivity,
       starting_balance: 10000,
+      dead_band: isDeadBand(patience, ambition),
     });
   }
   return pots;
@@ -186,6 +231,9 @@ function main() {
   const counts: Record<string, number> = {};
   for (const p of pots) counts[p.batch_id] = (counts[p.batch_id] ?? 0) + 1;
   console.log('Batch counts:', counts);
+
+  const deadCount = pots.filter(p => p.dead_band).length;
+  console.log(`F4 dead-band pots (tagged, not excluded): ${deadCount}/${pots.length} (${(100 * deadCount / pots.length).toFixed(1)}%)`);
 }
 
 main();
