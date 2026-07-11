@@ -10,8 +10,7 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "export-env": "tsx src/utils/ExportEnvironment.ts",
-    "install-desktop": "tsx src/utils/DesktopInstaller.ts",
-    "scan:live": "tsx src/LiveScanner.ts"
+    "install-desktop": "tsx src/utils/DesktopInstaller.ts"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
