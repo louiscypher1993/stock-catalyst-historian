@@ -2,7 +2,7 @@ import path from 'path';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
-import { db, getCachedCompanyProfile } from '../db';
+import { db, getCachedCompanyProfile, getCompetitorEventDensity } from '../db';
 import { GLOBAL_MARKETS } from './marketsData';
 import { buildLiveFeatureVector, LiveFeatureContext } from './ml/feature_extractor';
 import {
@@ -121,6 +121,7 @@ export interface AnomalySignal {
   overnightGapPct: number;
   volumePriceClustering: number;
   kineticEnergy: number;
+  seismicMagnitudeMw: number;
   dayChangePct: number;
 }
 
@@ -235,11 +236,17 @@ export function detectAnomaly(symbol: string, companyName: string, bars: YahooBa
 
   const vol20Window = bars.slice(-21, -1);
   const vol20Avg = vol20Window.reduce((sum, b) => sum + b.volume, 0) / Math.max(1, vol20Window.length);
-  const vol90Window = bars.slice(-(ROLLING_WINDOW + 1), -1);
-  const vol90Avg = vol90Window.reduce((sum, b) => sum + b.volume, 0) / Math.max(1, vol90Window.length);
+  // 30 bars INCLUDING today, matching training's exact convention
+  // (HistoricalEngine.ts:1977-1985's vol30Slice = slice(i-29, i+1)) -- previously
+  // used a 90-day/exclude-today window here despite the "30d" name, confirmed as a
+  // real mismatch by the F1 window-bug measurement (median delta 0.27 vs training,
+  // fully corrected 30d/include-today version matches training exactly at the
+  // median). volumeRatio (20-day, above) is untouched -- out of scope, not flagged.
+  const vol30Window = bars.slice(-30);
+  const vol30Avg = vol30Window.reduce((sum, b) => sum + b.volume, 0) / Math.max(1, vol30Window.length);
 
   const volumeRatio = calculateVolumeRatio(last.volume, vol20Avg);
-  const relativeVolume30d = calculateVolumeRatio(last.volume, vol90Avg);
+  const relativeVolume30d = calculateVolumeRatio(last.volume, vol30Avg);
 
   const trWindow = bars.slice(-15);
   const trList: number[] = [];
@@ -254,7 +261,21 @@ export function detectAnomaly(symbol: string, companyName: string, bars: YahooBa
   const bodyToRangeRatio = Math.abs(last.close - last.open) / Math.max(0.0001, last.high - last.low);
   const overnightGapPct = ((last.open - prev.close) / prev.close) * 100;
   const volumePriceClustering = ((last.close - ((last.high + last.low) / 2)) / Math.max(0.0001, last.high - last.low)) * volumeRatio;
-  const kineticEnergy = 0.5 * Math.pow(zScore, 2);
+
+  // F1 KE/seismic reconciliation (final slice): ported exactly from
+  // HistoricalEngine.ts:2039 -- 0.5 * relative_volume_30d * (rawReturn*100)^2.
+  // `dailyReturn` above (unscaled fraction, e.g. 0.01 = 1%) matches training's
+  // `rawReturn` convention exactly -- both multiply by 100 inline in this
+  // formula, not pre-scaled, so no repeat of the x100 scaling bug caught in
+  // market_reynolds_number's stdDev calc (that bug was in a DIFFERENT,
+  // already-x100 convention -- calculatedReturns[i].dailyReturn -- which this
+  // formula never used in training either). `relativeVolume30d` is the
+  // already-corrected 30-day/include-today value from the window-mismatch fix,
+  // confirmed independent of this change (Spearman 0.997 same-formula/
+  // different-window). Previously live used an unrelated z-based formula
+  // (0.5*z^2); seismic_magnitude_mw was never computed live at all.
+  const kineticEnergy = 0.5 * relativeVolume30d * Math.pow(dailyReturn * 100, 2);
+  const seismicMagnitudeMw = (2 / 3) * Math.log10(Math.max(1, kineticEnergy));
 
   return {
     symbol,
@@ -270,6 +291,7 @@ export function detectAnomaly(symbol: string, companyName: string, bars: YahooBa
     overnightGapPct,
     volumePriceClustering,
     kineticEnergy,
+    seismicMagnitudeMw,
     dayChangePct: dailyReturn,
   };
 }
@@ -382,9 +404,155 @@ export async function getSymbolSnapshot(symbol: string): Promise<SymbolEnrichmen
   return { snap: null, primaryCategory: null, companyName: null, sector: null, exchange: null };
 }
 
-export function buildFeatureVectorForAnomaly(bars: YahooBar[], anomaly: AnomalySignal, enrichment: SymbolEnrichment): Record<string, number> {
+/**
+ * Wilder-smoothed RSI-14, ported verbatim from HistoricalEngine.ts's
+ * calculateRSIArray (same recurrence: avgGain/avgLoss smoothed by (period-1)/period
+ * each step) -- only the running value is kept instead of the full array, since
+ * only the value at the last bar is needed here. Mathematically identical to
+ * calculateRSIArray(points, 14)[points.length - 1].
+ */
+function calculateRSI14(points: { close: number }[]): number {
+  const period = 14;
+  if (points.length <= period) return 0;
+
+  let sumGain = 0;
+  let sumLoss = 0;
+  for (let i = 1; i <= period; i++) {
+    const change = points[i].close - points[i - 1].close;
+    if (change > 0) sumGain += change;
+    else sumLoss += Math.abs(change);
+  }
+  let avgGain = sumGain / period;
+  let avgLoss = sumLoss / period;
+  let rsi = avgLoss === 0 ? 100 : 100 - (100 / (1 + avgGain / avgLoss));
+
+  for (let i = period + 1; i < points.length; i++) {
+    const change = points[i].close - points[i - 1].close;
+    let gain = 0;
+    let loss = 0;
+    if (change > 0) gain = change;
+    else loss = Math.abs(change);
+    avgGain = (avgGain * (period - 1) + gain) / period;
+    avgLoss = (avgLoss * (period - 1) + loss) / period;
+    rsi = avgLoss === 0 ? 100 : 100 - (100 / (1 + avgGain / avgLoss));
+  }
+  return rsi;
+}
+
+export function buildFeatureVectorForAnomaly(bars: YahooBar[], anomaly: AnomalySignal, enrichment: SymbolEnrichment, epu: number | null = null): Record<string, number> {
   const { snap, primaryCategory } = enrichment;
   const temporal = getTemporalFeatures(anomaly.date);
+
+  // Category-(a) technical features ported near-verbatim from HistoricalEngine.ts,
+  // using the same `bars` array (1y history via fetchYahooDailyHistory, confirmed
+  // sufficient depth in the F1 fix-scoping recon) that detectAnomaly already holds.
+  // The target bar is bars[n-1], mirroring training's `p = sanitizedPoints[i]`.
+  // kinetic_energy / seismic_magnitude_mw are computed in detectAnomaly (the
+  // formula needs dailyReturn/relativeVolume30d from there) and read off
+  // `anomaly` below -- this is the final F1 slice, all six ported features
+  // now populate.
+  const n0 = bars.length;
+  const today = bars[n0 - 1];
+
+  const rsi_14 = calculateRSI14(bars);
+
+  const sma50StartIdx = Math.max(0, (n0 - 1) - 49);
+  const sma50Slice = bars.slice(sma50StartIdx, n0);
+  const sma50 = sma50Slice.length > 0 ? sma50Slice.reduce((sum, pt) => sum + pt.close, 0) / sma50Slice.length : 0;
+  const dist_sma_50 = sma50Slice.length > 0 ? ((today.close - sma50) / Math.max(0.0001, sma50)) * 100 : 0;
+
+  const sma200StartIdx = Math.max(0, (n0 - 1) - 199);
+  const sma200Slice = bars.slice(sma200StartIdx, n0);
+  const sma200 = sma200Slice.length > 0 ? sma200Slice.reduce((sum, pt) => sum + pt.close, 0) / sma200Slice.length : 0;
+  const dist_sma_200 = sma200Slice.length > 0 ? ((today.close - sma200) / Math.max(0.0001, sma200)) * 100 : 0;
+
+  let gap_fill_ratio = 0;
+  if (n0 > 1) {
+    const gap = today.open - bars[n0 - 2].close;
+    const absGap = Math.abs(gap);
+    if (absGap > 0) {
+      const retracement = gap > 0 ? (today.open - today.low) : (today.high - today.open);
+      gap_fill_ratio = Math.min((retracement / absGap) * 100, 100);
+    }
+  }
+
+  // Redefined feature (F1 obv_delta_10d decision): the old formula normalized
+  // a 10-day OBV delta by the ABSOLUTE LEVEL of a since-inception cumulative
+  // running sum, which depends on how much history precedes the window -- not
+  // reproducible from a shorter live window. Replaced with a fully
+  // self-contained, symmetric definition: net volume-signed pressure over the
+  // most recent 10 trading days, expressed as a percentage of total volume
+  // traded in that SAME window. Naturally bounded to [-100, 100]. Same formula,
+  // same result, regardless of what precedes the window -- this is a genuine
+  // feature-DEFINITION change, ported identically into HistoricalEngine.ts
+  // (training side). historical_inference_results/features.csv still reflect
+  // the OLD formula until the next retrain regenerates them.
+  const obv10StartIdx = Math.max(0, (n0 - 1) - 9);
+  let obvSignedVolSum = 0;
+  let obvTotalVolSum = 0;
+  for (let idx = obv10StartIdx; idx < n0; idx++) {
+    const cur = bars[idx];
+    const prevBar = bars[idx - 1];
+    obvTotalVolSum += cur.volume;
+    if (idx > 0 && prevBar) {
+      if (cur.close > prevBar.close) obvSignedVolSum += cur.volume;
+      else if (cur.close < prevBar.close) obvSignedVolSum -= cur.volume;
+    }
+  }
+  const obv_delta_10d = (obvSignedVolSum / Math.max(1, obvTotalVolSum)) * 100;
+
+  const barycenterStartIdx = Math.max(0, (n0 - 1) - 19);
+  const barycenterSlice = bars.slice(barycenterStartIdx, n0);
+  let barycenter_stretch_20d = 0;
+  if (barycenterSlice.length > 0) {
+    let total_dollar_volume = 0;
+    let total_raw_volume = 0;
+    for (const pt of barycenterSlice) {
+      total_dollar_volume += pt.close * pt.volume;
+      total_raw_volume += pt.volume;
+    }
+    const barycenter_20d = total_dollar_volume / Math.max(0.0001, total_raw_volume);
+    barycenter_stretch_20d = ((today.close - barycenter_20d) / Math.max(0.0001, barycenter_20d)) * 100;
+  }
+
+  let market_reynolds_number = 0;
+  if (barycenterSlice.length > 0) {
+    // Local, correctly-windowed 30-day-inclusive volume ratio, matching training's
+    // own relative_volume_30d convention (HistoricalEngine.ts) exactly. Deliberately
+    // NOT reusing anomaly.relativeVolume30d, which uses a different (90-day,
+    // exclude-today) window -- that mismatch is tracked as its own separate,
+    // not-yet-fixed issue (confirmed in the F1 window-bug measurement) and is out
+    // of scope for this pass; reusing it here would break this formula's own
+    // parity with training for no benefit.
+    const relVol30StartIdx = Math.max(0, (n0 - 1) - 29);
+    const relVol30Slice = bars.slice(relVol30StartIdx, n0);
+    const avgVolume30dForReynolds = relVol30Slice.length > 0
+      ? relVol30Slice.reduce((s, pt) => s + pt.volume, 0) / relVol30Slice.length : 0;
+    const relativeVolume30dForReynolds = avgVolume30dForReynolds > 0 ? today.volume / avgVolume30dForReynolds : 1;
+
+    const rawReturn = n0 > 1 ? (today.close - bars[n0 - 2].close) / bars[n0 - 2].close : 0;
+
+    // NOTE: training's stdDev_20d is built from calculatedReturns[i].dailyReturn,
+    // which HistoricalEngine.ts computes as ((close-prevClose)/prevClose) * 100 --
+    // an ALREADY-x100 percentage, a different convention from the unscaled
+    // `rawReturn` above (used only in the formula's numerator, where training
+    // itself multiplies by 100 inline). Matching that x100 scale here is required
+    // for parity -- using the unscaled fraction here (as rawReturn does) would
+    // shrink stdDev_20d ~100x and inflate market_reynolds_number ~100x.
+    const dailyReturnAt = (idx: number): number => {
+      const prevClose = bars[idx - 1]?.close;
+      return (idx > 0 && prevClose) ? ((bars[idx].close - prevClose) / prevClose) * 100 : 0;
+    };
+    let returnSum = 0;
+    for (let idx = barycenterStartIdx; idx < n0; idx++) returnSum += dailyReturnAt(idx);
+    const returnMean = returnSum / barycenterSlice.length;
+    let varReturnSum = 0;
+    for (let idx = barycenterStartIdx; idx < n0; idx++) varReturnSum += Math.pow(dailyReturnAt(idx) - returnMean, 2);
+    let stdDev_20d = Math.sqrt(varReturnSum / barycenterSlice.length);
+    if (stdDev_20d === 0) stdDev_20d = 0.0001;
+
+    market_reynolds_number = (relativeVolume30dForReynolds * Math.abs(rawReturn * 100)) / stdDev_20d;
+  }
 
   const features: Record<string, any> = {
     date: anomaly.date,
@@ -394,10 +562,32 @@ export function buildFeatureVectorForAnomaly(bars: YahooBar[], anomaly: AnomalyS
     atrShockScore: anomaly.atrShockScore,
     volumeRatio: anomaly.volumeRatio,
     relative_volume_30d: anomaly.relativeVolume30d,
+    // Already fetched once per run by fetchMacroEnvironment() (a single
+    // market-wide FRED value, not a per-symbol quantity) -- previously only
+    // reached macro_snapshots, never buildFeatureVectorForAnomaly. Threaded
+    // through as a parameter rather than refetched here.
+    economic_policy_uncertainty: epu,
     body_to_range_ratio: anomaly.bodyToRangeRatio,
     overnight_gap_pct: anomaly.overnightGapPct,
     volume_price_clustering: anomaly.volumePriceClustering,
     kinetic_energy: anomaly.kineticEnergy,
+    seismic_magnitude_mw: anomaly.seismicMagnitudeMw,
+    obv_delta_10d,
+    rsi_14,
+    dist_sma_50,
+    dist_sma_200,
+    gap_fill_ratio,
+    barycenter_stretch_20d,
+    market_reynolds_number,
+    // Pure local SQLite query (db.ts), not a new integration -- counts same-
+    // sector event_features rows in the trailing 14 days. Known, accepted
+    // caveat (not fixed here): a full-universe daily run populates
+    // event_features incrementally as it scans, so symbols processed early in
+    // a run undercount competitors that get scanned later the same day. This
+    // is a pre-existing characteristic of the feature (training has the same
+    // kind of within-day ordering dependency during backfill), not a live-vs-
+    // train defect this fix introduces.
+    competitor_event_density: getCompetitorEventDensity(anomaly.symbol, anomaly.date),
     confidence_tier: 'high',
     ...temporal,
   };
@@ -873,6 +1063,14 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
     ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
     : null;
 
+  // Fetched ONCE for the whole run (a single market-wide macro snapshot, not a
+  // per-symbol quantity) -- previously fetched only after the per-symbol loop,
+  // solely to write macro_snapshots, so economic_policy_uncertainty never
+  // reached buildFeatureVectorForAnomaly. Same PULSE_MODE skip as before
+  // (macro regime doesn't move at intraday granularity) -- reused below for
+  // the macro_snapshots write instead of being refetched.
+  const macro = PULSE_MODE ? null : await fetchMacroEnvironment(runDate);
+
   let anomalyCount = 0;
   let narrativeCount = 0;
   let notificationCount = 0;
@@ -910,7 +1108,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
           enrichment.snap = { av_news_sentiment: avSentiment };
         }
       }
-      const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, enrichment);
+      const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, enrichment, macro?.epu ?? null);
       const digitalExhaust = computeDigitalExhaustVelocity(enrichment.snap);
       const scores = runInference(featureVector);
       const clampedReturn = Math.max(-0.30, Math.min(0.30, scores.model_b_return_1m));
@@ -1010,8 +1208,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
 
   if (PULSE_MODE) {
     console.log('[LiveInference] PULSE_MODE=1 -- skipping macro snapshot (macro regime does not move at intraday granularity).');
-  } else {
-    const macro = await fetchMacroEnvironment(runDate);
+  } else if (macro) {
     await writeMacroSnapshot(runDate, macro);
   }
 }

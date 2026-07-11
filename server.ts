@@ -12,6 +12,7 @@ import { generateIntelligenceReport, getCompetitorMap } from "./ExecutiveIntelli
 import { generateStockProfile } from "./StockProfileService";
 import { getCompanyProfile, fmpDailyRequestCount, getFmpDailyBudget } from "./FMPService";
 import { computeCompetitorImpact } from "./CorrelationEngine";
+import { fetchFREDSeries } from "./FREDService";
 import { fetchInternationalPriceHistory } from "./EODHDService";
 import { ExecutiveEvent } from "./src/types";
 import { GLOBAL_MARKETS } from "./src/marketsData";
@@ -1391,7 +1392,22 @@ app.get('/api/scan-symbol/:symbol', async (req, res, next) => {
 
     const trendContext = computeTrendContext(bars, anomaly.zScore);
     const enrichment = await getSymbolSnapshot(symbol);
-    const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, enrichment);
+    // /api/scan-symbol has no per-run loop to amortize a single macro fetch over
+    // (unlike runLiveInference, where fetchMacroEnvironment() runs once for the
+    // whole universe) -- this is a single on-demand, rate-limited request, so a
+    // full 7-series fetchMacroEnvironment() call would be wasteful when only EPU
+    // feeds the feature vector. Fetches just USEPUINDXD, same window logic as
+    // fetchMacroEnvironment (5-day lookback, latest point).
+    let epu: number | null = null;
+    try {
+      const epuFromDate = new Date(new Date(anomaly.date).getTime() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const epuPts = await fetchFREDSeries('USEPUINDXD', epuFromDate, anomaly.date);
+      epu = epuPts.length ? epuPts[epuPts.length - 1].value : null;
+    } catch (err: any) {
+      console.warn('[ScanSymbol] EPU fetch failed:', err.message);
+    }
+
+    const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, enrichment, epu);
     const scores = runInference(featureVector);
 
     const clampedReturn = Math.max(-0.30, Math.min(0.30, scores.model_b_return_1m));

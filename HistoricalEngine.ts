@@ -1809,20 +1809,6 @@ Reply with JSON containing only a single property "score" (a number between 1 an
       calculatedReturns.push({ dailyReturn, excessReturn, sectorExcessReturn });
     }
 
-    const obvArray: number[] = [];
-    for (let i = 0; i < sanitizedPoints.length; i++) {
-      if (i === 0) {
-        obvArray.push(0);
-      } else {
-        const p = sanitizedPoints[i];
-        const prev = sanitizedPoints[i - 1];
-        let obv = obvArray[i - 1];
-        if (p.close > prev.close) obv += p.volume;
-        else if (p.close < prev.close) obv -= p.volume;
-        obvArray.push(obv);
-      }
-    }
-
     const points: StockPoint[] = [];
     const nullSamples: any[] = [];
     const rsiArray = calculateRSIArray(sanitizedPoints, 14);
@@ -1927,9 +1913,31 @@ Reply with JSON containing only a single property "score" (a number between 1 an
         volatility_contraction_index = ((upperBand - lowerBand) / Math.max(0.0001, sma20)) * 100;
       }
 
-      const currentObv = obvArray[i];
-      const pastObv = obvArray[Math.max(0, i - 10)];
-      const obv_delta_10d = ((currentObv - pastObv) / Math.max(1, Math.abs(pastObv))) * 100;
+      // Redefined feature (F1 obv_delta_10d decision): the old formula normalized
+      // a 10-day OBV delta by the ABSOLUTE LEVEL of a since-inception cumulative
+      // running sum (obvArray), which depends on how much history precedes the
+      // window -- not reproducible from a shorter live window. Replaced with a
+      // fully self-contained, symmetric definition: net volume-signed pressure
+      // over the most recent 10 trading days, expressed as a percentage of total
+      // volume traded in that SAME window. Naturally bounded to [-100, 100].
+      // Ported identically into buildFeatureVectorForAnomaly (live side) --
+      // deliberately NOT regenerating features.csv here; this is a formula
+      // change only, existing stored obv_delta_10d values (features.csv,
+      // historical_inference_results) still reflect the OLD formula until the
+      // next retrain regenerates them.
+      const obv10StartIdx = Math.max(0, i - 9);
+      let obvSignedVolSum = 0;
+      let obvTotalVolSum = 0;
+      for (let idx = obv10StartIdx; idx <= i; idx++) {
+        const cur = sanitizedPoints[idx];
+        const prevPt = sanitizedPoints[idx - 1];
+        obvTotalVolSum += cur.volume;
+        if (idx > 0 && prevPt) {
+          if (cur.close > prevPt.close) obvSignedVolSum += cur.volume;
+          else if (cur.close < prevPt.close) obvSignedVolSum -= cur.volume;
+        }
+      }
+      const obv_delta_10d = (obvSignedVolSum / Math.max(1, obvTotalVolSum)) * 100;
 
       const dateObj = new Date(p.dateStr);
       const dtMonth = dateObj.getUTCMonth() + 1;
