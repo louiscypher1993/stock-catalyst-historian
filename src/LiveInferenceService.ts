@@ -568,7 +568,11 @@ export function buildFeatureVectorForAnomaly(bars: YahooBar[], anomaly: AnomalyS
     // through as a parameter rather than refetched here.
     economic_policy_uncertainty: epu,
     body_to_range_ratio: anomaly.bodyToRangeRatio,
-    overnight_gap_pct: anomaly.overnightGapPct,
+    // Training stores div100(overnight_gap_pct) (HistoricalEngine.ts:541) --
+    // anomaly.overnightGapPct is the raw, undivided percentage (used as-is
+    // elsewhere, e.g. narrative text), so it must be scaled down specifically
+    // at this feature-vector assignment, confirmed as its only consumer.
+    overnight_gap_pct: anomaly.overnightGapPct / 100,
     volume_price_clustering: anomaly.volumePriceClustering,
     kinetic_energy: anomaly.kineticEnergy,
     seismic_magnitude_mw: anomaly.seismicMagnitudeMw,

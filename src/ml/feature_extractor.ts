@@ -120,7 +120,20 @@ const NUMERIC_ACCESSORS: Record<string, (f: Json, snap: Json | null) => number |
   rsi_14: (f) => numOrNull(f.rsi_14),
 
   // Market regime
-  vix_close: (f, s) => numOrNull(f.vix_close ?? s?.vix ?? f.vixAtEvent),
+  // vix_close (training convention, HistoricalEngine.ts:492/535): raw VIX / 100.
+  // f.vix_close/f.vixAtEvent are assumed already in that scale when present
+  // (e.g. a caller that pre-scaled it). s?.vix (signal_snapshot_json's cached
+  // "vix" field) is confirmed raw-scale in every case checked -- live inference
+  // never sets f.vix_close/f.vixAtEvent at all, so it always fell through to
+  // this raw, undivided branch, producing a ~100x-too-large value relative to
+  // training. Scaling only this fallback (not the whole accessor) avoids
+  // double-dividing an already-scaled f.vix_close/f.vixAtEvent.
+  vix_close: (f, s) => {
+    const fromF = numOrNull(f.vix_close ?? f.vixAtEvent);
+    if (fromF !== null) return fromF;
+    const fromSnap = numOrNull(s?.vix);
+    return fromSnap === null ? null : fromSnap / 100;
+  },
   vix_regime: (f, s) => encodeVixRegime(s?.vix_regime ?? f.vixRegime),
   trend_regime: (f, s) => encodeTrendRegime(s?.trend_regime ?? f.trendRegime),
   yield_curve_spread: (f, s) => numOrNull(s?.yield_curve_spread ?? f.yield_curve_spread),
