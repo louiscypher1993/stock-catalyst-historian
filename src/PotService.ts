@@ -24,6 +24,12 @@ export interface PipelineResult {
   risk_score:           number;
   risk_reward_ratio:    number;
   current_price:        number;
+  /** Raw 1-day return fraction (e.g. 0.04 = 4%) -- classifyEvent's "move".
+   *  F2 entry-gate input; optional because older/backtest rows may lack it. */
+  day_change_pct?:      number;
+  /** 20-day volume ratio -- classifyEvent's "relative_volume_ratio".
+   *  F2 entry-gate input; optional because older/backtest rows may lack it. */
+  volume_ratio?:        number;
 }
 
 /** Full set of per-symbol fields LiveInferenceService passes to evaluateRun. */
@@ -87,9 +93,50 @@ function stopLossPct(conviction: number, boldness: number, horizonLabel: string)
   return -Math.max(conviction * 0.03 + boldness * 0.02, floor);
 }
 
-/** Minimum model_a_confidence for entry */
-function minConfidence(boldness: number): number {
-  return Math.max(0.5, 0.95 - boldness * 0.045);
+/**
+ * F2 entry-gate rule -- replaces the old `model_a_confidence < minConfidence(boldness)`
+ * check. F2's audit found Model A's confidence output is a near-deterministic
+ * re-derivation of classifyEvent()'s own hard rule (QuantamentalGatingEngine.ts:315-372,
+ * re-verified 2026-07 against the live code, not from memory): a move whose absolute
+ * size is < 4% AND whose volume ratio is >= 1.5x is classified SUPPRESSED_NON_EVENT
+ * (the exact box empirically found to separate Model A's is_event label from its own
+ * two dominant features with 0.0% overlap either direction). Since a model that only
+ * re-derives a known rule adds cost and calibration risk without adding information,
+ * this ports the rule itself directly, rather than retraining/recalibrating Model A.
+ *
+ * Boldness grading: at boldness=0 this is EXACTLY classifyEvent's own threshold pair
+ * (4% move ceiling, 1.5x volume floor) -- the most cautious pot gets zero slack from
+ * the audited training rule. As boldness rises to 10, the move ceiling that counts as
+ * "small" shrinks toward 1% and the volume floor needed to flag rejection rises toward
+ * 3x -- both changes narrow the reject condition, so higher boldness strictly admits
+ * more, preserving minConfidence's old qualitative shape (cautious demands a cleaner
+ * signal, bold accepts a noisier one) without needing a [0,1] probability output.
+ *
+ * Deliberately NOT ported: classifyEvent's other two branches. The unconditional
+ * absMove>=10% "always a real event" branch is not needed here -- every row reaching
+ * this gate already passed z-score-based anomaly detection upstream, so the reject
+ * condition alone (mirroring the boolean it's replacing) is sufficient. The >=2.5
+ * external-z / docket-velocity / insider branches are not ported: those signals never
+ * reach PotService (no plumbing exists, and would need new data wiring to add), and
+ * per the F2 diagnostic, excess_return + volume_ratio alone already reproduce ~99% of
+ * classifyEvent's label AUC on their own -- the external-signal branch is a small,
+ * explicitly-flagged simplification, not a silent gap.
+ *
+ * day_change_pct/volume_ratio are optional (only newly plumbed through from
+ * LiveInferenceService as of this change) -- rows missing either value fail OPEN
+ * (gate passes), matching the conservative default used elsewhere in this file when
+ * upstream data is missing (e.g. the `!cp` price-map check).
+ */
+function meetsSignalQualityGate(boldness: number, result: PipelineResult): boolean {
+  const move = result.day_change_pct;
+  const vol  = result.volume_ratio;
+  if (move == null || vol == null) return true;
+
+  const moveCeiling = Math.max(0.01, 0.04 - boldness * 0.003); // 4.0% (B=0) -> 1.0% (B=10)
+  const volFloor     = 1.5 + boldness * 0.15;                   // 1.5x  (B=0) -> 3.0x  (B=10)
+
+  const isSuppressedNonEvent = Math.abs(move) < moveCeiling && vol >= volFloor;
+  return !isSuppressedNonEvent;
 }
 
 /** Short-selling composite score */
@@ -370,13 +417,12 @@ function meetsEntryConditions(
   heldSyms:  Set<string>
 ): boolean {
   const tier    = ambitionTier(pot.ambition);
-  const minConf = minConfidence(pot.boldness);
   const signal  = resolveHorizonSignal(result, pot.patience);
 
   if (!meetsMinRec(signal.tier, tier.minRec))                              return false;
   if (signal.riskScore > pot.boldness * 10)                                return false;
   if (expectedReturnForHorizon(result, pot.patience) < tier.minReturn)     return false;
-  if (result.model_a_confidence < minConf)                                 return false;
+  if (!meetsSignalQualityGate(pot.boldness, result))                       return false;
   if (signal.riskReward < pot.ambition / 40)                               return false;
   if (openCount >= pot.focus)                                              return false;
   if (heldSyms.has(result.symbol))                                         return false;
@@ -492,7 +538,6 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
   const { boldness: B, ambition: A, patience: P, conviction: C, focus: F, reactivity: R } = pot;
   const ph      = patienceHorizon(P);
   const tier    = ambitionTier(A);
-  const minConf = minConfidence(B);
   const stopPct = stopLossPct(C, B, ph.label);
   const ss      = shortScore(B, R, A);
   const rMinusB = R - B;
@@ -700,8 +745,8 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
                      (shortSignal.tier === 'REDUCE' && ss >= 8.5);
     if (!canShort) continue;
 
-    // For shorts, check confidence and risk score (recommendation tier check skipped)
-    if (result.model_a_confidence < minConf) continue;
+    // For shorts, check signal quality and risk score (recommendation tier check skipped)
+    if (!meetsSignalQualityGate(B, result)) continue;
     if (shortSignal.riskScore > B * 10) continue;
     // Ensure model predicts meaningful downside
     const downside = Math.abs(expectedReturnForHorizon(result, P));

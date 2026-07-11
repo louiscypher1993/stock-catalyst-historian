@@ -1178,6 +1178,10 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
         model_d4_return_3d:          clampedScores.model_d4_return_3d,
         model_d5_return_2w:          clampedScores.model_d5_return_2w,
         model_e_outperform_12m_prob: clampedScores.model_e_outperform_12m_prob,
+        // F2 entry-gate rule inputs (PotService.ts) -- classifyEvent's own
+        // move/volume quantities, not previously threaded through to PotService.
+        day_change_pct:              anomaly.dayChangePct,
+        volume_ratio:                anomaly.volumeRatio,
       });
 
       const shouldNotify = rec.recommendation === 'STRONG_BUY' || rec.recommendation === 'BUY';
