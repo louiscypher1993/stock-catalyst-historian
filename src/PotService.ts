@@ -590,7 +590,24 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
   for (const pos of openPositions) {
     if (closedIds.has(pos.id)) continue;
     const cp = priceMap[pos.symbol];
-    if (!cp) continue;
+
+    if (!cp) {
+      // No price at all for this symbol (delisted/acquired/halted, etc.) --
+      // stop-loss (P1) and reactivity (P2) both genuinely need a live price
+      // to compute a return/signal comparison, so they correctly stay
+      // unreachable here. Patience timeout (P3/P4) is purely date-based and
+      // doesn't need one: fire it anyway once the deadline passes, closing
+      // at entry price (returnSoFar=0) rather than leaving the position
+      // locked out of its Focus slot and capital forever. Before this
+      // deadline, behavior is unchanged -- still correctly locked, just no
+      // longer locked permanently.
+      if (todayStr >= pos.exit_deadline) {
+        const reason = pos.direction === 'short' ? 'short_cover_no_price' : 'patience_no_price';
+        const logMessage = `[PotService] ${pot.name}: ${reason.toUpperCase()} ${pos.symbol} — no price, closing at entry`;
+        actions.push(makeCloseAction(pos, pos.entry_price, 0, reason, logMessage));
+      }
+      continue;
+    }
 
     const returnSoFar = pos.direction === 'long'
       ? (cp - pos.entry_price) / pos.entry_price
@@ -604,12 +621,14 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
       continue;
     }
 
-    // P2: Reactivity exit — new SELL/REDUCE AND R-B >= 2 (longs only)
+    // P2: Reactivity exit — new SELL AND R-B >= 2 (longs only). REDUCE was
+    // removed here: resolveTierFromConfig can only return STRONG_BUY/BUY/
+    // SELL/HOLD, so that branch was dead.
     if (pos.direction === 'long' && rMinusB >= 2) {
       const signalResult = results.find(r => r.symbol === pos.symbol);
       if (signalResult) {
         const sig = resolveHorizonSignal(signalResult, P);
-        if (sig.tier === 'SELL' || sig.tier === 'REDUCE') {
+        if (sig.tier === 'SELL') {
           const logMessage = `[PotService] ${pot.name}: REACTIVITY_EXIT ${pos.symbol} (new ${sig.tier})`;
           actions.push(makeCloseAction(pos, cp, returnSoFar, 'reactivity', logMessage));
           continue;
@@ -735,21 +754,30 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
     newlyOpened.push({ symbol: result.symbol, direction: 'long', entryPrice, positionSizeGbp });
   }
 
-  // Short entries — SELL / REDUCE signals (if short_score qualifies)
+  // Short entries — SELL signals (if short_score qualifies). REDUCE was
+  // removed here: resolveTierFromConfig can only return STRONG_BUY/BUY/
+  // SELL/HOLD, so that branch was dead.
   for (const result of results) {
     if (openCount >= F) break;
     if (heldSyms.has(result.symbol)) continue;
 
     const shortSignal = resolveHorizonSignal(result, P);
-    const canShort = (shortSignal.tier === 'SELL'   && ss >= 7.0) ||
-                     (shortSignal.tier === 'REDUCE' && ss >= 8.5);
+    const canShort = shortSignal.tier === 'SELL' && ss >= 7.0;
     if (!canShort) continue;
 
     // For shorts, check signal quality and risk score (recommendation tier check skipped)
     if (!meetsSignalQualityGate(B, result)) continue;
     if (shortSignal.riskScore > B * 10) continue;
-    // Ensure model predicts meaningful downside
-    const downside = Math.abs(expectedReturnForHorizon(result, P));
+    // Ensure model predicts meaningful downside. F5 fix: use the SIGNED
+    // prediction, not Math.abs -- the SELL tier's cutoff (HORIZON_TIER_
+    // CONFIG's cfg.sell) is an upper bound on a raw signed value, not a
+    // "must be negative" check, so SELL-tier candidates can still carry a
+    // positive (rising) predicted return. Math.abs() on such a value
+    // produced a "downside" number indistinguishable from a genuine
+    // decline, inverting selection toward the LEAST-weak names. Negating
+    // instead of abs-ing means a predicted rise correctly yields a
+    // negative/small value here, excluded by the minReturn check below.
+    const downside = -expectedReturnForHorizon(result, P);
     if (downside < tier.minReturn) continue;
 
     const positionGBP = portfolioValue * (1 / F);
