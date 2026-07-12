@@ -270,6 +270,43 @@
     color: var(--indigo);
   }
 
+  .signals-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sort-label {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .sort-field-select {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .sort-field-select:hover,
+  .sort-field-select:focus {
+    outline: none;
+    border-color: var(--indigo);
+    color: var(--indigo);
+  }
+
   .watchlist-form {
     display: flex;
     gap: 8px;
@@ -931,7 +968,21 @@
       <section class="panel-section" id="signals-section">
         <div class="section-header">
           <h2>📡 Live Signals</h2>
-          <button id="dedup-toggle" class="dedup-toggle">Latest per symbol</button>
+          <div class="signals-controls">
+            <div class="sort-controls">
+              <label for="sort-field-select" class="sort-label">Sort by</label>
+              <select id="sort-field-select" class="sort-field-select">
+                <option value="model_d3_return_2d">2D</option>
+                <option value="model_d4_return_3d">3D</option>
+                <option value="model_d5_return_2w" selected>2W</option>
+                <option value="model_b_return_1m">1M</option>
+                <option value="model_d1_return_3m">3M</option>
+                <option value="model_d2_return_6m">6M</option>
+              </select>
+              <button id="sort-direction-toggle" class="dedup-toggle" title="Toggle sort direction">↓ Highest first</button>
+            </div>
+            <button id="dedup-toggle" class="dedup-toggle">Latest per symbol</button>
+          </div>
         </div>
         <div id="results">
           <p class="empty">Loading signals…</p>
@@ -1499,6 +1550,11 @@ function is2dStale(runDate) {
 
   let allResults = [];
   let dedupMode = true;
+  // Defaults to model_d5_return_2w/desc -- the current recommendation basis
+  // (2W/D5, see getRecommendation()'s canonical-basis comment in
+  // LiveInferenceService.ts) shown highest-return-first.
+  let sortField = 'model_d5_return_2w';
+  let sortDir = 'desc';
   let latestResultBySymbol = {};
   let watchlistEntries = [];
   const watchlistPrices = {};
@@ -1529,6 +1585,21 @@ function is2dStale(runDate) {
         return true;
       });
     }
+
+    // Sort AFTER filtering (so "Latest per symbol" composes with sort rather
+    // than sorting the full pre-dedup set). Copies rather than sorting
+    // `rows` in place -- when dedupMode is false, `rows` is the same
+    // reference as `allResults`, and mutating that would corrupt fetch order
+    // for later renders.
+    rows = rows.slice().sort((a, b) => {
+      const av = a[sortField];
+      const bv = b[sortField];
+      // nulls/undefined always sort to the bottom, regardless of direction
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      return sortDir === 'desc' ? bv - av : av - bv;
+    });
 
     container.innerHTML = rows.map(renderCard).join('');
   }
@@ -1885,6 +1956,17 @@ function is2dStale(runDate) {
   document.getElementById('dedup-toggle').addEventListener('click', () => {
     dedupMode = !dedupMode;
     document.getElementById('dedup-toggle').textContent = dedupMode ? 'Latest per symbol' : 'All signals';
+    renderResults();
+  });
+
+  document.getElementById('sort-field-select').addEventListener('change', (e) => {
+    sortField = e.target.value;
+    renderResults();
+  });
+
+  document.getElementById('sort-direction-toggle').addEventListener('click', () => {
+    sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+    document.getElementById('sort-direction-toggle').textContent = sortDir === 'desc' ? '↓ Highest first' : '↑ Lowest first';
     renderResults();
   });
 
