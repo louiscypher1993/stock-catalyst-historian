@@ -214,18 +214,33 @@ function meetsMinRec(rec: string, minRec: string): boolean {
 
 // ── Per-horizon tier resolution ────────────────────────────────────────────────
 //
-// getRecommendation() in LiveInferenceService.ts is single-canonical and stays
-// untouched -- the dashboard (docs/index.html) and GET /api/scan-symbol both
-// depend on its modelB(1-month)-basis recommendation/riskScore/riskReward as one
-// coherent value per symbol. This is a separate, additive mechanism consumed
-// only inside PotService's in-memory pipeline: each pot resolves its OWN tier
-// from the return field its own patience actually reads (reusing
-// patienceHorizon/expectedReturnForHorizon exactly as-is), instead of every pot
-// reading the same 1-month-basis recommendation regardless of horizon.
+// getRecommendation() in LiveInferenceService.ts is single-canonical -- the
+// dashboard (docs/index.html) and GET /api/scan-symbol both depend on its
+// modelD5(2-week)-basis recommendation/riskScore/riskReward as one coherent
+// value per symbol -- and it resolves its tier/tailRiskTerm from THIS config's
+// model_d5_return_2w entry, so recalibrating these cutoffs recalibrates the
+// canonical recommendation too. This is otherwise a separate, additive
+// mechanism consumed inside PotService's in-memory pipeline: each pot resolves
+// its OWN tier from the return field its own patience actually reads (reusing
+// patienceHorizon/expectedReturnForHorizon exactly as-is), instead of every
+// pot reading the same canonical-basis recommendation regardless of horizon.
 //
-// Cutoffs below are from the decile diagnostic against historical_inference_
-// results' 10,051-row fold (as of 2026-07-08). Recalibrate after any future
-// D1/D2/D3/D5 retrain -- these are not universal constants.
+// Cutoffs below were RECALIBRATED 2026-07-12 for the v9.3 retrain (deployed in
+// infer.py since 5efd794). The original cutoffs came from the decile diagnostic
+// against historical_inference_results' 10,051-row fold (2026-07-08) -- i.e.
+// against the OLD v9.1/v9.2 compressed prediction distributions. v9.3
+// decompressed the B/D1/D2/D3/D5 heads AND moved their prediction centers
+// (D5 median +0.147 -> +0.021), which left the old absolute cutoffs at absurd
+// percentiles: 98.3% of D5 and 87.0% of D3 test-fold predictions resolved SELL
+// (verified live on the 2026-07-12 08:47 run: 97/100 SELL). New values are
+// percentile-equivalent remaps onto v9.3's prediction distribution over the
+// SAME 10,051-row temporal test fold, re-validated to land ~10% SB / ~10% BUY /
+// ~10% SELL / ~70% HOLD per head (derivation: src/ml/scratch_v93_decile_diag.py,
+// P4; re-validation with these exact thresholds applied:
+// src/ml/scratch_recal_validation.py -- see DEEP_DIVE_PROGRESS.md Session 3
+// for both the occupancy table and the F5 short-gate re-check). Recalibrate
+// after ANY future D1/D2/D3/D5 retrain -- these are not universal constants;
+// they are quantiles of a specific model vintage's outputs.
 
 export interface HorizonTierConfig {
   strongBuy?: (v: number) => boolean;
@@ -235,30 +250,51 @@ export interface HorizonTierConfig {
 
 export const HORIZON_TIER_CONFIG: Partial<Record<keyof PipelineResult, HorizonTierConfig>> = {
   model_d3_return_2d: {
-    strongBuy: v => v >= 0.0187,
-    sell:      v => v <= 0.0096,
+    // v9.3 recalibration: was strongBuy >= 0.0187 / sell <= 0.0096 (old-model p90/p10).
+    strongBuy: v => v >= 0.010831,
+    sell:      v => v <= -0.004385,
     // No BUY/ADD/REDUCE -- decile diagnostic found no meaningful divergence
     // from the population mean anywhere between the two tails.
   },
   model_d5_return_2w: {
-    strongBuy: v => v >= 0.1575,
-    buy:       v => v >= 0.1489 && v < 0.1575,
-    sell:      v => v <= 0.1341,
+    // v9.3 recalibration: was strongBuy >= 0.1575 / buy >= 0.1489 / sell <= 0.1341.
+    // Also consumed by getRecommendation()'s tier + tailRiskTerm (see header).
+    strongBuy: v => v >= 0.031582,
+    buy:       v => v >= 0.024743 && v < 0.031582,
+    sell:      v => v <= -0.001411,
   },
   model_d1_return_3m: {
-    strongBuy: v => v >= 0.0682,
+    // v9.3 recalibration: was strongBuy >= 0.0682 (old-model p90).
+    strongBuy: v => v >= 0.057568,
     // No bottom tier -- bottom decile was small and noisy (-2.67 std but only
     // -0.004 in absolute terms), not a clean tail like D3/D5's.
   },
   model_d2_return_6m: {
-    // Strict > only: 0.2206 is a degenerate tie (p75 == p90 in the raw
-    // distribution), so >= would fire for far more than the intended top decile.
+    // v9.3 recalibration: was `> 0.2206`. That old value carried a bug on top
+    // of the stale calibration: the compressed old model had a degenerate
+    // point-mass tie at 0.220613 (p75 == p90), and the strict-> guard chosen
+    // to exclude it was defeated by writing the threshold 4dp-truncated BELOW
+    // the tie -- so the entire 3,591-row tie mass passed and BUY fired on
+    // 45.5% of the fold instead of the intended ~10% (deep-dive Finding 2).
+    // The new value is the intended-rate remap: p90.2 of v9.3's D2 test-fold
+    // predictions. Verified occupancy lands at 8.8% (close to the ~10%
+    // intent) -- but scratch_recal_validation.py found a 289-row leaf-value
+    // point mass sitting almost exactly at this boundary (289/10051 = 2.9%
+    // of the fold shares one repeated tree-leaf prediction ~1e-8 above this
+    // cutoff, all currently on the BUY side of it). Not the same bug as the
+    // old truncation issue (occupancy is correct, not blown out to 45%), but
+    // structurally fragile: a small future retrain could shift that leaf
+    // value to the other side of `>` and move ~3% of the fold in or out of
+    // BUY in one step. Re-check this point mass specifically after any D2
+    // retrain, not just the overall occupancy rate. Strict > kept for
+    // continuity.
     // BUY, not STRONG_BUY: this is the weakest/noisiest of the four signals
-    // (+1.83 std vs D3's +8.10/D5's +11.91/D1's +4.97 in the decile diagnostic,
-    // and borderline against the 1.5-std bar used there) -- STRONG_BUY is what
-    // ambitionTier's highest-conviction pots require, and reserving it for
-    // genuinely strong separation (not this borderline one) keeps that meaning
-    // intact. No bottom tier -- bottom decile was positive, not negative.
+    // (+1.83 std vs D3's +8.10/D5's +11.91/D1's +4.97 in the original decile
+    // diagnostic; v9.3 improves it to +0.26 pop-std top-decile separation but
+    // still the weakest) -- STRONG_BUY is what ambitionTier's highest-
+    // conviction pots require, and reserving it for genuinely strong
+    // separation keeps that meaning intact. No bottom tier -- bottom decile
+    // was positive, not negative.
     //
     // F4: BUY as the ceiling (no strongBuy) means any pot requiring
     // STRONG_BUY -- ambition>6.0, per ambitionTier() above -- can never
@@ -268,7 +304,7 @@ export const HORIZON_TIER_CONFIG: Partial<Record<keyof PipelineResult, HorizonTi
     // STRONG_BUY choice just above, not separate bugs. See the F4 comment
     // above patienceHorizon() for the corrected dead-zone scope (1,625/
     // 40,000 sweep pots, not the originally-audited 1,022).
-    buy: v => v > 0.2206,
+    buy: v => v > 0.106656,
   },
   model_b_return_1m: {
     // Deliberately empty -- always resolves HOLD. The decile diagnostic found
