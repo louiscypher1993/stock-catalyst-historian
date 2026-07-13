@@ -178,3 +178,63 @@ Occupancy lands within ~1.2pp of the intended ~10/10/10/70 shape on every head, 
 **Next session, if this isn't picked up interactively first**: awaiting Lewis's sign-off on (a) the D2 variant choice, (b) the F5 partial-survival nuance, (c) whether to commit as-is once approved.
 
 ---
+
+## Session 4 (2026-07-13) — DVN/BCE/TRIP incident: Phenomenon 3 confirmed live, one erroneous entry corrected, one downstream exit left in place, one exit cleared as unrelated
+
+A scheduled Live Inference run fired at 10:16 UTC (sha `172cb7a`, functionally identical PotService.ts/infer.py to the recalibration commit `6a13f12`) and produced 3 real pot decisions that needed individual forensic replay before any write. Full detail below; **Live Inference remains disabled** (manually paused mid-investigation) and the underlying bug is **not yet fixed**.
+
+### Root cause: Phenomenon 3 — stale `symbol_snapshots` silently overriding fresh live signal, no staleness check
+
+`src/ml/feature_extractor.ts`'s `NUMERIC_ACCESSORS` map uses the pattern `s?.field ?? f.field` for several features — `z_score`, `excess_return`, `atr_shock_score`, `volume_ratio` among them — where `s` is the cached Supabase `symbol_snapshots.latest_signal_snapshot` and `f` is the freshly-computed live value from today's real bars. The `??` unconditionally prefers `s` whenever it's non-null, **regardless of age**. There is no staleness check anywhere in this path.
+
+DVN's `symbol_snapshots` row was last updated **2026-06-13 — a full month stale** — and captured a genuine historical anomaly (`z_score=2.99`, `excess_return=67%`, `event_classification="HISTORICAL_EVENT"`, VIX regime "extreme"). On today's run, DVN's real anomaly was mundane (`z_score=0.39`, `excess_return=0.97%`), but the stale snapshot silently won the `??`, feeding the month-old extreme values into the live feature vector. Raw (pre-clamp) model output came out pathological — 57–114% predicted returns across D1/D2/D3/D4/B simultaneously — which cleared multiple entry gates once clamped to plausible-looking values.
+
+This is distinct from **Phenomenon 1** (null-collapse: symbols with zero `symbol_snapshots` coverage — see the earlier session) and **Phenomenon 2** (benign blue-chip tree-leaf clustering among AXP/CVX/O/PLD/TSLA/META/BCE, confirmed sane on raw-prediction inspection). Phenomenon 3 needs *some* prior anomaly ever captured for a symbol — which, structurally, is true of most "covered" symbols, since that's how they get a snapshot in the first place. It is a materially broader-reaching hazard than Phenomenon 1: it doesn't require a never-backfilled symbol, just an old one.
+
+### Consequence 1 — DVN STRONG_BUY entries, pots 1/8/19 (£3,842.93 total): confirmed erroneous, corrected
+
+Verified via the same corrected-replay methodology used for the earlier AMP incident — reconstructed DVN's real feature vector with the 4 confirmed stale-priority fields forced to today's fresh values (everything else held real), ran it through the actual deployed `infer.py`, then replayed each pot's real entry gate (`meetsEntryConditions`/`resolveHorizonSignal`/`patienceHorizon`/`ambitionTier`, transcribed verbatim from `PotService.ts`, not reimplemented from memory):
+
+| | Stale (used) | Corrected | Gate result |
+|---|---|---|---|
+| D1 (3M) — pots 1, 8 | 0.5000 (clamp ceiling) | **0.0117** | Tier HOLD (need ≥0.057568); misses tier by 5x, misses minReturn (0.12) by ~10x |
+| D5 (2W) — pot 19 | 0.1801 | **0.0141** | Tier HOLD (need ≥0.024743); misses tier by ~2x, misses minReturn (0.12) by ~8.5x |
+
+Not borderline in either case. Caveat surfaced and not hidden: `model_b_return_1m` stayed extreme (96.6%) even after correcting the 4 confirmed fields — likely a second, untraced stale field (`price_target_upside_pct=278.43%`, no live equivalent to fall back to) — but moot for this decision since the 1M horizon is a documented dead band (`HORIZON_TIER_CONFIG.model_b_return_1m` empty; no pot's patience ever gates on it).
+
+**Resolved same-day**, per Lewis's explicit sign-off, following the full recon → report → confirm → write → verify discipline:
+- New `exit_reason`/`reason` value `manual_correction` — no existing convention covered a corrective exit (only `patience`/`short_cover`/`stop_loss`/`replacement`/`reactivity` existed). Added to `pot_positions`'s `pot_positions_exit_reason_check` CHECK constraint via `ALTER TABLE` (Lewis ran this directly — no service-role/DDL access was available from this environment; confirmed via `pg_get_constraintdef` before altering).
+- Exit price: **$42.23 — identical to entry**, because the US market had not yet opened since the erroneous entry (confirmed live via a fresh Yahoo quote at write time). Not an artificial zero-out; genuinely the current market price at that moment.
+- Result: **£0.00 realized P&L across all 3 positions** (110, 111, 112) — zero market exposure was actually incurred. `pot_trades` (145/146/147) and `pot_positions` independently re-fetched post-write and confirmed consistent. No other open position in pots 1/8/19 was touched (verified by listing all remaining open positions in each pot).
+
+### Consequence 2 — BCE replacement-exits, pots 1/8 (-£69.85, -£55.88 = -£125.73 combined): confirmed downstream of the same bug, left closed
+
+`PotService.ts`'s PHASE 2 replacement logic picks the worst-performing held position by genuine realized return, then only executes the close if some other candidate's `expectedReturnForHorizon` beats the worst position's `expected_return_at_entry` by `(11-ambition)*0.015`. BCE was legitimately the worst position in both pots (real -5.61% decline since 2026-06-23 entry — not itself a bug). But the beat-check that actually triggered the close used DVN's corrupted `model_d1_return_3m=0.5`: needed >0.4336 to clear the bar for ambition=5.5, and DVN's stale-driven 0.5 cleared it. Checked the full 79-symbol run: DVN was the **only** candidate clearing this threshold (next-best, `000660.KS` at 0.4005, falls short by 0.033). With DVN's corrected value (0.0117), **no candidate in that run's universe would have cleared the bar, and BCE would have stayed open in both pots.** BCE's own signal was checked and is not itself corrupted (mundane `z_score=0.53`, `excess_return=0.45%` despite BCE also carrying a June-13-dated snapshot) — the corruption entering this decision came entirely from DVN's side of the comparison.
+
+**Deliberately not reversed.** Precedent set by the earlier AMP incident: reopening BCE would not "undo" anything — the -5.61% price decline between 2026-06-23 and today already happened and is real, independent of the invalid decision path that surfaced it. Reopening now would just be a new, unmotivated position dressed up as a correction, not a genuine undo (unlike DVN, where entry and same-day exit price were identical, making the correction a true no-op). The **causal attribution** (this loss was realized via a corrupted gate, not a legitimate replacement decision) is what's being corrected/documented here — the money is real and stays as booked.
+
+### Consequence 3 — TRIP exit, pot 19 (+£26.40): checked, confirmed clean, unrelated
+
+`exit_reason='patience'`, and `exit_deadline` (2026-07-13) equals `exit_date` (2026-07-13) exactly — a pure date comparison (`todayStr >= pos.exit_deadline`), no model signal consulted at all. TRIP's own snapshot is also June-13-dated (same structural precondition as every other symbol here), but it's irrelevant since patience exits never touch a model prediction. No action needed; the DVN entry that filled TRIP's freed slot is already covered under Consequence 1.
+
+### Status: not yet fixed, recurrence still possible
+
+The `s?.field ?? f.field` accessor-precedence bug in `feature_extractor.ts` is still live in deployed code. Today's actions corrected the realized consequences of one specific incident (DVN + its downstream BCE replacements); they do **not** prevent the same mechanism firing again on the next enabled run, for DVN or any other symbol whose cached snapshot happens to have captured a large historical anomaly. **Live Inference stays disabled pending a fix decision.** A staleness-gate fix (e.g. ignore `s?.field` if `symbol_snapshots.updated_at` is older than some threshold, or prefer `f.field` outright for these 4 fields since a fresh live computation always exists for them) has been discussed but **not implemented or committed** — needs its own scoping + sign-off pass, separate from this incident's cleanup.
+
+Artifacts (all read-only recon, all still on disk, none committed): `src/scripts/scratch_reconstructFeatureVectors.ts`, `src/scripts/scratch_reconstructPhenomenon2.ts`, `src/scripts/scratch_dvnCorrectedReplay.ts`.
+
+### Pot 5 follow-up (2026-07-13, later same day)
+
+The same Phenomenon 3 blast-radius recon that produced this session's findings also flagged 3 open positions in pot 5 (MG.TO #85, DVN #103, EZJ.L #109) as potential casualties, since all three carried the same frozen 2026-06-13 `symbol_snapshots` snapshot at entry. Point-in-time-correct replay (real bars/anomaly reconstructed as of each actual entry date, not today's data) confirmed:
+
+- **DVN #103 (entered 2026-07-07) and EZJ.L #109 (entered 2026-07-12): both non-borderline erroneous** — corrected D5/D1 miss their tier thresholds and minReturn floors by wide margins, matching the same pattern as this morning's incident. Closed via `manual_correction`, real market price at close time: DVN $42.41→$43.855 (+£37.57), EZJ.L 672.20p→675.20p (+£3.00). Combined **+£40.57 realised**.
+- **MG.TO #85 (entered 2026-07-02): inconclusive, left open.** Reconstruction did not reproduce the real stored entry (unlike DVN/EZJ.L, which matched exactly), and the entry's commit-message provenance suggests a possible backfill/manual seed rather than a normal live-inference run — needs separate investigation before any verdict. Currently open, +£27.96 unrealised, not urgent.
+
+**Reporting caveat (important):** `manual_correction`-tagged trades (`pot_trades` ids 145-149, spanning pots 1, 8, and 19, plus 148-149 in pot 5) should be **excluded from any P&L/performance analysis** of the pots they touch. These are real, correctly-booked gains/losses, but they reflect bug remediation (closing positions the system should never have opened), not trading skill or genuine signal performance. Including them in aggregate return/win-rate stats for pots 1, 2, 5, 8, or 19 would misrepresent the strategy's real performance.
+
+**Still outstanding, not yet started**:
+- Why `symbol_snapshots` froze at a single `updated_at` (2026-06-13) across all 1,112 rows and hasn't updated since (`migrate_snapshots.ts` appears to have run once and never again) — this is the actual root cause behind Phenomenon 3 and hasn't been investigated yet.
+- A portfolio-wide sweep: 35 of 44 distinct symbols across 77 open positions carry nonzero stale-severity per the blast-radius recon; only pot 5's 3 have been individually replayed.
+- Entry-checks on the 14 days of recently-closed positions (exits confirmed clean via date/price mechanisms, entries unchecked).
+
+---
