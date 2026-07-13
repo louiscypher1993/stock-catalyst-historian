@@ -924,7 +924,8 @@ export async function writeResultToSupabase(
   edgarSummary: string | null,
   managementScore: { confidence_score: number; primary_concern: string } | null,
   digitalExhaustVelocity: number | null,
-  alphavantageSentimentAvg: number | null
+  alphavantageSentimentAvg: number | null,
+  unreliableReason: string | null = null
 ): Promise<void> {
   try {
     const { supabase } = await import('./db/supabaseClient');
@@ -960,6 +961,7 @@ export async function writeResultToSupabase(
       earnings_primary_concern: managementScore?.primary_concern ?? null,
       digital_exhaust_velocity_14d: digitalExhaustVelocity,
       alphavantage_sentiment_avg: alphavantageSentimentAvg,
+      unreliable_reason: unreliableReason,
     }, { onConflict: 'run_date,symbol' });
 
     if (error) {
@@ -1177,6 +1179,11 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       console.log(`[LiveInference] ${isWatchlisted && !isActualAnomaly ? 'Watchlist' : 'Anomaly'} detected: ${symbol} z=${anomaly.zScore.toFixed(2)} trend=${trendContext.trendAlignment} (10d: ${(trendContext.pre_return_10d * 100).toFixed(1)}%)`);
 
       const enrichment = await getSymbolSnapshot(symbol);
+      // Phenomenon 1 completeness check: captured BEFORE the av_news_sentiment
+      // patch below, which can turn a null snap into a non-null (but still
+      // essentially empty) object -- checking after that patch would silently
+      // defeat this check for exactly the symbols it's meant to catch.
+      const isNullEnrichment = enrichment.snap === null;
       if (avSentiment !== null) {
         if (enrichment.snap !== null) {
           enrichment.snap.av_news_sentiment = avSentiment;
@@ -1203,6 +1210,32 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, { ...enrichment, snap: freshSnap }, macro?.epu ?? null);
       const digitalExhaust = computeDigitalExhaustVelocity(enrichment.snap);
       const scores = runInference(featureVector);
+
+      // Phenomenon 1 / Phenomenon 3 defense-in-depth: mechanism-agnostic sanity
+      // gate on RAW (pre-clamp) predictions, scoped this session (see
+      // DEEP_DIVE_PROGRESS.md). D3/D5 are the primary trigger because they're
+      // the only two heads with a tight, real-bounded historical range (never
+      // exceeding ~0.30/~0.31 across the 10,051-row test fold) -- any raw value
+      // beyond these bounds is already outside everything ever observed, zero
+      // false-positive risk. B/D1/D2/D4 have legitimately wide real tails
+      // (D1/D2 exceed 1200% at the extreme), so none of them alone is a safe
+      // trigger -- they only corroborate when >=2 fire together.
+      const rawOutlierPrimary = Math.abs(scores.model_d3_return_2d) > 0.30 || Math.abs(scores.model_d5_return_2w) > 0.40;
+      const rawOutlierSecondaryCount = [
+        Math.abs(scores.model_b_return_1m) > 1.8,
+        Math.abs(scores.model_d1_return_3m) > 2.5,
+        Math.abs(scores.model_d2_return_6m) > 2.5,
+        Math.abs(scores.model_d4_return_3d) > 1.0,
+      ].filter(Boolean).length;
+      const isRawPredictionOutlier = rawOutlierPrimary || rawOutlierSecondaryCount >= 2;
+
+      // Precedence: null_enrichment is the more specific/diagnostic root cause
+      // when both would fire (a fully-null snap can also produce an outlier
+      // raw prediction) -- surfaces the actual cause rather than the symptom.
+      const unreliableReason: string | null = isNullEnrichment
+        ? 'null_enrichment'
+        : (isRawPredictionOutlier ? 'raw_prediction_outlier' : null);
+
       const clampedReturn = Math.max(-0.30, Math.min(0.30, scores.model_b_return_1m));
       const clampedReturn3m = Math.max(-0.50, Math.min(0.50, scores.model_d1_return_3m));
       const clampedReturn6m = Math.max(-0.40, Math.min(0.40, scores.model_d2_return_6m));
@@ -1252,7 +1285,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
           })))
         : null;
 
-      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted, trendContext, edgarSummary, managementScore, digitalExhaust, avSentiment);
+      await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted, trendContext, edgarSummary, managementScore, digitalExhaust, avSentiment, unreliableReason);
 
       potResults.push({
         symbol:                      anomaly.symbol,
@@ -1261,6 +1294,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
         recommendation:              rec.recommendation,
         risk_score:                  rec.riskScore,
         risk_reward_ratio:           rec.riskReward,
+        unreliable_reason:           unreliableReason,
         model_a_confidence:          clampedScores.model_a_confidence,
         model_b_return_1m:           clampedScores.model_b_return_1m,
         model_c_max_drawdown:        clampedScores.model_c_max_drawdown,

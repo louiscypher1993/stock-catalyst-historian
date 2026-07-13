@@ -30,6 +30,12 @@ export interface PipelineResult {
   /** 20-day volume ratio -- classifyEvent's "relative_volume_ratio".
    *  F2 entry-gate input; optional because older/backtest rows may lack it. */
   volume_ratio?:        number;
+  /** Set by LiveInferenceService when this row failed the Phenomenon 1
+   *  (null_enrichment) or raw-prediction sanity gate (raw_prediction_outlier)
+   *  check -- 'null' / absent means reliable. Consulted by
+   *  meetsSignalQualityGate and the Phase 1 reactivity-exit check below so a
+   *  flagged row can never drive an entry, replacement, or reactivity exit. */
+  unreliable_reason?:   string | null;
 }
 
 /** Full set of per-symbol fields LiveInferenceService passes to evaluateRun. */
@@ -128,6 +134,14 @@ function stopLossPct(conviction: number, boldness: number, horizonLabel: string)
  * upstream data is missing (e.g. the `!cp` price-map check).
  */
 function meetsSignalQualityGate(boldness: number, result: PipelineResult): boolean {
+  // Phenomenon 1 / raw-prediction sanity-gate exclusion (this session): a
+  // flagged row's underlying prediction can't be trusted, so it's treated as
+  // failing this gate exactly like a suppressed non-event -- blocks long
+  // entries, short entries, and Phase 2 replacement candidates (all three
+  // route through meetsEntryConditions/meetsSignalQualityGate). Reactivity
+  // exits (Phase 1) don't call this gate at all, so they're guarded
+  // separately at their own call site.
+  if (result.unreliable_reason) return false;
   const move = result.day_change_pct;
   const vol  = result.volume_ratio;
   if (move == null || vol == null) return true;
@@ -712,7 +726,9 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
     // SELL/HOLD, so that branch was dead.
     if (pos.direction === 'long' && rMinusB >= 2) {
       const signalResult = results.find(r => r.symbol === pos.symbol);
-      if (signalResult) {
+      // Flagged rows don't go through meetsSignalQualityGate here (this path
+      // doesn't call it), so guard explicitly -- same exclusion as entries.
+      if (signalResult && !signalResult.unreliable_reason) {
         const sig = resolveHorizonSignal(signalResult, P);
         if (sig.tier === 'SELL') {
           const logMessage = `[PotService] ${pot.name}: REACTIVITY_EXIT ${pos.symbol} (new ${sig.tier})`;
