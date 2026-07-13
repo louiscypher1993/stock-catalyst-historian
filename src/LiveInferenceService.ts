@@ -1184,7 +1184,23 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
           enrichment.snap = { av_news_sentiment: avSentiment };
         }
       }
-      const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, enrichment, macro?.epu ?? null);
+      // Phenomenon 3 fix: z_score/excess_return/atr_shock_score/volume_ratio are
+      // always freshly computed above (anomaly.*, guaranteed non-null whenever we
+      // reach this point) -- prefer them unconditionally over enrichment.snap's
+      // cached copy, which can be arbitrarily stale (symbol_snapshots has gone
+      // unrefreshed since 2026-06-13; see DEEP_DIVE_PROGRESS.md Session 4).
+      // Stripped on a shallow copy so enrichment.snap itself (used below by
+      // computeDigitalExhaustVelocity, which doesn't touch these 4 fields) keeps
+      // every other cached field untouched. Shared NUMERIC_ACCESSORS map / training
+      // path (extractFeatures()) are deliberately not touched by this fix.
+      const freshSnap = enrichment.snap ? { ...enrichment.snap } : null;
+      if (freshSnap) {
+        delete freshSnap.z_score;
+        delete freshSnap.excess_return;
+        delete freshSnap.atr_shock_score;
+        delete freshSnap.volume_ratio;
+      }
+      const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, { ...enrichment, snap: freshSnap }, macro?.epu ?? null);
       const digitalExhaust = computeDigitalExhaustVelocity(enrichment.snap);
       const scores = runInference(featureVector);
       const clampedReturn = Math.max(-0.30, Math.min(0.30, scores.model_b_return_1m));
