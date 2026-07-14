@@ -259,3 +259,52 @@ The point-in-time replay's apparent mismatch had nothing to do with data corrupt
 One related but lower-severity gap found in the *opposite* direction (DB ahead of file, undocumented): `inference_results.unreliable_reason` (this session's sanity-gate column) and the broadened `pot_positions.exit_reason` CHECK constraint (now permitting `'manual_correction'`, used repeatedly this session) both exist and work live, but neither is reflected in the tracked migration SQL files — `supabase_pots_migration.sql:40-43` still lists only `'patience','stop_loss','reactivity','replacement','short_cover'`. This doesn't cause silent failures today (both work correctly against the live DB as altered), but if either file were ever used to rebuild the DB from scratch, both would be missing — worth a documentation-sync pass, not urgent.
 
 ---
+
+### Portfolio-wide Phenomenon 1/3 sweep (2026-07-14)
+
+Extends the pot-5-only replay above to the full live portfolio. **Scope**: 109 positions checked (74 open + 38 closed-in-last-30-days, excluding pot 5's already-resolved MG.TO/DVN/EZJ.L), collapsing to 67 distinct (symbol, entry_date) pairs. Replayed across **9 code-vintage eras** via detached git worktrees (junction-linked `node_modules`), each era's gate logic (`meetsEntryConditions`/`ambitionTier`/`patienceHorizon`/`HORIZON_TIER_CONFIG`/`resolveHorizonSignal`) read directly from that vintage's actual `PotService.ts` rather than transcribed from memory — this caught and corrected a small transcription error in the earlier ad-hoc DVN replay script's `MODEL_C_PERCENTILE_BREAKPOINTS` (real era8/9 values are `[0.95,0.1002],[0.98,0.1002],[0.99,0.1009],[1.00,0.1009]`, not `[0.95,0.1024],[0.98,0.1024],[1.00,0.2]` as that script had it — didn't change DVN's already-confirmed verdict, but worth knowing the source script had drifted from ground truth).
+
+**Structural caveat — F1 confound**: `F1` ("live/train feature-vector skew — 6 fixes, 8x Model A gate-flip reduction", fixed 2026-07-11) predates this sweep's coverage for every era except era8/9. Pre-fix, live inference silently zeroed/mismatched 6 named features the model was trained to expect, and Model A's gate decisions were documented as **8x more unstable** as a direct consequence. This means **no position entered before 2026-07-11 can get a clean, single-cause Phenomenon 1/3 verdict in isolation** — a second, independently-diagnosed source of noise sits on top of any stale/fresh z-score comparison for that whole window. Where this showed up directly (Model A collapsing to ~0.01–0.03 despite non-trivial stale z-scores, and the stale-input replay failing to even reproduce the real recorded entry), positions were left explicitly unresolved rather than force-fit into CONFIRMED/NOT_A_CASUALTY.
+
+**Verdict breakdown** (109 positions):
+
+| Verdict | Count | Meaning |
+|---|---|---|
+| CONFIRMED_CASUALTY | 25 | Stale-input replay reproduces the real entry passing; corrected inputs fail cleanly on return-magnitude/riskScore terms, not Model A collapse |
+| NOT_A_CASUALTY | 18 | Corrected inputs still pass — real signal, coincidentally matches |
+| REPLAY_FIDELITY_MISMATCH | 23 | Stale-input replay does *not* reproduce the real entry passing — consistent with F1's documented pre-fix instability, not a phenomenon verdict |
+| INCONCLUSIVE_REPLAY_MISMATCH | 29 (16 pairs) | `detectAnomaly` returns null even with the force-bypass flag — likely a different entry mechanism (replacement/reactivity/watchlist-pulse), same category as the MG.TO code-vintage lesson |
+| PHENOM1_SIGNAL_PLAUSIBLE | 9 | Zero-coverage entry's own signal passes the gate on its own merits — not obviously degenerate |
+| PHENOM1_WOULD_NOT_PASS_GATE | 2 | Zero-coverage entry's signal doesn't clear the gate even without any correction applied |
+| ALREADY_RESOLVED_DVN | 3 | Pots 1/8/19's DVN, already confirmed and closed earlier this session |
+
+**Action taken**: all 14 open `CONFIRMED_CASUALTY` positions closed via `manual_correction` at real current market prices (`500510.BO`'s 3 positions used the 2026-07-10 last-valid close — Yahoo returned null for 07-13/07-14 and EODHD's key was rejecting with 401, no fresher price obtainable from any source, confirmed before writing):
+
+| Symbol | Pot | Entry | Exit | Realised P&L |
+|---|---|---|---|---|
+| BAJFINANCE.NS (#4) | 7 | 918.30 | 1006.60 | +£192.31 |
+| BPCL.NS (#5) | 7 | 302.35 | 305.35 | +£19.84 |
+| LT.NS (#6) | 7 | 4049.30 | 3848.70 | -£99.08 |
+| 500510.BO (#7) | 7 | 4050.20 | 3946.55* | -£51.18 |
+| BAJFINANCE.NS (#13) | 15 | 918.30 | 1006.60 | +£96.16 |
+| 500510.BO (#14) | 15 | 4050.20 | 3946.55* | -£25.59 |
+| BAJFINANCE.NS (#15) | 17 | 918.30 | 1006.60 | +£320.52 |
+| 500510.BO (#16) | 17 | 4050.20 | 3946.55* | -£85.30 |
+| HDFCLIFE.NS (#21) | 15 | 581.20 | 555.20 | -£26.00 |
+| QAN.AX (#22) | 15 | 9.94 | 10.25 | +£31.00 |
+| EVN.AX (#23) | 15 | 12.93 | 11.78 | -£88.55 |
+| AKRBP.OL (#24) | 15 | 319.50 | 324.40 | +£14.70 |
+| TTE (#30) | 15 | 84.36 | 81.35 | -£33.11 |
+| CVX (#33) | 15 | 180.40 | 181.03 | +£3.15 |
+
+**Total realised: +£268.86.** Verified consistent between `pot_positions` and `pot_trades` post-write; pots 7 and 17 now have zero open positions (all their holdings were among these 14); pot 15's 2 remaining open positions (`DASH` #28, `SHEL` #29) confirmed untouched. Overall open-position count: 74 → 60.
+
+The **11 already-closed confirmed casualties** (`NOKIA.HE` #10, `XLE` #27, `AKRBP.OL` #17/#25, `AMZN` #70/#67, `MU` #76, `VZ` #78/#79, `VRT` #77 — combined **-£630.01** already realised) are left as historical record only — unrecoverable, audit note only, **do not reopen**, same precedent as BCE's earlier `replacement` exits.
+
+The **2 `PHENOM1_WOULD_NOT_PASS_GATE`** positions (`HEIO.AS` #74, `CGNX` #99) are noted but **not** treated as casualties — nothing was actually corrected for either (enrichment was legitimately null both then and now; there's no stale-vs-fresh comparison to make), so a failing gate check on the raw signal alone isn't evidence of a phenomenon-driven error, just a weak signal.
+
+**Known gap, not chased further per scoping decision**: the 23 `REPLAY_FIDELITY_MISMATCH` and 29 `INCONCLUSIVE_REPLAY_MISMATCH` positions (52 total, spanning most of pots 2/3/5/9/13/16/19/20 among others) are genuinely unresolved — not cleared, not confirmed casualties. Do not read this sweep as full portfolio coverage; a meaningful chunk of flagged positions still carries no verdict either way.
+
+**Reporting caveat, extended**: the `manual_correction` P&L-exclusion note logged earlier for pots 1/5/8/19 now also covers **pots 2, 7, 15, and 17** — all `manual_correction`-tagged trades across the full portfolio (today's 14 new closes plus the pre-existing ones) should be excluded from any aggregate return/win-rate analysis of the pots they touch, for the same reason as before: these are real, correctly-booked bug-remediation outcomes, not signal performance.
+
+---
