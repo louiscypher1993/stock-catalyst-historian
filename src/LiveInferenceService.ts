@@ -11,7 +11,7 @@ import {
   calculateATRMoveNormalization,
 } from './utils/physics';
 import { getRecentFilings as getEdgarFilings } from '../EdgarService';
-import { fetchFREDSeries } from '../FREDService';
+import { fetchFREDSeries, convertToGBPIfHighNominal } from '../FREDService';
 import type { EdgarFiling } from './types';
 import { isFmpPremium } from '../FMPService';
 import { getAlphaVantageNewsSentiment } from '../AlphaVantageService';
@@ -1287,10 +1287,17 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
 
       await writeResultToSupabase(runDate, anomaly, enrichment.sector, exchange, clampedScores, rec, narrative, computeSignalCompleteness(featureVector), isWatchlisted, trendContext, edgarSummary, managementScore, digitalExhaust, avSentiment, unreliableReason);
 
+      // F8: pot-ledger sizing/P&L math treats current_price as GBP -- convert
+      // high-nominal-currency symbols here so PotService.ts (entryPrice,
+      // shares, position_size_gbp) never sees a raw native price. Deliberately
+      // NOT applied to writeResultToSupabase's inference_results write above
+      // (a display/audit table, out of scope for this fix).
+      const potCurrentPrice = await convertToGBPIfHighNominal(anomaly.symbol, anomaly.close, runDate);
+
       potResults.push({
         symbol:                      anomaly.symbol,
         companyName:                 anomaly.companyName,
-        current_price:               anomaly.close,
+        current_price:               potCurrentPrice,
         recommendation:              rec.recommendation,
         risk_score:                  rec.riskScore,
         risk_reward_ratio:           rec.riskReward,

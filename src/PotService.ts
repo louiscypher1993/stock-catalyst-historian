@@ -1198,11 +1198,17 @@ export async function evaluateRun(
   const needsFetch = uniqueSymbols.filter(s => !priceMap[s]);
   if (needsFetch.length > 0) {
     console.log(`[PotService] Fetching Yahoo prices for ${needsFetch.length} held symbols not in today's results`);
+    // F8: this path bypasses runLiveInference's potResults.push entirely (it's
+    // a direct Yahoo fetch for held-but-not-rescanned symbols), so it needs
+    // its own conversion -- otherwise a position's entry price (converted,
+    // via choke point 1) would get marked-to-market against an unconverted
+    // price on any day it isn't actively rescanned, corrupting the % return.
+    const { convertToGBPIfHighNominal } = await import('../FREDService');
     for (const sym of needsFetch) {
       await sleep(75);
       const price = await fetchCurrentPrice(sym);
       if (price) {
-        priceMap[sym] = price;
+        priceMap[sym] = await convertToGBPIfHighNominal(sym, price, todayStr);
       } else {
         console.warn(`[PotService] No price available for ${sym} — exits/unrealised PnL will use entry price`);
       }
