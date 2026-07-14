@@ -26,3 +26,6 @@ sec_13f_data/
 
 # Scratch ML experiment models -- never deployed, not part of the real pipeline
 src/ml/scratch/
+
+# Synthetic-pot sweep inputs/outputs (large, regenerable, local-analysis only)
+synthetic_pots/

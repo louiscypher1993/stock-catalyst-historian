@@ -749,6 +749,11 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
   // Remaining open positions after primary exits
   let remaining = openPositions.filter(p => !closedIds.has(p.id));
 
+  // F7 fix B: set below when PHASE 2 closes a position specifically because
+  // a named signal beat it -- PHASE 3 prioritizes that symbol for the freed
+  // slot instead of independently rediscovering (possibly different) entry.
+  let reservedForReplacement: string | null = null;
+
   // ── PHASE 2: REPLACEMENT (P5) ───────────────────────────────────────────────
 
   if (remaining.length >= F && A >= 5) {
@@ -789,6 +794,14 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
         const logMessage = `[PotService] ${pot.name}: REPLACEMENT — closing ${worst.pos.symbol}, opening slot for ${replacementSignal.symbol}`;
         actions.push(makeCloseAction(worst.pos, cp, ret, 'replacement', logMessage));
         remaining = remaining.filter(p => p.id !== worst.pos.id);
+        // F7 fix B: bind the freed slot to the signal that justified this
+        // close, instead of handing it back to PHASE 3's general scan.
+        // PHASE 3 tries this symbol FIRST (see reservedForReplacement below)
+        // -- reusing its real feasibility checks (price/shares/cash) rather
+        // than duplicating open-action logic here, so a reservation that
+        // turns out infeasible falls through to the normal array-order scan
+        // exactly like any other slot would.
+        reservedForReplacement = replacementSignal.symbol;
       }
     }
   }
@@ -807,8 +820,20 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
   // post-write Supabase reload (see header comment above).
   const newlyOpened: Array<{ symbol: string; direction: 'long' | 'short'; entryPrice: number; positionSizeGbp: number }> = [];
 
+  // F7 fix B only (fix A -- ranking by expected return -- held pending a
+  // separate ranking-metric decision; see DEEP_DIVE_PROGRESS.md). Entries
+  // are still scanned in original array order; the only change from
+  // pre-F7 behavior is that a slot PHASE 2 just freed for a specific
+  // justifying signal goes to that signal first, rather than being handed
+  // back to the general scan to rediscover (possibly differently).
+  const orderedResults = [...results];
+  if (reservedForReplacement) {
+    const idx = orderedResults.findIndex(r => r.symbol === reservedForReplacement);
+    if (idx > 0) orderedResults.unshift(orderedResults.splice(idx, 1)[0]);
+  }
+
   // Long entries — STRONG_BUY / BUY / ADD signals
-  for (const result of results) {
+  for (const result of orderedResults) {
     if (openCount >= F) break;
     const entrySignal = resolveHorizonSignal(result, P);
     if (!['STRONG_BUY', 'BUY', 'ADD'].includes(entrySignal.tier)) continue;
