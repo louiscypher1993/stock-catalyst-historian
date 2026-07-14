@@ -345,3 +345,59 @@ The **2 `PHENOM1_WOULD_NOT_PASS_GATE`** positions (`HEIO.AS` #74, `CGNX` #99) ar
 **Connects directly to today's portfolio-wide sweep** (previous section): 9 of these 14 positions were part of that batch's `manual_correction` closes, meaning the £ P&L figures reported there earlier today were pre-fix values, now superseded — see the correction note appended to that section.
 
 ---
+
+### v10 — Per-event pot scoring: patience dominates, ambition secondary with a sign-flip (2026-07-15)
+
+Separate from the existing 40,000-pot **walk-forward** sweep (day-by-day, compounding capital, Focus-slot contention, order effects over the 407-day fold), this scores real historical anomaly events **independently**: every pot gets a fresh, isolated $10,000 for one event, `decidePot()`'s real gate/direction/sizing logic decides whether/how it trades, and profit is `($10,000/focus) × real forward_return_{horizon}` (negated if short) using ground-truth forward returns — not the model's own prediction. Averaged per pot across all events in a population, this isolates signal-picking + sizing + direction quality from portfolio-management/sequencing noise. **Simplification, stated once**: full-horizon hold assumed, no stop-loss/reactivity/patience-timeout mid-hold exit modeling — this is not a full backtest.
+
+**Two separate populations, local SQLite only** (`synthetic_pots/v10_history_sweep.db`, new file, no Supabase writes):
+- **(a) headline, leakage-free**: **8,948 events** — the `historical_inference_results` test fold (10,051 rows, genuinely held out from the currently-deployed models' training per `train_regression_heads_v9_3.py`'s temporal 70/15/15 split), filtered to `is_null_sample=0`. The initial extraction missed this filter (caught and fixed before committing); the 1,103 excluded rows were negative-control samples, not real detections.
+- **(b) contrast, labeled "model fit to history, not out-of-sample performance"**: **36,859 events** (`event_features`, `is_null_sample=0`, `date>=2016-01-01`), freshly batch-scored through today's deployed vintage (v9.3 B/D1/D2/D3/D5, v9.1 A/C/E) via a vectorized script, not per-call `infer.py` reloads. Excludes 8,583 pre-2016 rows (predate `daily_prices` coverage; suspiciously constant `vixAtEvent`/quarterly-aligned dates — look like placeholder/backfill artifacts) and all `is_null_sample=1` rows.
+- **Relationship between (a) and (b), confirmed by join, not assumed**: every one of (a)'s 8,948 events is also present in (b) — (a) is a clean subset of (b), not a separately-drawn or overlapping-but-distinct population. They are reported and interpreted as two separate populations throughout (leakage-free headline vs. in-sample contrast), not merged into one event count.
+
+**Bucket collapse**: 27,123 distinct raw `(patience,ambition,boldness,reactivity)` tuples across the 40,000 pots collapse further to **17,211** buckets once patience resolves to its horizon (raw patience value doesn't matter beyond that, given the full-horizon-hold simplification). Runtime: <1s (a) / ~2.7s (b) for the bucket×event pass.
+
+**Checks**: dead-band cross-check — all **10,236** structurally-inert pots scored exactly $0 under both populations. This figure is a real, traceable correction to `AUDIT_FINDINGS_2026-07.md`'s original F4 count (9,633 = 8,611+1,022), not an unexplained recount: the original audit used `ambition>8` as the second dead band's boundary, but `ambitionTier()`'s actual STRONG_BUY threshold is `ambition>6.0` (both (6,8] and (8,10] require STRONG_BUY, differing only in `minReturn`) — the (6,8] slice (603 pots) was missed originally. 8,611 + 1,625 = 10,236 is the corrected figure, already documented in `PotService.ts`'s own F4 comment; this run's `isDeadBand()` implements the same `>6.0` boundary and reproduces it exactly. Determinism check — 8 real duplicate-trait-vector pot pairs (found naturally among the 40,000, not injected), bit-identical on both populations. One real bug caught and fixed in the regression tooling: the OLS Gauss-Jordan solver divided by a pivot cell after that cell had already mutated to 1, producing garbage coefficients (R² ~ -10³⁰); fixed by capturing the pivot value before the divide, verified against a noiseless synthetic case.
+
+**Regressions**: OLS, 6 single + 15 pairwise + 20 triple trait combinations, run separately against (a)/(b) and against both score types (mean profit over all events vs. mean profit over entered-only events), dead-band pots excluded (29,764 sample; entered-only regressions further restricted to pots with nonzero participation — 23,714/29,764 for (a), 29,210/29,764 for (b)).
+
+| trait(s) | R²(a,all) | R²(a,entered) | R²(b,all) | R²(b,entered) |
+|---|---|---|---|---|
+| patience | 0.305 | 0.258 | 0.332 | 0.037 |
+| ambition | 0.198 | 0.005 | 0.107 | 0.285 |
+| reactivity | 0.091 | 0.004 | 0.045 | 0.022 |
+| focus | 0.072 | 0.065 | 0.102 | 0.217 |
+| conviction | 0.066 | 0.000 | 0.013 | 0.011 |
+| boldness | 0.024 | 0.007 | 0.006 | 0.149 |
+| ambition+patience | 0.385 | 0.272 | 0.354 | 0.286 |
+| patience+focus | 0.341 | 0.297 | 0.389 | 0.287 |
+| boldness+patience | 0.306 | 0.306 | 0.417 | 0.153 |
+| **ambition+patience+focus** | **0.422** | 0.311 | **0.412** | 0.532 |
+| boldness+ambition+patience | 0.393 | 0.311 | 0.458 | 0.348 |
+
+(Full 41-combo table + coefficients: `v10_history_sweep.db::regressions`.)
+
+**Headline finding**: patience is by far the strongest single driver in both populations. Ambition is a real secondary driver but with a sign-flip once patience/focus are controlled for (coefficient -5.6 in (a), -2.2 in (b) in the best triple) — higher ambition raises the entry bar enough that the resulting drop in participation outweighs the per-trade quality gain. Best model is `ambition+patience+focus`, R²≈0.41-0.42 in both populations — a real, directionally consistent signal, ~60% of variance still unexplained. (a) and (b) track each other closely on sign and rough magnitude throughout — a genuine check that (b)'s in-sample contamination isn't distorting the *shape* of the relationship, though its absolute numbers still aren't a performance claim.
+
+**Reconciliation flag, not resolved here**: this differs in method from an earlier walk-forward-sweep finding described as favoring higher Boldness/lower Patience — searched `AUDIT_BRIEFING_2026-07.md`, `DEEP_DIVE_BRIEFING.md`, and this file for that specific claim and could not locate an exact prior citation. The two methodologies are genuinely different (isolated single-event scoring vs. compounding, slot-contended, order-dependent walk-forward), so they may legitimately be capturing different things — flagging for reconciliation against whatever the original source was, not silently treating one as replacing the other.
+
+**Artifacts** (untracked, left on disk per convention): `src/ml/scratch_v10_batch_infer_b.py`, `src/scripts/scratch_v10_extract_a.cjs`, `src/scripts/scratch_v10_engine.ts`, `src/scripts/scratch_v10_regressions.ts`, `synthetic_pots/v10_history_sweep.db` (gitignored under the existing `synthetic_pots/` rule).
+
+#### Trait-shape follow-up (2026-07-15): where in each trait's range the effect actually lives
+
+Recon-only against the already-computed `pot_scores` table — no new event-scoring. Regression coefficients assume linearity; this bins each trait's 19 grid values (holding the other 5 within ±2.0 of their non-dead-band median — exact-match conditioning on all 5 gives N=0, since the 40,000 pots are a sparse sample over a ~47M-point 6-dim grid, not a dense grid) to see actual shape. Every bin's N is reported; bins under 30 are flagged low-trust rather than smoothed over.
+
+| Trait | Shape | Best-performing region | Notes |
+|---|---|---|---|
+| **ambition** | monotonic decreasing (corr -0.81/-0.92) | ≈3.5-6 | **The cliff at >6.5 is a tier-threshold mechanism, not a preference** — `ambitionTier()` requires STRONG_BUY above 6.0, and participation collapses (85%→3%→0%) because fewer events clear that bar, not because the model dislikes high-ambition pots. |
+| **focus** | monotonic decreasing (corr -0.90/-0.90) | focus=2 (lowest available) | Smooth, solid decline through focus=10. |
+| **patience** | rises 3→4.5, dead at 5-6.5, positive again 7-8.5, highest at 9-10 | 9-10, most cleanly at **patience=9** | **The 5-6.5 gap is structural, not a quality signal** — `HORIZON_TIER_CONFIG.model_b_return_1m` is deliberately empty (always HOLD), so no pot can trade there regardless of any other trait. The 9-10 bin also mixes in an increasing share (34-57%) of pots that are dead-band for a different reason (ambition>6 combined with patience>8.5) — the true alive-pot average there is higher than the blended figure shown. |
+| **boldness** | rises 1→4, then a broad plateau ~4-8.5 | 4-8.5 broadly, no narrow peak | Low boldness (<3.5) clearly worse; no differentiation inside the plateau. |
+| **reactivity** | flat/noisy 1.5-7.5, real drop above ≈8 | no narrow optimum below 8; only signal is "avoid >8" | Both populations agree on the drop-off point. |
+| **conviction** | **flat/noisy — no defensible optimum at all** | none | Peak/trough locations don't even agree between (a) and (b); this is the one trait where the low single-trait R² (0.066/0.013) reflects a genuine absence of signal, not just a weak linear fit to a real nonlinear shape. |
+
+**Triple-context refinement** (`ambition+patience+focus`, holding the other two at each trait's own single-trait best value): all three sharpen rather than contradict the single-trait view. Ambition: monotonic decreasing, cliff confirmed, most trustworthy peak ≈3.5-6 (the apparent 1-2.5 peak is low-N, 4-12 pots). Patience: dead gap at 5-6.5 confirmed again; clean peak at **patience=9** (N=42, participation≈1.0 — trades almost every time), the most solid single number in the whole analysis. Focus: monotonic decreasing, focus=2 clearly best (N=46).
+
+**Joint optimum: ambition≈3.5-6, patience≈9, focus=2** — moderate (not high) ambition, long patience horizon, small/concentrated positions. Holds consistently whether traits are viewed singly or jointly; (a)/(b) agree on shape everywhere except the fine detail of the patience dead-gap.
+
+---
