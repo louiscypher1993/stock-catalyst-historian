@@ -28,6 +28,11 @@
     --indigo: #6366f1;
     --indigo-rgb: 99, 102, 241;
     --indigo-bg: rgba(99, 102, 241, 0.12);
+    /* Distinct from the green/amber/red tier axis on purpose -- this marks a
+       data-quality/reliability flag, not a recommendation severity. */
+    --warning: #a78bfa;
+    --warning-rgb: 167, 139, 250;
+    --warning-bg: rgba(167, 139, 250, 0.14);
   }
 
   * { box-sizing: border-box; }
@@ -488,6 +493,11 @@
   .card.holding-card.stale  { border-left-color: rgba(var(--green-700-rgb), 0.7); }
   .card.watching-card.stale { border-left-color: rgba(var(--indigo-rgb), 0.7); }
 
+  /* Overrides the tier/stale border color regardless of combination --
+     !important is deliberate here: a flagged card must never show a
+     confident green/red edge, whatever else is true about it. */
+  .card.unreliable { border-left-color: var(--warning) !important; opacity: 0.88; }
+
   .header-right {
     display: flex;
     flex-direction: column;
@@ -613,6 +623,12 @@
   .badge.green { background: var(--green-bg); color: var(--green); }
   .badge.amber { background: var(--amber-bg); color: var(--amber); }
   .badge.red   { background: var(--red-bg); color: var(--red); }
+  .badge.unreliable {
+    background: var(--warning-bg);
+    color: var(--warning);
+    border: 1px solid rgba(var(--warning-rgb), 0.4);
+    cursor: help;
+  }
 
   .stats {
     display: grid;
@@ -1137,6 +1153,21 @@
     SELL: 'red',
   };
 
+  // Human-readable hover text for inference_results.unreliable_reason --
+  // set by the sanity gate / null-enrichment check in LiveInferenceService.ts
+  // and /api/scan-symbol (server.ts). See DEEP_DIVE_PROGRESS.md for the
+  // derivation of both checks.
+  const UNRELIABLE_REASON_LABELS = {
+    null_enrichment: 'No historical signal data available for this symbol — model input was incomplete.',
+    raw_prediction_outlier: 'Model prediction fell far outside its normal range — treated as unreliable.',
+  };
+
+  function unreliableBadge(reason) {
+    if (!reason) return '';
+    const label = UNRELIABLE_REASON_LABELS[reason] || reason;
+    return `<div class="badge unreliable" title="${label}">⚠ Unreliable</div>`;
+  }
+
   function pct(x, digits = 2) {
     if (x === null || x === undefined) return '—';
     const v = (x * 100).toFixed(digits);
@@ -1246,9 +1277,10 @@ function is2dStale(runDate) {
     const returnVal = r.model_b_return_1m;
     const company = r.company_name ? `${r.company_name}${r.exchange ? ' · ' + r.exchange : ''}` : (r.exchange || '');
     const stale = isStale(r.run_date);
+    const unreliable = !!r.unreliable_reason;
 
     return `
-      <div class="card ${colorClass}${stale ? ' stale' : ''}">
+      <div class="card ${colorClass}${stale ? ' stale' : ''}${unreliable ? ' unreliable' : ''}">
         <div class="card-header">
           <div class="symbol-block">
             <div class="symbol">${r.symbol}</div>
@@ -1256,6 +1288,7 @@ function is2dStale(runDate) {
           </div>
           <div class="header-right">
             <div class="badge ${colorClass}">${r.recommendation.replace('_', ' ')}</div>
+            ${unreliableBadge(r.unreliable_reason)}
             <div class="date-badge">${formatDateBadge(r.run_date)}</div>
             <div class="date-badge" style="opacity: 0.7">${formatDetected(r)}</div>
           </div>
@@ -1329,9 +1362,10 @@ function is2dStale(runDate) {
     const company = entry.company_name ? `${entry.company_name}${entry.exchange ? ' · ' + entry.exchange : ''}` : (entry.exchange || '');
     const cardTypeClass = entry.list_type === 'holding' ? 'holding-card' : 'watching-card';
 
-    let body, dateBadge, priceBlock, stale = false;
+    let body, dateBadge, priceBlock, stale = false, unreliable = false;
     if (result) {
       stale = isStale(result.run_date);
+      unreliable = !!result.unreliable_reason;
       dateBadge = `<div class="date-badge">${formatDateBadge(result.run_date)}</div>`;
       priceBlock = renderPriceBlock(result, entry);
       const colorClass = REC_COLOR[result.recommendation] || 'amber';
@@ -1340,6 +1374,7 @@ function is2dStale(runDate) {
         <div class="card-header">
           <div>
             <div class="badge ${colorClass}">${result.recommendation.replace('_', ' ')}</div>
+            ${unreliableBadge(result.unreliable_reason)}
             ${isQuietDay ? `<div class="quiet-day-badge">〰 No anomaly · Directional only</div>` : ''}
           </div>
         </div>
@@ -1380,7 +1415,7 @@ function is2dStale(runDate) {
     }
 
     return `
-      <div class="card ${cardTypeClass}${stale ? ' stale' : ''}">
+      <div class="card ${cardTypeClass}${stale ? ' stale' : ''}${unreliable ? ' unreliable' : ''}">
         <div class="card-header">
           <div class="symbol-block">
             <div class="symbol">${entry.symbol}</div>
@@ -1592,6 +1627,16 @@ function is2dStale(runDate) {
     // reference as `allResults`, and mutating that would corrupt fetch order
     // for later renders.
     rows = rows.slice().sort((a, b) => {
+      // Flagged (unreliable_reason set) rows sink to the bottom regardless of
+      // sortField/direction, same treatment as nulls below -- a degenerate
+      // clamped value shouldn't surface near the top of a "best opportunities"
+      // sort just because it's numerically large.
+      const aFlagged = !!a.unreliable_reason;
+      const bFlagged = !!b.unreliable_reason;
+      if (aFlagged && bFlagged) return 0;
+      if (aFlagged) return 1;
+      if (bFlagged) return -1;
+
       const av = a[sortField];
       const bv = b[sortField];
       // nulls/undefined always sort to the bottom, regardless of direction
@@ -2304,18 +2349,20 @@ function is2dStale(runDate) {
       const buyRows = rowsInWindow.filter(r => r.recommendation === 'BUY');
       const sellRows = rowsInWindow.filter(r => r.recommendation === 'SELL' || r.recommendation === 'REDUCE');
 
-      // Thresholds match PotService.ts's HORIZON_TIER_CONFIG.model_d5_return_2w
-      // (decile-verified this session) -- recommendation basis switched from
-      // model_b_return_1m (no usable signal, confirmed) to model_d5_return_2w.
-      // Keep these in sync if that config is ever recalibrated.
+      // Thresholds match PotService.ts's HORIZON_TIER_CONFIG.model_d5_return_2w.
+      // Recalibrated 2026-07-12 for the v9.3 retrain's shifted prediction
+      // distribution (was 0.1575/0.1489/0.1341, calibrated against the old
+      // v9.1/v9.2 compressed models -- these drifted out of sync with
+      // PotService.ts's actual live values until this fix). Keep these in
+      // sync if that config is ever recalibrated again.
       return {
         period: `${startStr} – ${endStr}`,
         sbCount: sbRows.length,
-        sbHit: hitRate(sbRows, r => r.model_d5_return_2w >= 0.1575),
+        sbHit: hitRate(sbRows, r => r.model_d5_return_2w >= 0.031582),
         buyCount: buyRows.length,
-        buyHit: hitRate(buyRows, r => r.model_d5_return_2w >= 0.1489),
+        buyHit: hitRate(buyRows, r => r.model_d5_return_2w >= 0.024743),
         sellCount: sellRows.length,
-        sellHit: hitRate(sellRows, r => r.model_d5_return_2w <= 0.1341),
+        sellHit: hitRate(sellRows, r => r.model_d5_return_2w <= -0.001411),
       };
     }).filter(r => r.sbCount + r.buyCount + r.sellCount > 0);
 

@@ -1392,6 +1392,12 @@ app.get('/api/scan-symbol/:symbol', async (req, res, next) => {
 
     const trendContext = computeTrendContext(bars, anomaly.zScore);
     const enrichment = await getSymbolSnapshot(symbol);
+    // Phenomenon 1 completeness check: captured immediately after
+    // getSymbolSnapshot() -- this endpoint has no later mutation of
+    // enrichment.snap (unlike runLiveInference's av_news_sentiment patch), so
+    // there's no ordering hazard here, but capturing it up front keeps this
+    // in lockstep with the main pipeline's pattern regardless.
+    const isNullEnrichment = enrichment.snap === null;
     // /api/scan-symbol has no per-run loop to amortize a single macro fetch over
     // (unlike runLiveInference, where fetchMacroEnvironment() runs once for the
     // whole universe) -- this is a single on-demand, rate-limited request, so a
@@ -1407,8 +1413,37 @@ app.get('/api/scan-symbol/:symbol', async (req, res, next) => {
       console.warn('[ScanSymbol] EPU fetch failed:', err.message);
     }
 
-    const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, enrichment, epu);
+    // Phenomenon 3 fix (ported from runLiveInference, LiveInferenceService.ts):
+    // z_score/excess_return/atr_shock_score/volume_ratio are always freshly
+    // computed above (anomaly.*, guaranteed non-null whenever we reach this
+    // point) -- prefer them unconditionally over enrichment.snap's cached
+    // copy, which can be arbitrarily stale. Stripped on a shallow copy so
+    // enrichment.snap itself is untouched (unused elsewhere in this endpoint,
+    // but keeping the same shape as the ported pattern).
+    const freshSnap = enrichment.snap ? { ...enrichment.snap } : null;
+    if (freshSnap) {
+      delete freshSnap.z_score;
+      delete freshSnap.excess_return;
+      delete freshSnap.atr_shock_score;
+      delete freshSnap.volume_ratio;
+    }
+    const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, { ...enrichment, snap: freshSnap }, epu);
     const scores = runInference(featureVector);
+
+    // Phenomenon 1 / Phenomenon 3 sanity gate (ported from runLiveInference,
+    // same thresholds/reasoning -- see LiveInferenceService.ts and
+    // DEEP_DIVE_PROGRESS.md for the derivation).
+    const rawOutlierPrimary = Math.abs(scores.model_d3_return_2d) > 0.30 || Math.abs(scores.model_d5_return_2w) > 0.40;
+    const rawOutlierSecondaryCount = [
+      Math.abs(scores.model_b_return_1m) > 1.8,
+      Math.abs(scores.model_d1_return_3m) > 2.5,
+      Math.abs(scores.model_d2_return_6m) > 2.5,
+      Math.abs(scores.model_d4_return_3d) > 1.0,
+    ].filter(Boolean).length;
+    const isRawPredictionOutlier = rawOutlierPrimary || rawOutlierSecondaryCount >= 2;
+    const unreliableReason: string | null = isNullEnrichment
+      ? 'null_enrichment'
+      : (isRawPredictionOutlier ? 'raw_prediction_outlier' : null);
 
     const clampedReturn = Math.max(-0.30, Math.min(0.30, scores.model_b_return_1m));
     const clampedReturn3m = Math.max(-0.50, Math.min(0.50, scores.model_d1_return_3m));
@@ -1434,6 +1469,7 @@ app.get('/api/scan-symbol/:symbol', async (req, res, next) => {
       model_d2_return_6m: clampedReturn6m,
       currentPrice: anomaly.close,
       scannedAt: new Date().toISOString(),
+      unreliable_reason: unreliableReason,
     });
   } catch (err) {
     next(err);
