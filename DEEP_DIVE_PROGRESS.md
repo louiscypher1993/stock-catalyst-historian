@@ -401,3 +401,35 @@ Recon-only against the already-computed `pot_scores` table — no new event-scor
 **Joint optimum: ambition≈3.5-6, patience≈9, focus=2** — moderate (not high) ambition, long patience horizon, small/concentrated positions. Holds consistently whether traits are viewed singly or jointly; (a)/(b) agree on shape everywhere except the fine detail of the patience dead-gap.
 
 ---
+
+### v10 feature-hygiene decision + next-phase roadmap (2026-07-15)
+
+**Feature-hygiene decision, finalized.** Consolidates the P3 fabrication/degeneracy findings (Findings 3-8) into per-feature DROP/FIX/KEEP-AS-IS calls:
+
+- **DROP** (all training-input-only, one-line reasoning each):
+  - `congressional_net_flow_30d` — constant 0, fabricated (hardcoded mock, real API call commented out); zero information to lose.
+  - `news_relevance_z` — constant 0, structurally unfixable for historical rows (free-tier NewsAPI depth can't be backfilled).
+  - `stocktwits_virality_z` — has real variance but it's a scan-date-proxy leakage artifact, not event-time signal; the historical data doesn't exist to fix it properly.
+  - `av_news_sentiment` — constant, same class as congressional/news.
+  - `primaryCategory_technical` — constant one-hot level, never populated.
+  - `confidence_tier_low` — constant one-hot level, never populated.
+  - `peer_average_return` — near-dead (<1% nonzero); honest-null root cause (FMP 60-day TTL decay) but still near-zero training value.
+  - `peer_contagion_delta` — same as above.
+  - `insider_net_shares_30d` — near-dead; root cause not fully pinned down this session, but that doesn't change the training-value verdict.
+- **DROP-now/FIX-later**: `earnings_date_proximity_days` — broken encoding (89.5% conflates null with "earnings today"); a real fix needs an `EarningsCalendarService` source-priority reorder plus full historical re-extraction, out of scope for this pass.
+- **KEEP-AS-IS**: `obv_delta_10d` — real, mid-importance signal; the known train/serve skew is already measured negligible (3/29,720 tier flips), fix belongs in the next natural retrain cycle, not this hygiene batch.
+
+**Scope of the DROP decision**: purely a training-input change — none of the 10 appear outside feature-vector construction in `LiveInferenceService.ts`/`PotService.ts`/the dashboard, so no live-code changes are needed. Just exclude from `feature_metadata`'s `full_feature_cols`, re-export `features.csv`, retrain — whenever that next happens.
+
+**Two residual issues NOT resolved by this decision, flagged separately**: `congressional_net_flow_30d`'s cache-poisoning (fabricated zeros indistinguishable from real fetched zeros) stays live if `CongressionalTradingService` is ever wired to a real API. `stocktwits_virality_z`'s underlying scan-date-proxy-substitution bug stays live in `StockTwitsService.ts` regardless of the model no longer consuming it.
+
+**`obv_delta_10d` will NOT self-refresh on a future retrain** just by regenerating `features.csv` — the historical `event_features.features_json` blobs still hold pre-F1-fix values (regenerating `features.csv` only re-exports what's already in `features_json`). Needs its own explicit step: full `HistoricalEngine` re-run (expensive) or the cheaper surgical migration already scoped, with 49,382/66,834 rows' worth of recompute values already sitting in `scratch/obv_recompute_values.csv` (17,452 bar-less rows still need a leave-stale/null/backfill decision).
+
+**Next-phase roadmap, proposed**: five items, suggested build order **(2) → observe → (1) → (3) → (4)**, with (5) unsequenced/ongoing:
+1. Top-3-buys-per-horizon report.
+2. Predicted-vs-actual tracker.
+3. Live-scan-timing-vs-exchange-hours recon.
+4. IBKR integration — explicitly sequenced after (2) has run a couple weeks post-fix, not immediately.
+5. Watchlist-pulse cadence review + skip-if-just-scanned optimization.
+
+---
