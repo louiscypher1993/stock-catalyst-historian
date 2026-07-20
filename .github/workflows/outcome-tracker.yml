@@ -1,0 +1,58 @@
+name: Outcome Tracker
+
+# Predicted-vs-actual checker (src/scripts/outcomeTracker.ts). Local SQLite
+# only (outcome_tracker.db) -- not committed to git (would mean a binary
+# diff every run); persisted across runs via actions/cache instead, since a
+# fresh Actions checkout has no disk state otherwise. Restore uses a
+# run-id-suffixed key with a prefix restore-key so it always falls back to
+# the most recent prior run's db; save always writes under a fresh key so
+# this run's new rows aren't lost (a cache HIT would otherwise skip saving).
+#
+# Once/day is enough -- shortest tracked horizon is 2 calendar days. Timed
+# for after US market close (21:30 UTC) so same-day 2D-horizon checks have a
+# settled close to compare against.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 21 * * 1-5'
+
+permissions:
+  contents: read
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore outcome_tracker.db
+        uses: actions/cache/restore@v4
+        with:
+          path: outcome_tracker.db
+          key: outcome-tracker-${{ github.run_id }}
+          restore-keys: |
+            outcome-tracker-
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run outcome tracker
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: npx tsx src/scripts/outcomeTracker.ts
+
+      - name: Save outcome_tracker.db
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: outcome_tracker.db
+          key: outcome-tracker-${{ github.run_id }}
