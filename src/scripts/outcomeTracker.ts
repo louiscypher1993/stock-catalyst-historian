@@ -21,11 +21,19 @@
  *
  * Actual-price lookup: target_date +/- 3 CALENDAR DAYS nearest-match
  * tolerance (explicit, not the same window used elsewhere in the codebase).
- * Tries daily_prices first; falls back to a fresh Yahoo fetch (same
- * fetch-and-cache-per-symbol pattern as calculate_forward_returns.ts) only
- * when daily_prices doesn't have a bar in that window -- daily_prices is
- * currently stale (max 2026-06-19 as of this build), so the fallback path
- * is the primary path for anything but the oldest, shortest-horizon rows.
+ * Three tiers, in order:
+ *   a) local SQLite daily_prices (market_cache.db, gitignored -- unavailable
+ *      on GH Actions, degrades gracefully there)
+ *   b) Supabase daily_prices_cache -- a small rolling cache of bars this
+ *      tracker itself has previously fetched from Yahoo. Added 2026-07-20
+ *      because GH Actions has no local daily_prices, so almost every row
+ *      was hitting Yahoo on every single run (2,154/2,334 in the first
+ *      backfill, ~5.5 hrs) -- repeat runs now hit this cache instead.
+ *      Distinct from local daily_prices (that one's a one-time historical
+ *      backfill feeding the training pipeline, not touched here).
+ *   c) fresh Yahoo fetch (same fetch-and-cache-per-symbol pattern as
+ *      calculate_forward_returns.ts) -- on use, the matched bar is written
+ *      back to daily_prices_cache so future runs get it for free from (b).
  *
  * Entry price is inference_results.current_price (the price the prediction
  * was actually made against at scan time) -- not a separate run_date price
@@ -45,6 +53,8 @@ const MARKET_CACHE_DB = path.join(ROOT, 'market_cache.db');
 
 const TOLERANCE_DAYS = 3; // explicit +/- nearest-match window for actual-price lookup
 const YAHOO_REQUEST_DELAY_MS = 75;
+const SUPABASE_SYMBOL_CHUNK = 200; // symbols per `in.()` read to keep query URLs bounded
+const SUPABASE_WRITE_CHUNK = 300; // rows per batched upsert
 
 // ── Horizon definitions (approved 2026-07-20) ───────────────────────────────
 
@@ -148,6 +158,77 @@ function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+// ── Supabase daily_prices_cache (raw REST, same helper shape as
+// scripts/watchlist-pulse.mjs's `sb()` -- reused here rather than the
+// supabase-js client because this file already does one raw `fetch` for
+// Yahoo, and the batched-upsert response quirk below is specifically a raw
+// PostgREST behaviour) ───────────────────────────────────────────────────
+
+const SUPABASE_URL = process.env.SUPABASE_URL!;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY!;
+
+async function sb(pathAndQuery: string, options: RequestInit = {}): Promise<any> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${pathAndQuery}`, {
+    ...options,
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string> | undefined),
+    },
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Supabase ${pathAndQuery} -> HTTP ${res.status}: ${body.slice(0, 300)}`);
+  }
+  if (res.status === 204) return null;
+  // PostgREST upserts without `Prefer: return=representation` come back 200
+  // OK with an EMPTY body, not 204 -- res.json() throws SyntaxError on that.
+  // Read as text first and only parse if non-empty (same fix as
+  // watchlist-pulse.mjs's `sb()`).
+  const text = await res.text();
+  if (!text) return null;
+  return JSON.parse(text);
+}
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+// One batched read covering every distinct symbol in this run, done once
+// upfront -- not a per-symbol or per-row round trip.
+async function fetchSupabasePriceCache(symbols: string[]): Promise<Map<string, Map<string, number>>> {
+  const out = new Map<string, Map<string, number>>();
+  const uniqueSymbols = [...new Set(symbols)];
+  for (const batch of chunk(uniqueSymbols, SUPABASE_SYMBOL_CHUNK)) {
+    const inList = batch.map(s => encodeURIComponent(s)).join(',');
+    const rows: Array<{ symbol: string; date: string; close: number }> =
+      (await sb(`daily_prices_cache?select=symbol,date,close&symbol=in.(${inList})`)) ?? [];
+    for (const r of rows) {
+      if (!out.has(r.symbol)) out.set(r.symbol, new Map());
+      out.get(r.symbol)!.set(r.date, r.close);
+    }
+  }
+  return out;
+}
+
+// Batched write-back -- callers accumulate matches and flush in chunks
+// rather than upserting one row per Yahoo fetch.
+async function upsertPriceCache(rowsToWrite: Array<{ symbol: string; date: string; close: number }>): Promise<void> {
+  if (rowsToWrite.length === 0) return;
+  const nowIso = new Date().toISOString();
+  const payload = rowsToWrite.map(r => ({ symbol: r.symbol, date: r.date, close: r.close, source: 'yahoo', fetched_at: nowIso }));
+  for (const batch of chunk(payload, SUPABASE_WRITE_CHUNK)) {
+    await sb('daily_prices_cache?on_conflict=symbol,date', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify(batch),
+    });
+  }
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────
 
 interface InferenceRow {
@@ -221,10 +302,22 @@ async function main() {
   const rows = await fetchAllInferenceResults();
   console.log(`Fetched ${rows.length} rows`);
 
+  console.log('Fetching daily_prices_cache from Supabase (one batched read)...');
+  // Fails soft -- a Supabase blip here shouldn't take down a run that local
+  // daily_prices / Yahoo can still complete fine without the cache.
+  let supabaseCache = new Map<string, Map<string, number>>();
+  try {
+    supabaseCache = await fetchSupabasePriceCache(rows.map(r => r.symbol));
+    console.log(`Loaded cache rows for ${supabaseCache.size} symbol(s)`);
+  } catch (e) {
+    console.warn('daily_prices_cache read failed -- continuing without it this run:', e);
+  }
+
   const today = todayStr();
   const yahooCache = new Map<string, Map<string, number> | null>();
+  const pendingCacheWrites = new Map<string, { symbol: string; date: string; close: number }>();
 
-  let checkedCount = 0, freeCount = 0, fetchedCount = 0, skippedUnmatured = 0, skippedNoPrice = 0, skippedExisting = 0, skippedNoPred = 0;
+  let checkedCount = 0, freeCount = 0, cacheHitCount = 0, fetchedCount = 0, skippedUnmatured = 0, skippedNoPrice = 0, skippedExisting = 0, skippedNoPred = 0;
 
   for (const row of rows) {
     if (row.unreliable_reason) continue;
@@ -245,11 +338,18 @@ async function main() {
       let source: string | null = null;
 
       const cached = priceStmt?.get(row.symbol, targetDate, targetDate, targetDate) as { date: string; close: number } | undefined;
+      const supabaseMatch = !cached ? nearestFromMap(supabaseCache.get(row.symbol) ?? new Map(), targetDate) : null;
+
       if (cached) {
         actualPrice = cached.close;
         matchedDate = cached.date;
         source = 'daily_prices';
         freeCount++;
+      } else if (supabaseMatch) {
+        actualPrice = supabaseMatch.price;
+        matchedDate = supabaseMatch.date;
+        source = 'supabase_cache';
+        cacheHitCount++;
       } else {
         // Fall back to a fresh Yahoo fetch, cached per symbol for this run.
         if (!yahooCache.has(row.symbol)) {
@@ -265,6 +365,7 @@ async function main() {
             matchedDate = match.date;
             source = 'yahoo_fetch';
             fetchedCount++;
+            pendingCacheWrites.set(`${row.symbol}|${match.date}`, { symbol: row.symbol, date: match.date, close: match.price });
           }
         }
       }
@@ -285,7 +386,16 @@ async function main() {
     }
   }
 
-  console.log(`\nChecked: ${checkedCount} (free from daily_prices: ${freeCount}, fresh Yahoo fetch: ${fetchedCount})`);
+  console.log(`\nWriting ${pendingCacheWrites.size} newly-fetched bar(s) back to daily_prices_cache...`);
+  // Fails soft -- rows already inserted into local outcome_tracker.db above
+  // are not lost; worst case is just no cache benefit for the next run.
+  try {
+    await upsertPriceCache([...pendingCacheWrites.values()]);
+  } catch (e) {
+    console.warn('daily_prices_cache write-back failed -- this run\'s results are unaffected, just no cache benefit next time:', e);
+  }
+
+  console.log(`\nChecked: ${checkedCount} (free from daily_prices: ${freeCount}, from daily_prices_cache: ${cacheHitCount}, fresh Yahoo fetch: ${fetchedCount})`);
   console.log(`Skipped -- not yet matured: ${skippedUnmatured}, already checked: ${skippedExisting}, no price found (either source): ${skippedNoPrice}, no prediction/entry price: ${skippedNoPred}`);
 
   marketDb?.close();

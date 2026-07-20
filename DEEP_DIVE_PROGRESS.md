@@ -454,3 +454,20 @@ Built `src/scripts/outcomeTracker.ts` (local `outcome_tracker.db`, no Supabase w
 **New open item, distinct from Phenomenon 3, not bundled into it**: `1301.TW` and `SOL.JO` (both flagged among the 20 worst 2W rows) show no cached snap in `symbol_snapshots` or `event_features` as of now, and their stored `z_score`/`excess_return` look like genuine live values, not stale ones — yet `unreliable_reason` is null when the null-enrichment gate (`isNullEnrichment = enrichment.snap === null`) should plausibly have fired. Can't resolve from current table state (no visibility into what the tables held at actual scan time). Needs its own investigation — not evidence for or against Phenomenon 3, not yet diagnosed as a defect.
 
 ---
+
+### Outcome tracker: added a Supabase daily_prices_cache tier to stop GH Actions re-fetching Yahoo on every run (2026-07-20)
+
+**Problem**: `outcomeTracker.ts`'s first-choice price source (local `daily_prices`, via `market_cache.db`) is gitignored and never exists on a GH Actions runner, so on `outcome-tracker.yml`'s daily run almost every row fell through to a live Yahoo fetch — 2,154/2,334 rows, ~5.5 hrs in the initial backfill. Local `daily_prices` itself is a one-time historical backfill feeding the training pipeline (not a recurring job) — left untouched, out of scope.
+
+**Fix**: inserted a new tier between local `daily_prices` and Yahoo — a small Supabase table (`daily_prices_cache`, symbol+date primary key) that this tracker itself populates. Lookup order is now: (a) local `daily_prices` → (b) `daily_prices_cache` → (c) live Yahoo fetch, with every Yahoo match written back to (b) so repeat runs (and repeat GH Actions runs specifically, which never get (a) for free) hit the cache instead of Yahoo.
+
+Implementation, in `src/scripts/outcomeTracker.ts`:
+- `sb()` — raw-fetch Supabase REST helper (same shape as `scripts/watchlist-pulse.mjs`'s), handling the known PostgREST quirk where a batched upsert without `Prefer: return=representation` comes back `200 OK` with an empty body (not `204`) — `res.json()` throws on that, so responses are read as text first and only parsed if non-empty.
+- `fetchSupabasePriceCache()` — one batched `symbol=in.(...)` read (chunked at 200 symbols) covering every distinct symbol in the run, done once upfront rather than per-row or per-symbol.
+- `upsertPriceCache()` — batched writes (chunked at 300 rows) via `on_conflict=symbol,date` + `Prefer: resolution=merge-duplicates`.
+- Both calls are wrapped in try/catch and fail soft: a Supabase read failure falls back to an empty cache map (Yahoo still covers everything, just no cache benefit that run); a write-back failure doesn't affect the run's already-inserted `outcome_tracker.db` rows, just skips populating the cache for next time. Added after review flagged that neither call was originally guarded, which would have let a transient Supabase error crash the unattended 21:30 UTC job.
+- No pruning/retention logic — write volume is modest (rolling recent-bars cache, not a full history mirror); revisit only if it becomes a real concern.
+
+**Verification**: `npx tsc --noEmit` clean. Migration (`daily_prices_cache` table + 2 indexes) run manually in the Supabase SQL editor. Standalone mechanics test against 3 real symbols (AAPL/MSFT/GOOGL): round 1 cache miss (0 rows) → Yahoo fetch + write-back (3 rows written) → round 2 cache hit (3 rows found, correct data) → re-upsert of the same rows confirmed idempotent (still 3 rows, not 6). Real run of the actual (not standalone-copy) script against production `inference_results` completed with no runtime errors, exercising the new cache-read wiring in `main()` end-to-end (write-back path proven standalone only, not yet observed at scale against a run with many newly-matured rows — first real opportunity is whenever the next matured batch lands).
+
+---
