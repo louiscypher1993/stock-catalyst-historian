@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS pot_positions (
   realised_return_pct      REAL,
   exit_reason              TEXT CHECK (exit_reason IN (
                              'patience','stop_loss','reactivity',
-                             'replacement','short_cover'
+                             'replacement','short_cover','manual_correction'
                            )),
   current_price            REAL,
   current_value_gbp        REAL,
