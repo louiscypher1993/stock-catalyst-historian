@@ -276,8 +276,17 @@ export async function getMacroSnapshot(date: string, symbol: string = ""): Promi
     snapshot.dollarIndex = 104.5;
   }
 
-  // Cache the complete macro snapshot in SQLite
-  setCachedMacroSnapshot(date, snapshot);
+  // Cache the complete macro snapshot in SQLite -- but NEVER cache a fallback.
+  // hasRealData=false means FRED returned nothing (no key / rate-limit / outage);
+  // the fabricated 2024-vintage constants above are a crash-guard for THIS call
+  // only. Persisting them would poison this date permanently -- the cache read
+  // (getCachedMacroSnapshot) has no source check, so fixed constants would then
+  // feed silently into the vix_close / yield_curve_spread / credit_spread / EPU
+  // model features. Return the fallback for this call, but leave the cache empty
+  // so the next fetch retries against a recovered FRED.
+  if (hasRealData) {
+    setCachedMacroSnapshot(date, snapshot);
+  }
 
   return snapshot;
 }
