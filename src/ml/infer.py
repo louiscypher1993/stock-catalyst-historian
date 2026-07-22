@@ -37,27 +37,31 @@ def load_models():
     else:
         print(f"[infer] WARNING: {_calibrator_path} not found — "
               "Model A will use raw (uncalibrated) probabilities.")
-    # B/D1/D2/D3/D5 moved to v9.3 (relaxed regularization -- max_depth 5->8,
-    # subsample/colsample_bytree 0.8->1.0, memory #26): fixes prediction
-    # compression on all 5 heads with IC flat-or-improved on every head,
-    # confirmed via a real retrain reproducing the validated scratch-experiment
-    # numbers to 4 decimal places (see src/ml/verify_v9_3.py). Old v9.1/v9.2
-    # files for these heads are left on disk as a fallback, not deleted.
+    # B/D1/D2/D3/D5 moved to v9.4 (row-exclusion outlier hygiene on top of v9.3:
+    # excludes 51 training rows with physically-impossible price discontinuities
+    # -- |overnight_gap_pct|>=1.0 OR |excess_return|>10 -- that all 5 models were
+    # memorizing, dominating the gain on their #1 features). Same REG_PARAMS as
+    # v9.3; feature schema unchanged (identical 72-col full_feature_cols).
+    # Validated: memorization removed on all heads; served path reproduces the
+    # training-report numbers exactly (src/ml/verify_v9_4cand.py); split-
+    # sensitivity across 3 temporal folds showed D1 robust +0.04..+0.09, no
+    # robust regression on any head. Old v9.3/v9.2/v9.1 files for these heads are
+    # left on disk as a one-step rollback, not deleted.
     model_c = xgb.XGBRegressor()
     model_c.load_model(ML_DIR / 'model_c_v9.1.json')
     model_b = xgb.XGBRegressor()
-    model_b.load_model(ML_DIR / 'model_b_v9.3.json')
+    model_b.load_model(ML_DIR / 'model_b_v9.4.json')
     model_d1 = xgb.XGBRegressor()
-    model_d1.load_model(ML_DIR / 'model_d1_v9.3.json')
+    model_d1.load_model(ML_DIR / 'model_d1_v9.4.json')
     model_d2 = xgb.XGBRegressor()
-    model_d2.load_model(ML_DIR / 'model_d2_v9.3.json')
+    model_d2.load_model(ML_DIR / 'model_d2_v9.4.json')
     model_d3 = xgb.XGBRegressor()
-    model_d3.load_model(ML_DIR / 'model_d3_v9.3.json')
+    model_d3.load_model(ML_DIR / 'model_d3_v9.4.json')
     # D4 was not part of this retrain cycle (only B/D1/D2/D3/D5) -- stays on v9.2.
     model_d4 = xgb.XGBRegressor()
     model_d4.load_model(ML_DIR / 'model_d4_v9.2.json')
     model_d5 = xgb.XGBRegressor()
-    model_d5.load_model(ML_DIR / 'model_d5_v9.3.json')
+    model_d5.load_model(ML_DIR / 'model_d5_v9.4.json')
     model_e = xgb.XGBClassifier()
     model_e.load_model(ML_DIR / 'model_e_v9.1.json')
     return model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e, calibrator_a
@@ -134,10 +138,10 @@ def load_models():
 def infer(feature_vector: dict) -> dict:
     model_a, model_b, model_c, model_d1, model_d2, model_d3, model_d4, model_d5, model_e, calibrator_a = load_models()
 
-    # v9.3 confirmed to carry the exact same 72-column full_feature_cols list,
-    # in the exact same order, as v9.1 (order-sensitive equality checked
-    # explicitly -- see deployment report) -- safe to switch.
-    with open(ML_DIR / 'feature_metadata_v9.3.json') as f:
+    # v9.4 carries the exact same 72-column full_feature_cols list, in the same
+    # order, as v9.3/v9.1 (order-sensitive equality re-checked at deploy: True)
+    # -- the row-exclusion retrain changes weights, not the feature schema.
+    with open(ML_DIR / 'feature_metadata_v9.4.json') as f:
         metadata = json.load(f)
 
     # v9 metadata renamed this key to 'full_feature_cols'; fall back to the
