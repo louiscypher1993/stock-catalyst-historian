@@ -18,6 +18,7 @@ import { supabase } from '../db/supabaseClient';
 import { HORIZON_TIER_CONFIG, resolveTierFromConfig } from '../PotService';
 
 const TOP_N = 3;
+const ROUND_TRIP_COST = 0.0050; // 50bps, matches outcomeScoreboard (approved 2026-07-23)
 
 // Horizon label → inference_results column (== HORIZON_TIER_CONFIG key), plus
 // the symmetric clamp ceiling LiveInferenceService applies before storing each
@@ -63,6 +64,21 @@ function thresholdSummary(field: string): string {
   return parts.length ? parts.join(' · ') : 'no buy tier (HOLD ceiling)';
 }
 
+// Cross-horizon buy agreement: how many of the 5 heads independently rate this
+// symbol a BUY/STRONG_BUY. A cheap, data-grounded confirmation signal for the
+// "why" line — no SHAP/feature vector needed (inference_results stores neither).
+function buyAgreement(r: Row): number {
+  let c = 0;
+  for (const h of HORIZONS) {
+    const v = r[h.field];
+    if (typeof v !== 'number') continue;
+    const cfg = (HORIZON_TIER_CONFIG as Record<string, any>)[h.field];
+    const t = cfg ? resolveTierFromConfig(v, cfg) : 'HOLD';
+    if (t === 'BUY' || t === 'STRONG_BUY') c++;
+  }
+  return c;
+}
+
 async function main() {
   const argDate = process.argv[2];
 
@@ -92,6 +108,7 @@ async function main() {
   console.log(line);
 
   let totalBuySignals = 0;
+  let belowCostBuys = 0;
 
   for (const h of HORIZONS) {
     const cfg = (HORIZON_TIER_CONFIG as Record<string, any>)[h.field];
@@ -107,19 +124,31 @@ async function main() {
     top.forEach((r, i) => {
       const val = r[h.field] as number;
       const tier = cfg ? resolveTierFromConfig(val, cfg) : 'HOLD';
-      if (tier === 'BUY' || tier === 'STRONG_BUY') totalBuySignals++;
+      const isBuy = tier === 'BUY' || tier === 'STRONG_BUY';
+      const clearsCost = val > ROUND_TRIP_COST;
+      if (isBuy) { totalBuySignals++; if (!clearsCost) belowCostBuys++; }
       const name = String(r.company_name ?? '').slice(0, 22).padEnd(22);
-      const mark = (tier === 'BUY' || tier === 'STRONG_BUY') ? '✓' : ' ';
+      // '✓' = actionable buy that clears the cost floor; '~' = buy tier but
+      // below it (can't occur while every buy threshold already exceeds
+      // ROUND_TRIP_COST — kept as a guard for higher cost assumptions).
+      const mark = isBuy ? (clearsCost ? '✓' : '~') : ' ';
       const clamped = Math.abs(Math.abs(val) - h.clamp) < 1e-9 ? ' (clamp)' : '';
       console.log(
         `   ${i + 1}. ${mark} ${String(r.symbol).padEnd(11)} ${name} ` +
         `${pct(val).padStart(8)}${clamped.padEnd(8)} ${tier.padEnd(10)} risk ${r.risk_score ?? '--'}`
       );
+      const agree = buyAgreement(r);
+      const bits = [`${agree}/${HORIZONS.length} horizons buy`, clearsCost ? 'clears 50bps' : 'below 50bps'];
+      if (clamped) bits.push('clamp');
+      console.log(`         why: ${bits.join(' · ')}`);
     });
   }
 
   console.log(`\n${line}`);
-  console.log(` ${totalBuySignals} of the ${HORIZONS.length * TOP_N} top slots clear a BUY/STRONG_BUY tier today.`);
+  console.log(` ${totalBuySignals} of the ${HORIZONS.length * TOP_N} top slots clear a BUY/STRONG_BUY tier today` +
+    (belowCostBuys > 0 ? ` (${belowCostBuys} below the 50bps cost floor).` : `.`));
+  console.log(` Every recalibrated buy threshold already exceeds the 50bps round-trip cost, so a`);
+  console.log(` tier buy is a cost-clearing buy at this assumption; the filter bites only at higher cost.`);
   console.log(`${line}\n`);
 }
 
