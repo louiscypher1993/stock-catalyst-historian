@@ -229,6 +229,23 @@ async function upsertPriceCache(rowsToWrite: Array<{ symbol: string; date: strin
   }
 }
 
+// Durable mirror of the local outcome rows to Supabase outcome_results, so the
+// accumulating dataset survives actions/cache eviction. Fail-soft and idempotent
+// (PK symbol,run_date,horizon). Requires the outcome_results table --
+// src/db/supabase_outcome_results_migration.sql -- else PostgREST 404s the
+// missing relation and the caller's try/catch logs a warning (schema-drift
+// hazard) without touching the local db.
+async function upsertOutcomes(rows: Array<Record<string, any>>): Promise<void> {
+  if (rows.length === 0) return;
+  for (const batch of chunk(rows, SUPABASE_WRITE_CHUNK)) {
+    await sb('outcome_results?on_conflict=symbol,run_date,horizon', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify(batch),
+    });
+  }
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────
 
 interface InferenceRow {
@@ -316,6 +333,7 @@ async function main() {
   const today = todayStr();
   const yahooCache = new Map<string, Map<string, number> | null>();
   const pendingCacheWrites = new Map<string, { symbol: string; date: string; close: number }>();
+  const pendingOutcomeWrites: Array<Record<string, any>> = [];
 
   let checkedCount = 0, freeCount = 0, cacheHitCount = 0, fetchedCount = 0, skippedUnmatured = 0, skippedNoPrice = 0, skippedExisting = 0, skippedNoPred = 0;
 
@@ -375,13 +393,15 @@ async function main() {
       const actualReturn = (actualPrice - row.current_price) / row.current_price;
       const predictedTier = resolveTier(predicted, h.predField);
 
-      insertStmt.run({
+      const outcome = {
         symbol: row.symbol, run_date: row.run_date, horizon: h.label,
         predicted_return: predicted, predicted_tier: predictedTier,
         actual_return: actualReturn, target_date: targetDate,
         matched_price_date: matchedDate, actual_source: source,
         checked_at: new Date().toISOString(),
-      });
+      };
+      insertStmt.run(outcome);
+      pendingOutcomeWrites.push(outcome);
       checkedCount++;
     }
   }
@@ -393,6 +413,16 @@ async function main() {
     await upsertPriceCache([...pendingCacheWrites.values()]);
   } catch (e) {
     console.warn('daily_prices_cache write-back failed -- this run\'s results are unaffected, just no cache benefit next time:', e);
+  }
+
+  console.log(`Mirroring ${pendingOutcomeWrites.length} outcome row(s) to Supabase outcome_results (durable store)...`);
+  // Fail-soft -- local outcome_tracker.db already has these rows; a missing
+  // table (migration not yet applied) or Supabase blip just means no durable
+  // mirror this run, not lost data.
+  try {
+    await upsertOutcomes(pendingOutcomeWrites);
+  } catch (e) {
+    console.warn('outcome_results upsert failed -- local db unaffected; apply src/db/supabase_outcome_results_migration.sql if the table is missing:', e);
   }
 
   console.log(`\nChecked: ${checkedCount} (free from daily_prices: ${freeCount}, from daily_prices_cache: ${cacheHitCount}, fresh Yahoo fetch: ${fetchedCount})`);

@@ -30,6 +30,7 @@
  *   npx tsx src/scripts/outcomeScoreboard.ts --since 2026-07-22   # post-v9.4
  *   npx tsx src/scripts/outcomeScoreboard.ts --since 2026-07-22 --until 2026-08-31
  */
+import 'dotenv/config';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import Database from 'better-sqlite3';
@@ -66,7 +67,7 @@ const HORIZON_HEAD: Record<string, string> = {
   '2D': 'D3', '2W': 'D5 (rec basis)', '1M': 'B (dead band)', '3M': 'D1', '6M': 'D2',
 };
 
-interface Row { predicted_return: number; actual_return: number; predicted_tier: string; }
+interface Row { run_date: string; horizon: string; predicted_return: number; actual_return: number; predicted_tier: string; }
 
 // ── stats helpers ──────────────────────────────────────────────────────────
 function mean(a: number[]): number { return a.length ? a.reduce((s, x) => s + x, 0) / a.length : NaN; }
@@ -104,52 +105,101 @@ function pct(v: number, dp = 2): string {
 }
 function fixed(v: number, dp = 3): string { return Number.isFinite(v) ? v.toFixed(dp) : ' n/a'; }
 
-// ── main ───────────────────────────────────────────────────────────────────
-function main() {
-  const args = process.argv.slice(2);
-  const since = args.includes('--since') ? args[args.indexOf('--since') + 1] : null;
-  const until = args.includes('--until') ? args[args.indexOf('--until') + 1] : null;
-  const cost = args.includes('--cost') ? Number(args[args.indexOf('--cost') + 1]) / 10000 : DEFAULT_COST;
+// ── data loading (local sqlite | durable Supabase outcome_results) ──────────
+async function loadRows(source: string, since: string | null, until: string | null): Promise<Row[]> {
+  if (source === 'supabase') return loadFromSupabase(since, until);
+  if (source !== 'local') { console.error(`[Scoreboard] unknown --source '${source}' (use local|supabase).`); process.exit(1); }
+  return loadFromSqlite(since, until);
+}
 
+function loadFromSqlite(since: string | null, until: string | null): Row[] {
   let db: Database.Database;
   try {
     db = new Database(OUTCOME_DB, { readonly: true, fileMustExist: true });
   } catch {
-    console.error(`[Scoreboard] ${OUTCOME_DB} not found or unreadable. Run outcomeTracker.ts first.`);
+    console.error(`[Scoreboard] ${OUTCOME_DB} not found or unreadable. Run outcomeTracker.ts first, or use --source supabase.`);
     process.exit(1);
   }
-
-  const where: string[] = ['actual_return IS NOT NULL', 'predicted_return IS NOT NULL'];
+  const where = ['actual_return IS NOT NULL', 'predicted_return IS NOT NULL'];
   const params: any[] = [];
   if (since) { where.push('run_date >= ?'); params.push(since); }
   if (until) { where.push('run_date <= ?'); params.push(until); }
-  const whereSql = 'WHERE ' + where.join(' AND ');
+  const rows = db.prepare(
+    `SELECT run_date, horizon, predicted_return, actual_return, predicted_tier FROM outcome_tracker WHERE ${where.join(' AND ')}`
+  ).all(...params) as Row[];
+  db.close();
+  return rows;
+}
 
-  const meta = db.prepare(`SELECT COUNT(*) n, MIN(run_date) lo, MAX(run_date) hi FROM outcome_tracker ${whereSql}`).get(...params) as any;
+async function loadFromSupabase(since: string | null, until: string | null): Promise<Row[]> {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!url || !key) { console.error('[Scoreboard] --source supabase needs SUPABASE_URL + SUPABASE_(SERVICE_ROLE|ANON)_KEY.'); process.exit(1); }
+  const filters = ['actual_return=not.is.null', 'predicted_return=not.is.null'];
+  if (since) filters.push(`run_date=gte.${since}`);
+  if (until) filters.push(`run_date=lte.${until}`);
+  const select = 'select=run_date,horizon,predicted_return,actual_return,predicted_tier';
+  const out: Row[] = [];
+  const pageSize = 1000;
+  for (let offset = 0; ; offset += pageSize) {
+    const q = `${url}/rest/v1/outcome_results?${select}&${filters.join('&')}&limit=${pageSize}&offset=${offset}`;
+    const res = await fetch(q, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      // Set exitCode + throw rather than process.exit(): a synchronous exit
+      // while the fetch socket is still tearing down trips a libuv assertion on
+      // Windows. Throwing lets main().catch report and the loop drain cleanly.
+      if (res.status === 404 || /does not exist|outcome_results/i.test(body)) {
+        process.exitCode = 1;
+        throw new Error('outcome_results not found — apply src/db/supabase_outcome_results_migration.sql, then let one tracker run populate it.');
+      }
+      process.exitCode = 1;
+      throw new Error(`Supabase read failed: HTTP ${res.status}: ${body.slice(0, 200)}`);
+    }
+    const page = await res.json() as Row[];
+    out.push(...page);
+    if (page.length < pageSize) break;
+  }
+  return out;
+}
+
+// ── main ───────────────────────────────────────────────────────────────────
+async function main() {
+  const args = process.argv.slice(2);
+  const since = args.includes('--since') ? args[args.indexOf('--since') + 1] : null;
+  const until = args.includes('--until') ? args[args.indexOf('--until') + 1] : null;
+  const cost = args.includes('--cost') ? Number(args[args.indexOf('--cost') + 1]) / 10000 : DEFAULT_COST;
+  const source = args.includes('--source') ? args[args.indexOf('--source') + 1] : 'local';
+
+  const allRows = await loadRows(source, since, until);
+
+  const runDates = allRows.map(r => r.run_date).sort();
+  const metaN = allRows.length;
+  const metaLo = runDates[0];
+  const metaHi = runDates[runDates.length - 1];
   const line = '='.repeat(78);
   console.log(`\n${line}`);
   console.log(` OUTCOME SCOREBOARD — realized IC · calibration · tier hit-rate`);
-  console.log(` ${meta.n} matured rows · run_date ${meta.lo ?? '—'} → ${meta.hi ?? '—'}` +
+  console.log(` source: ${source === 'supabase' ? 'supabase (durable outcome_results)' : 'local (outcome_tracker.db)'}`);
+  console.log(` ${metaN} matured rows · run_date ${metaLo ?? '—'} → ${metaHi ?? '—'}` +
     (since || until ? `  (filter: since=${since ?? '—'} until=${until ?? '—'})` : ''));
   console.log(` cost model: ${(cost * 10000).toFixed(0)}bps round-trip netted from realized returns (step 2a)`);
   console.log(line);
 
-  if (!meta.n) { console.log('\n No matured rows in range.\n'); db.close(); return; }
+  if (!metaN) { console.log('\n No matured rows in range.\n'); return; }
 
   // Era warning: the test-IC anchor is v9.4's.
-  if ((meta.hi ?? '') < V9_4_DEPLOY) {
+  if ((metaHi ?? '') < V9_4_DEPLOY) {
     console.log(`\n ⚠  ALL rows in range predate v9.4 (${V9_4_DEPLOY}). This is a PRE-FIX baseline —`);
     console.log(`    the live-vs-test-IC delta is informational only, NOT a readout of the`);
     console.log(`    deployed model. Re-run with --since ${V9_4_DEPLOY} once post-v9.4 rows mature.`);
-  } else if ((meta.lo ?? '') < V9_4_DEPLOY) {
+  } else if ((metaLo ?? '') < V9_4_DEPLOY) {
     console.log(`\n ⚠  Range spans the v9.4 deploy (${V9_4_DEPLOY}) — mixes pre/post-fix eras.`);
     console.log(`    Use --since ${V9_4_DEPLOY} to isolate the deployed model.`);
   }
 
   for (const h of HORIZON_ORDER) {
-    const rows = db.prepare(
-      `SELECT predicted_return, actual_return, predicted_tier FROM outcome_tracker ${whereSql} AND horizon = ?`
-    ).all(...params, h) as Row[];
+    const rows = allRows.filter(r => r.horizon === h);
     if (rows.length === 0) continue;
 
     const pred = rows.map(r => r.predicted_return);
@@ -210,7 +260,6 @@ function main() {
   console.log(` does NOT change it. 'net' figures = realized − cost (step 2a applied). Still`);
   console.log(` PRE-latency: entry is scan-time price, not next-open (step 2b, tracker-side).`);
   console.log(`${line}\n`);
-  db.close();
 }
 
-main();
+main().catch(e => { console.error('[Scoreboard] FATAL:', e); process.exit(1); });

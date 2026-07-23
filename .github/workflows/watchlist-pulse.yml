@@ -7,8 +7,8 @@ on:
         description: 'Space-separated symbols to force a full score run for (testing only, bypasses the price-move gate)'
         required: false
         type: string
-  # Cron ships commented out deliberately -- manual dispatch testing first,
-  # uncommenting is a separate follow-up commit.
+  # Cron is LIVE at */15 (schedule below) -- originally shipped commented-out
+  # for manual-dispatch testing, enabled since (this note kept in sync).
   #
   # Public repo -> unlimited Actions minutes -> */15 is fine. If this repo
   # ever goes private, switch to */30 (2,000 free min/month is shared with
