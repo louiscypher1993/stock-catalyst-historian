@@ -52,19 +52,17 @@ jobs:
 
       # Print a scoreboard snapshot to the run log after each tracker update, so
       # the predicted-vs-actual readout matures in view (all data + the post-v9.4
-      # slice). Reads the local cache db, always present after the step above.
-      # Once src/db/supabase_outcome_results_migration.sql is applied and a run
-      # has populated outcome_results, switch these to `--source supabase` to read
-      # the durable store instead of the evictable cache. if: always() so a tracker
-      # hiccup still prints whatever has accumulated.
+      # slice). Reads the durable Supabase outcome_results table (NOT the evictable
+      # actions/cache), so the readout survives a cache loss. if: always() so a
+      # tracker hiccup still prints whatever has accumulated.
       - name: Scoreboard snapshot
         if: always()
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          npx tsx src/scripts/outcomeScoreboard.ts || true
-          npx tsx src/scripts/outcomeScoreboard.ts --since 2026-07-22 || true
+          npx tsx src/scripts/outcomeScoreboard.ts --source supabase || true
+          npx tsx src/scripts/outcomeScoreboard.ts --source supabase --since 2026-07-22 || true
 
       - name: Save outcome_tracker.db
         uses: actions/cache/save@v4
