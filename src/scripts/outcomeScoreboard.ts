@@ -71,6 +71,7 @@ interface Row { run_date: string; horizon: string; predicted_return: number; act
 
 // ── stats helpers ──────────────────────────────────────────────────────────
 function mean(a: number[]): number { return a.length ? a.reduce((s, x) => s + x, 0) / a.length : NaN; }
+function std(a: number[]): number { if (a.length < 2) return NaN; const m = mean(a); return Math.sqrt(a.reduce((s, x) => s + (x - m) * (x - m), 0) / a.length); }
 
 function ranks(a: number[]): number[] {
   // average-rank for ties
@@ -215,21 +216,30 @@ async function main() {
     console.log(`\n▸ ${h}  [${HORIZON_HEAD[h]}]   n=${n}${anecdote}`);
     console.log(`    realized IC ${fixed(ic)}   vs v9.4 test IC ${fixed(testIc)}   Δ ${Number.isFinite(dIc) ? (dIc >= 0 ? '+' : '') + dIc.toFixed(3) : 'n/a'}`);
     console.log(`    Pearson ${fixed(pear)}   sign hit-rate ${pct(hit, 1)}   mean pred ${pct(mean(pred))}   mean actual ${pct(mean(act))}`);
+    // Phenomenon-2 under-resolution check: if the model compresses predictions
+    // (small σ) while realized returns spread wide (large σ), it's over-smoothing
+    // — the large-cap-clustering signature. Watch the ratio grow as post-v9.4
+    // data matures; the per-bucket σ(act) below localizes WHICH prediction band.
+    const sp = std(pred), sa = std(act);
+    console.log(`    resolution: σ(pred) ${pct(sp)}  σ(actual) ${pct(sa)}  σ-ratio ${Number.isFinite(sa / sp) ? (sa / sp).toFixed(1) + 'x' : 'n/a'}  (high ⇒ predictions under-dispersed vs reality)`);
 
     // Calibration buckets (quantile bins by predicted_return).
     if (n >= MIN_BUCKET_N) {
       const order = rows.map((_, i) => i).sort((x, y) => pred[x] - pred[y]);
       const per = Math.floor(n / N_BUCKETS);
-      console.log(`    calibration (pred quantile → realized gross / net of ${(cost * 10000).toFixed(0)}bps):`);
+      console.log(`    calibration (pred quantile → realized gross/net ${(cost * 10000).toFixed(0)}bps; σ(act)=realized spread in-band):`);
       for (let b = 0; b < N_BUCKETS; b++) {
         const start = b * per;
         const end = b === N_BUCKETS - 1 ? n : (b + 1) * per;
         const seg = order.slice(start, end);
         const mp = mean(seg.map(i => pred[i]));
         const ma = mean(seg.map(i => act[i]));
+        const saBand = std(seg.map(i => act[i]));
         const posPct = mean(seg.map(i => (act[i] - cost > 0 ? 1 : 0)));
         const bar = ma - cost >= 0 ? '+' : '-';
-        console.log(`       Q${b + 1}  n=${String(seg.length).padStart(4)}   pred ${pct(mp).padStart(8)} → ${pct(ma).padStart(8)} / net ${pct(ma - cost).padStart(8)}  ${bar}   net-pos ${pct(posPct, 0).padStart(5)}`);
+        // A tight pred band (small pred spread) whose σ(act) is large = the model
+        // called these ~equal but they realized very differently = under-resolution.
+        console.log(`       Q${b + 1}  n=${String(seg.length).padStart(4)}   pred ${pct(mp).padStart(8)} → ${pct(ma).padStart(8)} / net ${pct(ma - cost).padStart(8)}  ${bar}   σ(act) ${pct(saBand).padStart(8)}   net-pos ${pct(posPct, 0).padStart(5)}`);
       }
     }
 
