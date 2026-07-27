@@ -23,6 +23,22 @@
  * separately (dividendCredit) so net = price_return - cost + dividendCredit.
  */
 
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// ── Spread: static liquidity-tier table (Tier-2, 2026-07-24). Per-symbol
+// round-trip bid-ask spread in bps, precomputed by buildSpreadEstimates.cjs into
+// a committed JSON (market_cache.db is local-only / not on CI). Chosen over the
+// Abdi-Ranaldo OHLC estimator after it over-estimated badly on our daily bars. ──
+let SPREAD_BPS: Record<string, number> = {};
+try {
+  const _dir = dirname(fileURLToPath(import.meta.url));
+  SPREAD_BPS = JSON.parse(readFileSync(join(_dir, 'scripts', 'symbol_spread_bps.json'), 'utf8')).spreadBps ?? {};
+} catch { /* table absent -> spreads fall back to DEFAULT_SPREAD_BPS */ }
+const DEFAULT_SPREAD_BPS = 25; // conservative fallback for symbols not in the table
+export function spreadBpsFor(symbol: string): number { return SPREAD_BPS[symbol] ?? DEFAULT_SPREAD_BPS; }
+
 // ── Config: commission + FX. IBKR defaults — CONFIRM against the real account. ──
 export interface CostConfig {
   label: string;
@@ -92,6 +108,8 @@ export interface CostBreakdown {
   taxGBP: number;
   commissionGBP: number;   // round-trip (buy + sell)
   fxGBP: number;           // round-trip
+  spreadGBP: number;       // round-trip bid-ask spread
+  spreadBps: number;       // the tier spread applied
   totalGBP: number;
   totalBps: number;        // total round-trip cost as bps of position value
   fixedGBP: number;        // the size-independent part (commission mins + fx mins)
@@ -110,10 +128,13 @@ export function roundTripCost(symbol: string, positionValueGBP: number, cfg: Cos
   const fxLeg = fx ? Math.max(positionValueGBP * cfg.fxBpsPerLeg, cfg.fxMinPerLegGBP) : 0;
   const fxGBP = fxLeg * 2;
 
-  const totalGBP = taxGBP + commissionGBP + fxGBP;
+  const spreadBps = spreadBpsFor(symbol);
+  const spreadGBP = positionValueGBP * (spreadBps / 10000); // round-trip (buy ask + sell bid)
+
+  const totalGBP = taxGBP + commissionGBP + fxGBP + spreadGBP;
   const fixedGBP = (cfg.commissionMinPerOrderGBP * 2) + (fx ? cfg.fxMinPerLegGBP * 2 : 0);
   return {
-    symbol, positionValueGBP, taxGBP, commissionGBP, fxGBP, totalGBP,
+    symbol, positionValueGBP, taxGBP, commissionGBP, fxGBP, spreadGBP, spreadBps, totalGBP,
     totalBps: (totalGBP / positionValueGBP) * 10000, fixedGBP,
   };
 }
@@ -126,7 +147,7 @@ export function roundTripCost(symbol: string, positionValueGBP: number, cfg: Cos
  */
 export function minViablePosition(symbol: string, maxCostBps = 50, cfg: CostConfig = IBKR_DEFAULT): number | null {
   const t = taxRate(symbol);
-  const variableBps = ((t.buy + t.sell) + cfg.commissionRate * 2 + (needsFx(symbol) ? cfg.fxBpsPerLeg * 2 : 0)) * 10000;
+  const variableBps = ((t.buy + t.sell) + cfg.commissionRate * 2 + (needsFx(symbol) ? cfg.fxBpsPerLeg * 2 : 0)) * 10000 + spreadBpsFor(symbol);
   const budgetForFixed = maxCostBps - variableBps;
   if (budgetForFixed <= 0) return null; // even ignoring fixed costs, variable already exceeds budget
   const fixedGBP = (cfg.commissionMinPerOrderGBP * 2) + (needsFx(symbol) ? cfg.fxMinPerLegGBP * 2 : 0);
