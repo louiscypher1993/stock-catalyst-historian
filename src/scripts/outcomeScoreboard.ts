@@ -32,7 +32,7 @@
  */
 import 'dotenv/config';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import Database from 'better-sqlite3';
 import { roundTripCost } from '../costModel';
 
@@ -54,7 +54,9 @@ const DEFAULT_POSITION_GBP = 50;  // assumed position for cost-netting (Lewis's
 // v9.4 held-out TEST IC per head — from scratch_v10_drop_ablation.py (FULL arm,
 // 2026-07-23), served-path Spearman on the held-out temporal test fold. The bar
 // live realized IC should approach if train/serve parity holds.
-const TEST_IC: Record<string, number> = {
+// Exported (with loadRows + the stat helpers below) so readoutHarness.ts computes
+// the identical IC/σ off the identical loader — no divergence between the two tools.
+export const TEST_IC: Record<string, number> = {
   '2D': 0.1160, // D3
   '2W': 0.2258, // D5
   '1M': 0.0599, // B (dead-band head; IC low by design)
@@ -62,16 +64,16 @@ const TEST_IC: Record<string, number> = {
   '6M': 0.1062, // D2
 };
 
-const HORIZON_ORDER = ['2D', '2W', '1M', '3M', '6M'];
-const HORIZON_HEAD: Record<string, string> = {
+export const HORIZON_ORDER = ['2D', '2W', '1M', '3M', '6M'];
+export const HORIZON_HEAD: Record<string, string> = {
   '2D': 'D3', '2W': 'D5 (rec basis)', '1M': 'B (dead band)', '3M': 'D1', '6M': 'D2',
 };
 
-interface Row { symbol: string; run_date: string; horizon: string; predicted_return: number; actual_return: number; predicted_tier: string; dividend_credit: number | null; }
+export interface Row { symbol: string; run_date: string; horizon: string; predicted_return: number; actual_return: number; predicted_tier: string; dividend_credit: number | null; }
 
 // ── stats helpers ──────────────────────────────────────────────────────────
-function mean(a: number[]): number { return a.length ? a.reduce((s, x) => s + x, 0) / a.length : NaN; }
-function std(a: number[]): number { if (a.length < 2) return NaN; const m = mean(a); return Math.sqrt(a.reduce((s, x) => s + (x - m) * (x - m), 0) / a.length); }
+export function mean(a: number[]): number { return a.length ? a.reduce((s, x) => s + x, 0) / a.length : NaN; }
+export function std(a: number[]): number { if (a.length < 2) return NaN; const m = mean(a); return Math.sqrt(a.reduce((s, x) => s + (x - m) * (x - m), 0) / a.length); }
 
 function ranks(a: number[]): number[] {
   // average-rank for ties
@@ -88,7 +90,7 @@ function ranks(a: number[]): number[] {
   return r;
 }
 
-function pearson(a: number[], b: number[]): number {
+export function pearson(a: number[], b: number[]): number {
   const n = a.length;
   if (n < 2) return NaN;
   const ma = mean(a), mb = mean(b);
@@ -98,7 +100,7 @@ function pearson(a: number[], b: number[]): number {
   return den === 0 ? NaN : num / den;
 }
 
-function spearman(a: number[], b: number[]): number { return pearson(ranks(a), ranks(b)); }
+export function spearman(a: number[], b: number[]): number { return pearson(ranks(a), ranks(b)); }
 
 function pct(v: number, dp = 2): string {
   if (!Number.isFinite(v)) return '   n/a';
@@ -107,7 +109,7 @@ function pct(v: number, dp = 2): string {
 function fixed(v: number, dp = 3): string { return Number.isFinite(v) ? v.toFixed(dp) : ' n/a'; }
 
 // ── data loading (local sqlite | durable Supabase outcome_results) ──────────
-async function loadRows(source: string, since: string | null, until: string | null): Promise<Row[]> {
+export async function loadRows(source: string, since: string | null, until: string | null): Promise<Row[]> {
   if (source === 'supabase') return loadFromSupabase(since, until);
   if (source !== 'local') { console.error(`[Scoreboard] unknown --source '${source}' (use local|supabase).`); process.exit(1); }
   return loadFromSqlite(since, until);
@@ -299,4 +301,8 @@ async function main() {
   console.log(`${line}\n`);
 }
 
-main().catch(e => { console.error('[Scoreboard] FATAL:', e); process.exit(1); });
+// Run main() only when invoked directly (not when readoutHarness.ts imports the
+// loader/stat helpers above) — importing must never trigger a full scoreboard run.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch(e => { console.error('[Scoreboard] FATAL:', e); process.exit(1); });
+}
