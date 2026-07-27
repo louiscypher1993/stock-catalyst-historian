@@ -50,6 +50,19 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: npx tsx src/scripts/outcomeTracker.ts
 
+      # Compute dividend credits for newly-matured rows (adjclose − close over each
+      # window) so the scoreboard nets TOTAL return, not price-only. Runs AFTER the
+      # tracker (which adds the new rows) and BEFORE the scoreboard (which reads the
+      # credits). --source supabase enriches the durable store directly, so it's
+      # cache-independent and reaches every row the tracker just wrote. if: always()
+      # + `|| true` so a Yahoo hiccup never fails the job or blocks the scoreboard.
+      - name: Enrich dividend credits
+        if: always()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: npx tsx src/scripts/enrichDividendCredit.ts --source supabase || true
+
       # Print a scoreboard snapshot to the run log after each tracker update, so
       # the predicted-vs-actual readout matures in view (all data + the post-v9.4
       # slice). Reads the durable Supabase outcome_results table (NOT the evictable
