@@ -67,7 +67,7 @@ const HORIZON_HEAD: Record<string, string> = {
   '2D': 'D3', '2W': 'D5 (rec basis)', '1M': 'B (dead band)', '3M': 'D1', '6M': 'D2',
 };
 
-interface Row { symbol: string; run_date: string; horizon: string; predicted_return: number; actual_return: number; predicted_tier: string; }
+interface Row { symbol: string; run_date: string; horizon: string; predicted_return: number; actual_return: number; predicted_tier: string; dividend_credit: number | null; }
 
 // ── stats helpers ──────────────────────────────────────────────────────────
 function mean(a: number[]): number { return a.length ? a.reduce((s, x) => s + x, 0) / a.length : NaN; }
@@ -121,15 +121,21 @@ function loadFromSqlite(since: string | null, until: string | null): Row[] {
     console.error(`[Scoreboard] ${OUTCOME_DB} not found or unreadable. Run outcomeTracker.ts first, or use --source supabase.`);
     process.exit(1);
   }
+  // dividend_credit is added by enrichDividendCredit.ts, which may not have run
+  // against this db yet — select it only if the column exists (else default null),
+  // so the scoreboard never breaks on an un-enriched db.
+  const hasDiv = (db.prepare(`PRAGMA table_info(outcome_tracker)`).all() as Array<{ name: string }>)
+    .some(c => c.name === 'dividend_credit');
   const where = ['actual_return IS NOT NULL', 'predicted_return IS NOT NULL'];
   const params: any[] = [];
   if (since) { where.push('run_date >= ?'); params.push(since); }
   if (until) { where.push('run_date <= ?'); params.push(until); }
   const rows = db.prepare(
-    `SELECT symbol, run_date, horizon, predicted_return, actual_return, predicted_tier FROM outcome_tracker WHERE ${where.join(' AND ')}`
+    `SELECT symbol, run_date, horizon, predicted_return, actual_return, predicted_tier` +
+    `${hasDiv ? ', dividend_credit' : ''} FROM outcome_tracker WHERE ${where.join(' AND ')}`
   ).all(...params) as Row[];
   db.close();
-  return rows;
+  return hasDiv ? rows : rows.map(r => ({ ...r, dividend_credit: null }));
 }
 
 async function loadFromSupabase(since: string | null, until: string | null): Promise<Row[]> {
@@ -139,7 +145,12 @@ async function loadFromSupabase(since: string | null, until: string | null): Pro
   const filters = ['actual_return=not.is.null', 'predicted_return=not.is.null'];
   if (since) filters.push(`run_date=gte.${since}`);
   if (until) filters.push(`run_date=lte.${until}`);
-  const select = 'select=symbol,run_date,horizon,predicted_return,actual_return,predicted_tier';
+  // Probe for dividend_credit (added by supabase_dividend_credit_migration.sql,
+  // which may not be applied yet) — include it in the select only if present, so
+  // the read never 400s on an un-migrated table.
+  const probe = await fetch(`${url}/rest/v1/outcome_results?select=dividend_credit&limit=1`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+  const hasDiv = probe.ok;
+  const select = `select=symbol,run_date,horizon,predicted_return,actual_return,predicted_tier${hasDiv ? ',dividend_credit' : ''}`;
   const out: Row[] = [];
   const pageSize = 1000;
   for (let offset = 0; ; offset += pageSize) {
@@ -161,7 +172,7 @@ async function loadFromSupabase(since: string | null, until: string | null): Pro
     out.push(...page);
     if (page.length < pageSize) break;
   }
-  return out;
+  return hasDiv ? out : out.map(r => ({ ...r, dividend_credit: null }));
 }
 
 // ── main ───────────────────────────────────────────────────────────────────
@@ -207,9 +218,13 @@ async function main() {
     const pred = rows.map(r => r.predicted_return);
     const act = rows.map(r => r.actual_return);
     // Per-row round-trip cost at the assumed position (costModel, per-symbol —
-    // US vs UK differ hugely at small size). net = realized − that symbol's cost.
+    // US vs UK differ hugely at small size). Dividend credit (enrichDividendCredit,
+    // null until enriched → 0) claws back the dividend the price-only actual_return
+    // omits. net = realized_price_return − cost + dividend_credit.
     const costArr = rows.map(r => roundTripCost(r.symbol, positionGBP).totalBps / 10000);
-    const net = rows.map((_, i) => act[i] - costArr[i]);
+    const divArr = rows.map(r => r.dividend_credit ?? 0);
+    const net = rows.map((_, i) => act[i] - costArr[i] + divArr[i]);
+    const nDiv = rows.filter(r => r.dividend_credit != null).length;
     const n = rows.length;
     const ic = spearman(pred, act);
     const pear = pearson(pred, act);
@@ -227,12 +242,18 @@ async function main() {
     // data matures; the per-bucket σ(act) below localizes WHICH prediction band.
     const sp = std(pred), sa = std(act);
     console.log(`    resolution: σ(pred) ${pct(sp)}  σ(actual) ${pct(sa)}  σ-ratio ${Number.isFinite(sa / sp) ? (sa / sp).toFixed(1) + 'x' : 'n/a'}  (high ⇒ predictions under-dispersed vs reality)`);
+    // Dividend credit (price-only actual_return omits dividends; this claws them
+    // back into net). mean over the horizon + how many rows are enriched.
+    const meanDiv = mean(divArr);
+    console.log(`    dividend credit: ${nDiv === 0
+      ? 'not enriched — net is price-only (run enrichDividendCredit.ts)'
+      : `mean ${pct(meanDiv)} folded into net (${nDiv}/${n} rows enriched; realized/pred above are price-only)`}`);
 
     // Calibration buckets (quantile bins by predicted_return).
     if (n >= MIN_BUCKET_N) {
       const order = rows.map((_, i) => i).sort((x, y) => pred[x] - pred[y]);
       const per = Math.floor(n / N_BUCKETS);
-      console.log(`    calibration (pred quantile → realized gross / net of per-symbol cost; σ(act)=realized spread in-band):`);
+      console.log(`    calibration (pred quantile → realized gross / net of cost+dividends; σ(act)=realized spread in-band):`);
       for (let b = 0; b < N_BUCKETS; b++) {
         const start = b * per;
         const end = b === N_BUCKETS - 1 ? n : (b + 1) * per;
@@ -255,7 +276,7 @@ async function main() {
     const TIER_ORDER = ['STRONG_BUY', 'BUY', 'HOLD', 'SELL'];
     const present = TIER_ORDER.filter(t => tierIdx.has(t));
     if (present.length) {
-      console.log(`    tier hit-rate (predicted_tier → realized gross / net of per-symbol cost):`);
+      console.log(`    tier hit-rate (predicted_tier → realized gross / net of cost+dividends):`);
       for (const t of present) {
         const idx = tierIdx.get(t)!;
         const netPos = mean(idx.map(i => (net[i] > 0 ? 1 : 0)));
@@ -273,7 +294,7 @@ async function main() {
 
   console.log(`\n${line}`);
   console.log(` IC = Spearman rank corr(predicted, actual); cost-INDEPENDENT (rank metric), so`);
-  console.log(` position size doesn't change it. 'net' = realized − per-symbol IBKR cost @ £${positionGBP}.`);
+  console.log(` position size doesn't change it. 'net' = realized − per-symbol IBKR cost @ £${positionGBP} + dividend credit.`);
   console.log(` Still PRE-latency: entry is scan-time price, not next-open (tracker-side, deferred).`);
   console.log(`${line}\n`);
 }

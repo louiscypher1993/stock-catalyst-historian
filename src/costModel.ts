@@ -5,17 +5,25 @@
  * position in this symbol", consumed by outcomeScoreboard (net-return) and
  * topBuysReport (min-move filter) so neither reimplements a flat constant.
  *
- * Three components:
+ * roundTripCost() components:
  *   1. Transaction tax / stamp duty — accurate public rates by exchange suffix
  *      (side-aware: UK stamp is buy-only, HK/Swiss are both sides). SETTLED DATA.
  *   2. Commission — rate + per-order MINIMUM. The minimum is what bites at small
  *      position sizes. Broker-specific -> IBKR defaults below, CONFIRM.
  *   3. FX round-trip — for non-base-currency symbols from a GBP account.
  *      Broker-specific -> IBKR defaults, CONFIRM.
+ *   4. Bid-ask spread (Tier-2) — static liquidity-tier table (see below).
+ *   5. Latency slippage (Tier-3, OFF by default) — cfg.slippageBpsPerLeg; a guess
+ *      would be false precision until the tracker measures next-open entry.
  *
- * Also exposes minViablePosition(): the smallest position where fixed costs
- * (per-order commission min + FX min) fall below a target bps — the most
- * decision-relevant output, since below it you're paying to trade, not to invest.
+ * Also exposes:
+ *   - minViablePosition(): smallest position where fixed costs (per-order + FX
+ *     mins) fall below a target bps — the most decision-relevant output, since
+ *     below it you're paying to trade, not to invest.
+ *   - lotFit()/minLotBudget() (Tier-2b): whole-share / board-lot constraints
+ *     (non-binding for US fractional; a real floor for Japan .T = 100).
+ *   - shortBorrowCostGBP() (Tier-3): borrow cost for SHORT holds (0 for the
+ *     long-biased live book; exists for future short signals).
  *
  * NOTE (dividends): forward-return labels + the outcome tracker use Yahoo
  * quote.close (split-adjusted, DIVIDEND-EXCLUDED). Total return is understated by
@@ -47,6 +55,12 @@ export interface CostConfig {
   commissionMaxPctOfValue: number;  // cap as fraction of value (IBKR caps at 1%)
   fxBpsPerLeg: number;           // FX spread, fraction, per conversion
   fxMinPerLegGBP: number;        // FX per-conversion floor
+  slippageBpsPerLeg: number;     // Tier-3: assumed adverse move per leg from scan→
+                                 // execution LATENCY. Default 0 — we have no measured
+                                 // latency data yet (that's the deferred next-open
+                                 // tracker work), so baking in a guess would be false
+                                 // precision. suggestedLatencySlippageBps() offers a
+                                 // heuristic to opt into; when 0 it changes nothing.
 }
 
 // IBKR (Lewis's account, confirmed 2026-07-24): commission 0.1% of value, min
@@ -60,6 +74,7 @@ export const IBKR_DEFAULT: CostConfig = {
   commissionMaxPctOfValue: Infinity, // no cap that overrides the min floor
   fxBpsPerLeg: 0.00002,            // 0.2bp
   fxMinPerLegGBP: 1.60,            // $2
+  slippageBpsPerLeg: 0,            // off by default (no measured latency yet)
 };
 
 // ── Transaction tax by exchange suffix (fraction of value; side-aware). ──
@@ -110,6 +125,7 @@ export interface CostBreakdown {
   fxGBP: number;           // round-trip
   spreadGBP: number;       // round-trip bid-ask spread
   spreadBps: number;       // the tier spread applied
+  slippageGBP: number;     // round-trip latency slippage (0 unless cfg opts in)
   totalGBP: number;
   totalBps: number;        // total round-trip cost as bps of position value
   fixedGBP: number;        // the size-independent part (commission mins + fx mins)
@@ -131,10 +147,13 @@ export function roundTripCost(symbol: string, positionValueGBP: number, cfg: Cos
   const spreadBps = spreadBpsFor(symbol);
   const spreadGBP = positionValueGBP * (spreadBps / 10000); // round-trip (buy ask + sell bid)
 
-  const totalGBP = taxGBP + commissionGBP + fxGBP + spreadGBP;
+  // Tier-3 latency slippage — both legs; 0 unless cfg.slippageBpsPerLeg is set.
+  const slippageGBP = positionValueGBP * (cfg.slippageBpsPerLeg / 10000) * 2;
+
+  const totalGBP = taxGBP + commissionGBP + fxGBP + spreadGBP + slippageGBP;
   const fixedGBP = (cfg.commissionMinPerOrderGBP * 2) + (fx ? cfg.fxMinPerLegGBP * 2 : 0);
   return {
-    symbol, positionValueGBP, taxGBP, commissionGBP, fxGBP, spreadGBP, spreadBps, totalGBP,
+    symbol, positionValueGBP, taxGBP, commissionGBP, fxGBP, spreadGBP, spreadBps, slippageGBP, totalGBP,
     totalBps: (totalGBP / positionValueGBP) * 10000, fixedGBP,
   };
 }
@@ -147,9 +166,85 @@ export function roundTripCost(symbol: string, positionValueGBP: number, cfg: Cos
  */
 export function minViablePosition(symbol: string, maxCostBps = 50, cfg: CostConfig = IBKR_DEFAULT): number | null {
   const t = taxRate(symbol);
-  const variableBps = ((t.buy + t.sell) + cfg.commissionRate * 2 + (needsFx(symbol) ? cfg.fxBpsPerLeg * 2 : 0)) * 10000 + spreadBpsFor(symbol);
+  const variableBps = ((t.buy + t.sell) + cfg.commissionRate * 2 + (needsFx(symbol) ? cfg.fxBpsPerLeg * 2 : 0)) * 10000
+    + spreadBpsFor(symbol) + cfg.slippageBpsPerLeg * 2;
   const budgetForFixed = maxCostBps - variableBps;
   if (budgetForFixed <= 0) return null; // even ignoring fixed costs, variable already exceeds budget
   const fixedGBP = (cfg.commissionMinPerOrderGBP * 2) + (needsFx(symbol) ? cfg.fxMinPerLegGBP * 2 : 0);
   return fixedGBP / (budgetForFixed / 10000);
+}
+
+// ── Tier-2b: whole-share / lot-size constraints ────────────────────────────
+// You buy an integer number of shares (or board lots), not an arbitrary £ amount.
+// Two effects: (1) cash drag — the residual you can't deploy; (2) a hard floor —
+// below one lot the position is infeasible. IBKR trades US names FRACTIONALLY, so
+// the constraint is non-binding there (the bulk of the universe); board-lot markets
+// force whole-lot orders. HONEST LIMITATION: HK board lots vary per-security
+// (100–10,000) and are not modeled — assumed 1, which UNDERSTATES the HK floor.
+
+const FRACTIONAL_SUFFIXES = new Set(['US']); // IBKR fractional-eligible (US-listed)
+const LOT_SIZE: Record<string, number> = {
+  '.T': 100, // Tokyo — standardized 100-share trading unit since 2018-10 (only
+             // clearly-standardized board lot; others default to 1 below, .HK noted)
+};
+
+export function lotSize(symbol: string): number { return LOT_SIZE[suffixOf(symbol)] ?? 1; }
+export function isFractional(symbol: string): boolean { return FRACTIONAL_SUFFIXES.has(suffixOf(symbol)); }
+
+export interface LotFit {
+  shares: number;        // whole shares/lots actually buyable (fractional for US)
+  deployedGBP: number;   // shares * price (SAME currency as inputs)
+  residualGBP: number;   // budget - deployed (uninvested cash drag)
+  cashDragBps: number;   // residual as bps of budget
+  feasible: boolean;     // can you afford >= 1 lot?
+}
+
+/**
+ * Whole-share/lot fit of a budget. `budget` and `price` MUST be in the same
+ * currency (this is currency-agnostic — pass GBP+GBP, or local+local, but not a
+ * mix; FX belongs to roundTripCost, not here). US (fractional) => no rounding.
+ */
+export function lotFit(symbol: string, budget: number, price: number): LotFit {
+  if (!(price > 0) || !(budget > 0)) {
+    return { shares: 0, deployedGBP: 0, residualGBP: Math.max(budget, 0), cashDragBps: budget > 0 ? 10000 : 0, feasible: false };
+  }
+  if (isFractional(symbol)) {
+    return { shares: budget / price, deployedGBP: budget, residualGBP: 0, cashDragBps: 0, feasible: true };
+  }
+  const lot = lotSize(symbol);
+  const shares = Math.floor(budget / (price * lot)) * lot; // round down to whole lots
+  const deployedGBP = shares * price;
+  const residualGBP = budget - deployedGBP;
+  return { shares, deployedGBP, residualGBP, cashDragBps: (residualGBP / budget) * 10000, feasible: shares >= lot };
+}
+
+/** Minimum budget (same currency as price) to afford one whole lot (0 = fractional). */
+export function minLotBudget(symbol: string, price: number): number {
+  return isFractional(symbol) ? 0 : lotSize(symbol) * price;
+}
+
+// ── Tier-3: latency slippage heuristic + short borrow ──────────────────────
+
+/**
+ * Suggested per-leg latency slippage (bps) to plug into CostConfig.slippageBpsPerLeg
+ * IF you want to model scan→execution delay. Heuristic: you give up ~half the
+ * bid-ask spread crossing on a delayed/market entry. This is an ASSUMPTION, not a
+ * measurement — the measured version is the deferred next-open entry re-source in
+ * the tracker. Kept separate from the default (0) so cost figures stay honest
+ * unless you deliberately opt in.
+ */
+export function suggestedLatencySlippageBps(symbol: string): number {
+  return 0.5 * spreadBpsFor(symbol);
+}
+
+/**
+ * Borrow cost of holding a SHORT for `horizonDays`. Applies ONLY to short
+ * positions (acting on a SELL by shorting) — the strategy is long-biased, so this
+ * is 0 for the live book and exists for completeness / future short signals.
+ * annualRate defaults to 0.005 (50bps, general-collateral / easy-to-borrow).
+ * HONEST LIMITATION: hard-to-borrow / squeeze names run far higher (10–100%/yr)
+ * and are NOT captured by a flat GC rate — pass a real per-name rate for those.
+ */
+export function shortBorrowCostGBP(positionValueGBP: number, horizonDays: number, annualRate = 0.005): number {
+  return positionValueGBP * annualRate * (horizonDays / 365);
 }
