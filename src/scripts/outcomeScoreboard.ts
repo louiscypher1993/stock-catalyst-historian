@@ -34,6 +34,7 @@ import 'dotenv/config';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import Database from 'better-sqlite3';
+import { roundTripCost } from '../costModel';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..', '..');
@@ -43,13 +44,12 @@ const V9_4_DEPLOY = '2026-07-22'; // B/D1/D2/D3/D5 row-exclusion retrain went li
 const MIN_N = 30;                 // below this a whole-horizon stat is anecdote
 const MIN_BUCKET_N = 25;          // below this, skip calibration bucketing
 const N_BUCKETS = 5;              // quantile buckets for calibration
-const DEFAULT_COST = 0.0050;      // round-trip cost netted from realized returns
-                                  // (flat 50bps, approved 2026-07-23; --cost <bps>
-                                  // overrides). IC is shift-invariant so it's
-                                  // unaffected; calibration/tier magnitudes shift.
-                                  // NOTE: this is the cost haircut only (step 2a);
-                                  // the next-open entry-LATENCY re-source is step
-                                  // 2b, a tracker-side change not applied here.
+const DEFAULT_POSITION_GBP = 50;  // assumed position for cost-netting (Lewis's
+                                  // start size 2026-07-24; --position <gbp> overrides).
+                                  // Cost is PER-SYMBOL via costModel (US vs UK differ
+                                  // hugely at small size). IC is cost-INDEPENDENT (a
+                                  // rank metric) so it's unchanged; only calibration-
+                                  // net / tier-net / actionable figures move with size.
 
 // v9.4 held-out TEST IC per head — from scratch_v10_drop_ablation.py (FULL arm,
 // 2026-07-23), served-path Spearman on the held-out temporal test fold. The bar
@@ -67,7 +67,7 @@ const HORIZON_HEAD: Record<string, string> = {
   '2D': 'D3', '2W': 'D5 (rec basis)', '1M': 'B (dead band)', '3M': 'D1', '6M': 'D2',
 };
 
-interface Row { run_date: string; horizon: string; predicted_return: number; actual_return: number; predicted_tier: string; }
+interface Row { symbol: string; run_date: string; horizon: string; predicted_return: number; actual_return: number; predicted_tier: string; }
 
 // ── stats helpers ──────────────────────────────────────────────────────────
 function mean(a: number[]): number { return a.length ? a.reduce((s, x) => s + x, 0) / a.length : NaN; }
@@ -126,7 +126,7 @@ function loadFromSqlite(since: string | null, until: string | null): Row[] {
   if (since) { where.push('run_date >= ?'); params.push(since); }
   if (until) { where.push('run_date <= ?'); params.push(until); }
   const rows = db.prepare(
-    `SELECT run_date, horizon, predicted_return, actual_return, predicted_tier FROM outcome_tracker WHERE ${where.join(' AND ')}`
+    `SELECT symbol, run_date, horizon, predicted_return, actual_return, predicted_tier FROM outcome_tracker WHERE ${where.join(' AND ')}`
   ).all(...params) as Row[];
   db.close();
   return rows;
@@ -139,7 +139,7 @@ async function loadFromSupabase(since: string | null, until: string | null): Pro
   const filters = ['actual_return=not.is.null', 'predicted_return=not.is.null'];
   if (since) filters.push(`run_date=gte.${since}`);
   if (until) filters.push(`run_date=lte.${until}`);
-  const select = 'select=run_date,horizon,predicted_return,actual_return,predicted_tier';
+  const select = 'select=symbol,run_date,horizon,predicted_return,actual_return,predicted_tier';
   const out: Row[] = [];
   const pageSize = 1000;
   for (let offset = 0; ; offset += pageSize) {
@@ -169,10 +169,11 @@ async function main() {
   const args = process.argv.slice(2);
   const since = args.includes('--since') ? args[args.indexOf('--since') + 1] : null;
   const until = args.includes('--until') ? args[args.indexOf('--until') + 1] : null;
-  const cost = args.includes('--cost') ? Number(args[args.indexOf('--cost') + 1]) / 10000 : DEFAULT_COST;
+  const positionGBP = args.includes('--position') ? Number(args[args.indexOf('--position') + 1]) : DEFAULT_POSITION_GBP;
   const source = args.includes('--source') ? args[args.indexOf('--source') + 1] : 'local';
 
   const allRows = await loadRows(source, since, until);
+  const meanCostBps = allRows.length ? mean(allRows.map(r => roundTripCost(r.symbol, positionGBP).totalBps)) : NaN;
 
   const runDates = allRows.map(r => r.run_date).sort();
   const metaN = allRows.length;
@@ -184,7 +185,7 @@ async function main() {
   console.log(` source: ${source === 'supabase' ? 'supabase (durable outcome_results)' : 'local (outcome_tracker.db)'}`);
   console.log(` ${metaN} matured rows · run_date ${metaLo ?? '—'} → ${metaHi ?? '—'}` +
     (since || until ? `  (filter: since=${since ?? '—'} until=${until ?? '—'})` : ''));
-  console.log(` cost model: ${(cost * 10000).toFixed(0)}bps round-trip netted from realized returns (step 2a)`);
+  console.log(` cost: per-symbol IBKR round-trip @ £${positionGBP} position (mean ${Number.isFinite(meanCostBps) ? meanCostBps.toFixed(0) : '—'}bps across rows; --position to vary)`);
   console.log(line);
 
   if (!metaN) { console.log('\n No matured rows in range.\n'); return; }
@@ -205,6 +206,10 @@ async function main() {
 
     const pred = rows.map(r => r.predicted_return);
     const act = rows.map(r => r.actual_return);
+    // Per-row round-trip cost at the assumed position (costModel, per-symbol —
+    // US vs UK differ hugely at small size). net = realized − that symbol's cost.
+    const costArr = rows.map(r => roundTripCost(r.symbol, positionGBP).totalBps / 10000);
+    const net = rows.map((_, i) => act[i] - costArr[i]);
     const n = rows.length;
     const ic = spearman(pred, act);
     const pear = pearson(pred, act);
@@ -227,48 +232,49 @@ async function main() {
     if (n >= MIN_BUCKET_N) {
       const order = rows.map((_, i) => i).sort((x, y) => pred[x] - pred[y]);
       const per = Math.floor(n / N_BUCKETS);
-      console.log(`    calibration (pred quantile → realized gross/net ${(cost * 10000).toFixed(0)}bps; σ(act)=realized spread in-band):`);
+      console.log(`    calibration (pred quantile → realized gross / net of per-symbol cost; σ(act)=realized spread in-band):`);
       for (let b = 0; b < N_BUCKETS; b++) {
         const start = b * per;
         const end = b === N_BUCKETS - 1 ? n : (b + 1) * per;
         const seg = order.slice(start, end);
         const mp = mean(seg.map(i => pred[i]));
         const ma = mean(seg.map(i => act[i]));
+        const mn = mean(seg.map(i => net[i]));
         const saBand = std(seg.map(i => act[i]));
-        const posPct = mean(seg.map(i => (act[i] - cost > 0 ? 1 : 0)));
-        const bar = ma - cost >= 0 ? '+' : '-';
+        const posPct = mean(seg.map(i => (net[i] > 0 ? 1 : 0)));
+        const bar = mn >= 0 ? '+' : '-';
         // A tight pred band (small pred spread) whose σ(act) is large = the model
         // called these ~equal but they realized very differently = under-resolution.
-        console.log(`       Q${b + 1}  n=${String(seg.length).padStart(4)}   pred ${pct(mp).padStart(8)} → ${pct(ma).padStart(8)} / net ${pct(ma - cost).padStart(8)}  ${bar}   σ(act) ${pct(saBand).padStart(8)}   net-pos ${pct(posPct, 0).padStart(5)}`);
+        console.log(`       Q${b + 1}  n=${String(seg.length).padStart(4)}   pred ${pct(mp).padStart(8)} → ${pct(ma).padStart(8)} / net ${pct(mn).padStart(8)}  ${bar}   σ(act) ${pct(saBand).padStart(8)}   net-pos ${pct(posPct, 0).padStart(5)}`);
       }
     }
 
-    // Tier hit-rate.
-    const tiers = new Map<string, number[]>();
-    for (const r of rows) { if (!tiers.has(r.predicted_tier)) tiers.set(r.predicted_tier, []); tiers.get(r.predicted_tier)!.push(r.actual_return); }
+    // Tier hit-rate (index-based so gross and per-symbol net both available).
+    const tierIdx = new Map<string, number[]>();
+    rows.forEach((r, i) => { if (!tierIdx.has(r.predicted_tier)) tierIdx.set(r.predicted_tier, []); tierIdx.get(r.predicted_tier)!.push(i); });
     const TIER_ORDER = ['STRONG_BUY', 'BUY', 'HOLD', 'SELL'];
-    const present = TIER_ORDER.filter(t => tiers.has(t));
+    const present = TIER_ORDER.filter(t => tierIdx.has(t));
     if (present.length) {
-      console.log(`    tier hit-rate (predicted_tier → realized gross / net of ${(cost * 10000).toFixed(0)}bps):`);
+      console.log(`    tier hit-rate (predicted_tier → realized gross / net of per-symbol cost):`);
       for (const t of present) {
-        const a = tiers.get(t)!;
-        const netPos = mean(a.map(x => (x - cost > 0 ? 1 : 0)));
-        console.log(`       ${t.padEnd(11)} n=${String(a.length).padStart(4)}   mean ${pct(mean(a)).padStart(8)} / net ${pct(mean(a) - cost).padStart(8)}   net-pos ${pct(netPos, 0).padStart(5)}`);
+        const idx = tierIdx.get(t)!;
+        const netPos = mean(idx.map(i => (net[i] > 0 ? 1 : 0)));
+        console.log(`       ${t.padEnd(11)} n=${String(idx.length).padStart(4)}   mean ${pct(mean(idx.map(i => act[i]))).padStart(8)} / net ${pct(mean(idx.map(i => net[i]))).padStart(8)}   net-pos ${pct(netPos, 0).padStart(5)}`);
       }
       // Actionable bottom line: the tiers you'd actually put capital on.
-      const buys = [...(tiers.get('STRONG_BUY') ?? []), ...(tiers.get('BUY') ?? [])];
-      if (buys.length) {
-        const netMean = mean(buys) - cost;
+      const buyIdx = [...(tierIdx.get('STRONG_BUY') ?? []), ...(tierIdx.get('BUY') ?? [])];
+      if (buyIdx.length) {
+        const netMean = mean(buyIdx.map(i => net[i]));
         const verdict = netMean > 0 ? 'clears cost ✓' : 'loses to cost ✗';
-        console.log(`    ▪ actionable (STRONG_BUY+BUY) n=${buys.length}: mean net ${pct(netMean)}  → ${verdict}`);
+        console.log(`    ▪ actionable (STRONG_BUY+BUY) n=${buyIdx.length}: mean net ${pct(netMean)}  → ${verdict}`);
       }
     }
   }
 
   console.log(`\n${line}`);
-  console.log(` IC = Spearman rank corr(predicted, actual); shift-invariant, so the ${(cost * 10000).toFixed(0)}bps cost`);
-  console.log(` does NOT change it. 'net' figures = realized − cost (step 2a applied). Still`);
-  console.log(` PRE-latency: entry is scan-time price, not next-open (step 2b, tracker-side).`);
+  console.log(` IC = Spearman rank corr(predicted, actual); cost-INDEPENDENT (rank metric), so`);
+  console.log(` position size doesn't change it. 'net' = realized − per-symbol IBKR cost @ £${positionGBP}.`);
+  console.log(` Still PRE-latency: entry is scan-time price, not next-open (tracker-side, deferred).`);
   console.log(`${line}\n`);
 }
 

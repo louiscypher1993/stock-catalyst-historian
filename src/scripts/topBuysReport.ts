@@ -16,9 +16,10 @@
 import 'dotenv/config';
 import { supabase } from '../db/supabaseClient';
 import { HORIZON_TIER_CONFIG, resolveTierFromConfig } from '../PotService';
+import { roundTripCost, minViablePosition } from '../costModel';
 
 const TOP_N = 3;
-const ROUND_TRIP_COST = 0.0050; // 50bps, matches outcomeScoreboard (approved 2026-07-23)
+const DEFAULT_POSITION_GBP = 50; // Lewis's starting size (2026-07-24); --position <gbp> overrides
 
 // Horizon label → inference_results column (== HORIZON_TIER_CONFIG key), plus
 // the symmetric clamp ceiling LiveInferenceService applies before storing each
@@ -80,7 +81,9 @@ function buyAgreement(r: Row): number {
 }
 
 async function main() {
-  const argDate = process.argv[2];
+  const args = process.argv.slice(2);
+  const positionGBP = args.includes('--position') ? Number(args[args.indexOf('--position') + 1]) : DEFAULT_POSITION_GBP;
+  const argDate = args.find(a => /^\d{4}-\d{2}-\d{2}$/.test(a));
 
   let runDate = argDate;
   if (!runDate) {
@@ -105,6 +108,7 @@ async function main() {
   console.log(`\n${line}`);
   console.log(` TOP-${TOP_N} BUYS PER HORIZON — inference run ${runDate}`);
   console.log(` ${all.length} symbols scored · ${excluded} excluded (unreliable) · ${ranked.length} ranked`);
+  console.log(` cost @ £${positionGBP} position (IBKR 0.1%/$1-min/$2-FX) · ✓ = signal clears its own round-trip cost`);
   console.log(line);
 
   let totalBuySignals = 0;
@@ -123,32 +127,41 @@ async function main() {
 
     top.forEach((r, i) => {
       const val = r[h.field] as number;
+      const sym = String(r.symbol);
       const tier = cfg ? resolveTierFromConfig(val, cfg) : 'HOLD';
       const isBuy = tier === 'BUY' || tier === 'STRONG_BUY';
-      const clearsCost = val > ROUND_TRIP_COST;
+      // Real per-symbol round-trip cost at the assumed position (costModel is the
+      // single source of truth — no reimplemented constant). '✓' = the predicted
+      // return clears its own cost at this size; '~' = buy tier that doesn't.
+      const costBps = roundTripCost(sym, positionGBP).totalBps;
+      const clearsCost = val * 10000 > costBps;
       if (isBuy) { totalBuySignals++; if (!clearsCost) belowCostBuys++; }
       const name = String(r.company_name ?? '').slice(0, 22).padEnd(22);
-      // '✓' = actionable buy that clears the cost floor; '~' = buy tier but
-      // below it (can't occur while every buy threshold already exceeds
-      // ROUND_TRIP_COST — kept as a guard for higher cost assumptions).
       const mark = isBuy ? (clearsCost ? '✓' : '~') : ' ';
       const clamped = Math.abs(Math.abs(val) - h.clamp) < 1e-9 ? ' (clamp)' : '';
       console.log(
-        `   ${i + 1}. ${mark} ${String(r.symbol).padEnd(11)} ${name} ` +
+        `   ${i + 1}. ${mark} ${sym.padEnd(11)} ${name} ` +
         `${pct(val).padStart(8)}${clamped.padEnd(8)} ${tier.padEnd(10)} risk ${r.risk_score ?? '--'}`
       );
       const agree = buyAgreement(r);
-      const bits = [`${agree}/${HORIZONS.length} horizons buy`, clearsCost ? 'clears 50bps' : 'below 50bps'];
+      // break-even size: smallest position where round-trip cost < this signal's
+      // predicted return — the actionable "how big to make this trade worthwhile".
+      const breakEven = minViablePosition(sym, val * 10000);
+      const costStr = clearsCost
+        ? `cost ${costBps.toFixed(0)}bps @£${positionGBP} ✓`
+        : (breakEven
+            ? `cost ${costBps.toFixed(0)}bps @£${positionGBP} → nets only ≥ £${breakEven.toFixed(0)}`
+            : `cost ${costBps.toFixed(0)}bps @£${positionGBP} → never nets (tax floor > signal)`);
+      const bits = [`${agree}/${HORIZONS.length} horizons buy`, costStr];
       if (clamped) bits.push('clamp');
       console.log(`         why: ${bits.join(' · ')}`);
     });
   }
 
   console.log(`\n${line}`);
-  console.log(` ${totalBuySignals} of the ${HORIZONS.length * TOP_N} top slots clear a BUY/STRONG_BUY tier today` +
-    (belowCostBuys > 0 ? ` (${belowCostBuys} below the 50bps cost floor).` : `.`));
-  console.log(` Every recalibrated buy threshold already exceeds the 50bps round-trip cost, so a`);
-  console.log(` tier buy is a cost-clearing buy at this assumption; the filter bites only at higher cost.`);
+  console.log(` ${totalBuySignals} of the ${HORIZONS.length * TOP_N} top slots clear a BUY/STRONG_BUY tier` +
+    (belowCostBuys > 0 ? `; ${belowCostBuys} do NOT clear their round-trip cost at £${positionGBP} — see each pick's break-even size.` : `.`));
+  console.log(` At £${positionGBP}, fixed IBKR costs (~£4.80 US round-trip) dominate; raise --position to see viability at size.`);
   console.log(`${line}\n`);
 }
 
