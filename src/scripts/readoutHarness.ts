@@ -64,15 +64,24 @@ function dIC(post: number, pre: number): string { return Number.isFinite(post) &
 function addDays(d: string, days: number): string { const x = new Date(d); x.setUTCDate(x.getUTCDate() + days); return x.toISOString().slice(0, 10); }
 function col(s: string, w = 14): string { return s.padStart(w); }
 
-// IC-vs-anchor verdict (the "did it work live" call).
+// IC-vs-anchor verdict (the "did it work live" call). Uses the actual n (not a
+// hardcoded threshold string) via the standard Spearman SE approximation
+// (1/sqrt(n-3)) so the read scales honestly as the sample grows, and treats a
+// clearly NEGATIVE IC as its own case — anti-correlated ranking is a materially
+// different (and more concerning) result than "no signal yet" (IC≈0).
 function icVerdict(h: string, s: Stats): string {
   const anchor = TEST_IC[h];
   if (!Number.isFinite(s.ic)) return 'n/a';
   if (h === '1M') return 'dead-band head — low IC is by design';
-  if (s.ic >= anchor - 0.03) return `AT/ABOVE the v9.4 anchor ✓ — train/serve parity holding`;
-  if (s.ic >= anchor * 0.5) return `partway to anchor (${f3(anchor).trim()}) — watch as n grows`;
-  if (s.ic > 0.02) return `well short of anchor ${f3(anchor).trim()} ⚠ — live IC << held-out test`;
-  return `no live signal yet (IC≈0) ⚠ — investigate if it persists at n≥100`;
+  const se = s.n > 3 ? 1 / Math.sqrt(s.n - 3) : NaN;
+  const seNote = Number.isFinite(se) ? ` (n=${s.n}, IC SE≈${se.toFixed(3)})` : '';
+  if (s.ic >= anchor - 0.03) return `AT/ABOVE the v9.4 anchor ✓ — train/serve parity holding${seNote}`;
+  if (s.ic >= anchor * 0.5) return `partway to anchor (${f3(anchor).trim()})${seNote} — watch as n grows`;
+  if (s.ic > 0.02) return `well short of anchor ${f3(anchor).trim()}${seNote} ⚠ — live IC << held-out test`;
+  if (s.ic < -0.02 && Number.isFinite(se) && Math.abs(s.ic) > se) {
+    return `NEGATIVE and outside noise band${seNote} ⚠⚠ — anti-correlated, not just weak; keep watching, do not act on it yet (single early horizon, still n<~500)`;
+  }
+  return `no live signal yet (IC≈0)${seNote} ⚠ — consistent with noise at this n; re-check as n grows`;
 }
 
 async function main() {
