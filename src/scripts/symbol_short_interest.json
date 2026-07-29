@@ -1,0 +1,4250 @@
+{
+  "_note": "symbol -> FINRA consolidated short interest (US-listed only). Source: cdn.finra.org biweekly settlement file, free/no-auth. Point-in-time via settlementDate. Rebuild via buildShortInterest.ts.",
+  "_built": "2026-07-29",
+  "_settlementDate": "20260715",
+  "_sourceUrl": "https://cdn.finra.org/equity/otcmarket/biweekly/shrt20260715.csv",
+  "_unmatched": [
+    "BK"
+  ],
+  "shortInterest": {
+    "CAG": {
+      "shortShares": 49361024,
+      "prevShortShares": 55746913,
+      "daysToCover": 3.03,
+      "avgDailyVolume": 16300407,
+      "changePercent": -11.46,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "RIG": {
+      "shortShares": 242487425,
+      "prevShortShares": 222535073,
+      "daysToCover": 6.29,
+      "avgDailyVolume": 38531357,
+      "changePercent": 8.97,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "FRO": {
+      "shortShares": 7121398,
+      "prevShortShares": 5515111,
+      "daysToCover": 2.96,
+      "avgDailyVolume": 2409109,
+      "changePercent": 29.13,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "TSN": {
+      "shortShares": 9559805,
+      "prevShortShares": 10223518,
+      "daysToCover": 3.64,
+      "avgDailyVolume": 2623442,
+      "changePercent": -6.49,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ANDE": {
+      "shortShares": 1083528,
+      "prevShortShares": 1073593,
+      "daysToCover": 3.55,
+      "avgDailyVolume": 305338,
+      "changePercent": 0.93,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "INGR": {
+      "shortShares": 4552704,
+      "prevShortShares": 4132121,
+      "daysToCover": 5.96,
+      "avgDailyVolume": 764490,
+      "changePercent": 10.18,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "DAR": {
+      "shortShares": 8135737,
+      "prevShortShares": 8302286,
+      "daysToCover": 3.51,
+      "avgDailyVolume": 2318976,
+      "changePercent": -2.01,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "GSAT": {
+      "shortShares": 3235309,
+      "prevShortShares": 3061645,
+      "daysToCover": 3.88,
+      "avgDailyVolume": 832872,
+      "changePercent": 5.67,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "XYL": {
+      "shortShares": 7678607,
+      "prevShortShares": 7879166,
+      "daysToCover": 4.49,
+      "avgDailyVolume": 1711821,
+      "changePercent": -2.55,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "PNR": {
+      "shortShares": 6267759,
+      "prevShortShares": 6835261,
+      "daysToCover": 1.93,
+      "avgDailyVolume": 3253145,
+      "changePercent": -8.3,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "WTRG": {
+      "shortShares": 5043679,
+      "prevShortShares": 4791565,
+      "daysToCover": 2.74,
+      "avgDailyVolume": 1839343,
+      "changePercent": 5.26,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CGNX": {
+      "shortShares": 8312254,
+      "prevShortShares": 8084861,
+      "daysToCover": 3.55,
+      "avgDailyVolume": 2341441,
+      "changePercent": 2.81,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ZBRA": {
+      "shortShares": 3139345,
+      "prevShortShares": 3561564,
+      "daysToCover": 5,
+      "avgDailyVolume": 627682,
+      "changePercent": -11.85,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "COTY": {
+      "shortShares": 50595858,
+      "prevShortShares": 53256822,
+      "daysToCover": 4.62,
+      "avgDailyVolume": 10957252,
+      "changePercent": -5,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "NVT": {
+      "shortShares": 4009874,
+      "prevShortShares": 4624903,
+      "daysToCover": 2.03,
+      "avgDailyVolume": 1974038,
+      "changePercent": -13.3,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "KMX": {
+      "shortShares": 11526450,
+      "prevShortShares": 12599625,
+      "daysToCover": 4.08,
+      "avgDailyVolume": 2824566,
+      "changePercent": -8.52,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "TXT": {
+      "shortShares": 6508435,
+      "prevShortShares": 6452477,
+      "daysToCover": 5.27,
+      "avgDailyVolume": 1235766,
+      "changePercent": 0.87,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "HII": {
+      "shortShares": 1016220,
+      "prevShortShares": 903375,
+      "daysToCover": 2.88,
+      "avgDailyVolume": 352777,
+      "changePercent": 12.49,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "KTOS": {
+      "shortShares": 10377180,
+      "prevShortShares": 10092796,
+      "daysToCover": 2.33,
+      "avgDailyVolume": 4453530,
+      "changePercent": 2.82,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "LDOS": {
+      "shortShares": 6413623,
+      "prevShortShares": 5780627,
+      "daysToCover": 4.44,
+      "avgDailyVolume": 1443179,
+      "changePercent": 10.95,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "XLV": {
+      "shortShares": 15358634,
+      "prevShortShares": 13871189,
+      "daysToCover": 1.39,
+      "avgDailyVolume": 11075572,
+      "changePercent": 10.72,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "XLI": {
+      "shortShares": 18612263,
+      "prevShortShares": 19768314,
+      "daysToCover": 2.79,
+      "avgDailyVolume": 6665273,
+      "changePercent": -5.85,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "XLY": {
+      "shortShares": 9887426,
+      "prevShortShares": 11721349,
+      "daysToCover": 1.1,
+      "avgDailyVolume": 9026729,
+      "changePercent": -15.65,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "XLP": {
+      "shortShares": 19521674,
+      "prevShortShares": 32326987,
+      "daysToCover": 1.79,
+      "avgDailyVolume": 10933273,
+      "changePercent": -39.61,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "XLB": {
+      "shortShares": 13828088,
+      "prevShortShares": 13770318,
+      "daysToCover": 1.15,
+      "avgDailyVolume": 12032987,
+      "changePercent": 0.42,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "XLU": {
+      "shortShares": 28594233,
+      "prevShortShares": 27851900,
+      "daysToCover": 1.51,
+      "avgDailyVolume": 18957810,
+      "changePercent": 2.67,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "XLRE": {
+      "shortShares": 7126612,
+      "prevShortShares": 6963776,
+      "daysToCover": 1.46,
+      "avgDailyVolume": 4869522,
+      "changePercent": 2.34,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "XBI": {
+      "shortShares": 75109557,
+      "prevShortShares": 75148378,
+      "daysToCover": 8.34,
+      "avgDailyVolume": 9002285,
+      "changePercent": -0.05,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "EWZ": {
+      "shortShares": 42423221,
+      "prevShortShares": 47234872,
+      "daysToCover": 2.19,
+      "avgDailyVolume": 19365335,
+      "changePercent": -10.19,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "FXI": {
+      "shortShares": 70947813,
+      "prevShortShares": 59753480,
+      "daysToCover": 2.68,
+      "avgDailyVolume": 26505649,
+      "changePercent": 18.73,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "EWJ": {
+      "shortShares": 4753530,
+      "prevShortShares": 4930125,
+      "daysToCover": 1,
+      "avgDailyVolume": 5401640,
+      "changePercent": -3.58,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "INDA": {
+      "shortShares": 23466903,
+      "prevShortShares": 24115541,
+      "daysToCover": 4.58,
+      "avgDailyVolume": 5119889,
+      "changePercent": -2.69,
+      "exchange": "BZX",
+      "settlementDate": "2026-07-15"
+    },
+    "EEM": {
+      "shortShares": 72153001,
+      "prevShortShares": 74960723,
+      "daysToCover": 2.94,
+      "avgDailyVolume": 24582346,
+      "changePercent": -3.75,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "VGK": {
+      "shortShares": 7143330,
+      "prevShortShares": 6835846,
+      "daysToCover": 3.85,
+      "avgDailyVolume": 1857525,
+      "changePercent": 4.5,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "USO": {
+      "shortShares": 11864224,
+      "prevShortShares": 12592499,
+      "daysToCover": 1.74,
+      "avgDailyVolume": 6799435,
+      "changePercent": -5.78,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "SLV": {
+      "shortShares": 31132595,
+      "prevShortShares": 30773432,
+      "daysToCover": 2.05,
+      "avgDailyVolume": 15215692,
+      "changePercent": 1.17,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "DBC": {
+      "shortShares": 1261003,
+      "prevShortShares": 1312897,
+      "daysToCover": 1.41,
+      "avgDailyVolume": 892755,
+      "changePercent": -3.95,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "VIXY": {
+      "shortShares": 1410671,
+      "prevShortShares": 1068982,
+      "daysToCover": 1,
+      "avgDailyVolume": 2308997,
+      "changePercent": 31.96,
+      "exchange": "BZX",
+      "settlementDate": "2026-07-15"
+    },
+    "KHC": {
+      "shortShares": 92367931,
+      "prevShortShares": 92790948,
+      "daysToCover": 7.87,
+      "avgDailyVolume": 11729542,
+      "changePercent": -0.46,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "PLUG": {
+      "shortShares": 330057977,
+      "prevShortShares": 340731106,
+      "daysToCover": 6.91,
+      "avgDailyVolume": 47764818,
+      "changePercent": -3.13,
+      "exchange": "SC",
+      "settlementDate": "2026-07-15"
+    },
+    "DBX": {
+      "shortShares": 28644593,
+      "prevShortShares": 28228379,
+      "daysToCover": 8.55,
+      "avgDailyVolume": 3351869,
+      "changePercent": 1.47,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "DOCU": {
+      "shortShares": 16753240,
+      "prevShortShares": 14531700,
+      "daysToCover": 5.61,
+      "avgDailyVolume": 2983755,
+      "changePercent": 15.29,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "SBLK": {
+      "shortShares": 1081406,
+      "prevShortShares": 1639559,
+      "daysToCover": 1,
+      "avgDailyVolume": 1118968,
+      "changePercent": -34.04,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "AGRO": {
+      "shortShares": 1192989,
+      "prevShortShares": 1327113,
+      "daysToCover": 1.88,
+      "avgDailyVolume": 635964,
+      "changePercent": -10.11,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CSIQ": {
+      "shortShares": 16430419,
+      "prevShortShares": 16203719,
+      "daysToCover": 6.79,
+      "avgDailyVolume": 2421138,
+      "changePercent": 1.4,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "JKS": {
+      "shortShares": 3424327,
+      "prevShortShares": 3467829,
+      "daysToCover": 5.35,
+      "avgDailyVolume": 640130,
+      "changePercent": -1.25,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "DQ": {
+      "shortShares": 4781591,
+      "prevShortShares": 5032914,
+      "daysToCover": 5.68,
+      "avgDailyVolume": 841610,
+      "changePercent": -4.99,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ALNY": {
+      "shortShares": 5773373,
+      "prevShortShares": 5799788,
+      "daysToCover": 3.24,
+      "avgDailyVolume": 1782477,
+      "changePercent": -0.46,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CRSP": {
+      "shortShares": 19808194,
+      "prevShortShares": 20397833,
+      "daysToCover": 11.56,
+      "avgDailyVolume": 1713855,
+      "changePercent": -2.89,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "NTLA": {
+      "shortShares": 45776294,
+      "prevShortShares": 49218272,
+      "daysToCover": 9.75,
+      "avgDailyVolume": 4694333,
+      "changePercent": -6.99,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "NTRA": {
+      "shortShares": 4964646,
+      "prevShortShares": 5820616,
+      "daysToCover": 3.61,
+      "avgDailyVolume": 1374402,
+      "changePercent": -14.71,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ENTG": {
+      "shortShares": 8518515,
+      "prevShortShares": 10785522,
+      "daysToCover": 2.68,
+      "avgDailyVolume": 3180738,
+      "changePercent": -21.02,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "MKSI": {
+      "shortShares": 5158599,
+      "prevShortShares": 4963667,
+      "daysToCover": 3.93,
+      "avgDailyVolume": 1312542,
+      "changePercent": 3.93,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TER": {
+      "shortShares": 7299251,
+      "prevShortShares": 9125390,
+      "daysToCover": 1.94,
+      "avgDailyVolume": 3755093,
+      "changePercent": -20.01,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "IRDM": {
+      "shortShares": 2826191,
+      "prevShortShares": 4367799,
+      "daysToCover": 1.27,
+      "avgDailyVolume": 2225094,
+      "changePercent": -35.29,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "VSAT": {
+      "shortShares": 12255507,
+      "prevShortShares": 11821553,
+      "daysToCover": 4.56,
+      "avgDailyVolume": 2687098,
+      "changePercent": 3.67,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "GEN": {
+      "shortShares": 28445245,
+      "prevShortShares": 30137249,
+      "daysToCover": 6.37,
+      "avgDailyVolume": 4467554,
+      "changePercent": -5.61,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "QLYS": {
+      "shortShares": 3853317,
+      "prevShortShares": 3665654,
+      "daysToCover": 4.93,
+      "avgDailyVolume": 781840,
+      "changePercent": 5.12,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "UAA": {
+      "shortShares": 53772299,
+      "prevShortShares": 56524047,
+      "daysToCover": 7.36,
+      "avgDailyVolume": 7310156,
+      "changePercent": -4.87,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BLNK": {
+      "shortShares": 15674597,
+      "prevShortShares": 16581800,
+      "daysToCover": 15.64,
+      "avgDailyVolume": 1002384,
+      "changePercent": -5.47,
+      "exchange": "SC",
+      "settlementDate": "2026-07-15"
+    },
+    "IBKR": {
+      "shortShares": 9176448,
+      "prevShortShares": 11389018,
+      "daysToCover": 2.23,
+      "avgDailyVolume": 4118365,
+      "changePercent": -19.43,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "PENN": {
+      "shortShares": 15690385,
+      "prevShortShares": 17089395,
+      "daysToCover": 5.38,
+      "avgDailyVolume": 2915938,
+      "changePercent": -8.19,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CZR": {
+      "shortShares": 18579565,
+      "prevShortShares": 15712920,
+      "daysToCover": 4.37,
+      "avgDailyVolume": 4250563,
+      "changePercent": 18.24,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "WIX": {
+      "shortShares": 8785734,
+      "prevShortShares": 9231787,
+      "daysToCover": 7.53,
+      "avgDailyVolume": 1166519,
+      "changePercent": -4.83,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TEVA": {
+      "shortShares": 32741011,
+      "prevShortShares": 32029657,
+      "daysToCover": 6.51,
+      "avgDailyVolume": 5031824,
+      "changePercent": 2.22,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "NVMI": {
+      "shortShares": 1313161,
+      "prevShortShares": 1470601,
+      "daysToCover": 2.38,
+      "avgDailyVolume": 551705,
+      "changePercent": -10.71,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TSEM": {
+      "shortShares": 2715406,
+      "prevShortShares": 2517608,
+      "daysToCover": 1.37,
+      "avgDailyVolume": 1982744,
+      "changePercent": 7.86,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "BAP": {
+      "shortShares": 1137388,
+      "prevShortShares": 1341518,
+      "daysToCover": 4.18,
+      "avgDailyVolume": 272282,
+      "changePercent": -15.22,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "GGAL": {
+      "shortShares": 6353488,
+      "prevShortShares": 6613820,
+      "daysToCover": 5.82,
+      "avgDailyVolume": 1092072,
+      "changePercent": -3.94,
+      "exchange": "SC",
+      "settlementDate": "2026-07-15"
+    },
+    "YPF": {
+      "shortShares": 5407834,
+      "prevShortShares": 5085242,
+      "daysToCover": 3.42,
+      "avgDailyVolume": 1581851,
+      "changePercent": 6.34,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BMA": {
+      "shortShares": 489130,
+      "prevShortShares": 498966,
+      "daysToCover": 2.34,
+      "avgDailyVolume": 209264,
+      "changePercent": -1.97,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "PAM": {
+      "shortShares": 297934,
+      "prevShortShares": 308299,
+      "daysToCover": 2.22,
+      "avgDailyVolume": 134068,
+      "changePercent": -3.36,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BBAR": {
+      "shortShares": 1778693,
+      "prevShortShares": 2031327,
+      "daysToCover": 3.13,
+      "avgDailyVolume": 568383,
+      "changePercent": -12.44,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SUPV": {
+      "shortShares": 3035376,
+      "prevShortShares": 2802164,
+      "daysToCover": 6.71,
+      "avgDailyVolume": 452185,
+      "changePercent": 8.32,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "LOMA": {
+      "shortShares": 1545245,
+      "prevShortShares": 1742878,
+      "daysToCover": 3.8,
+      "avgDailyVolume": 407167,
+      "changePercent": -11.34,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CRESY": {
+      "shortShares": 385359,
+      "prevShortShares": 595399,
+      "daysToCover": 1.02,
+      "avgDailyVolume": 376877,
+      "changePercent": -35.28,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TEO": {
+      "shortShares": 230155,
+      "prevShortShares": 252163,
+      "daysToCover": 1,
+      "avgDailyVolume": 245872,
+      "changePercent": -8.73,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CEPU": {
+      "shortShares": 460405,
+      "prevShortShares": 352617,
+      "daysToCover": 2.11,
+      "avgDailyVolume": 217713,
+      "changePercent": 30.57,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CHPT": {
+      "shortShares": 4596035,
+      "prevShortShares": 4390135,
+      "daysToCover": 7.7,
+      "avgDailyVolume": 596741,
+      "changePercent": 4.69,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BE": {
+      "shortShares": 19185518,
+      "prevShortShares": 19348027,
+      "daysToCover": 1.48,
+      "avgDailyVolume": 12958611,
+      "changePercent": -0.84,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "PL": {
+      "shortShares": 32423850,
+      "prevShortShares": 37734450,
+      "daysToCover": 4.04,
+      "avgDailyVolume": 8020691,
+      "changePercent": -14.07,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "VLTO": {
+      "shortShares": 7014636,
+      "prevShortShares": 7197538,
+      "daysToCover": 3.97,
+      "avgDailyVolume": 1766412,
+      "changePercent": -2.54,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "VAL": {
+      "shortShares": 6519761,
+      "prevShortShares": 6202202,
+      "daysToCover": 7.24,
+      "avgDailyVolume": 900510,
+      "changePercent": 5.12,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "NE": {
+      "shortShares": 13005119,
+      "prevShortShares": 10922086,
+      "daysToCover": 8.96,
+      "avgDailyVolume": 1451757,
+      "changePercent": 19.07,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ACHR": {
+      "shortShares": 95100718,
+      "prevShortShares": 108476072,
+      "daysToCover": 3.45,
+      "avgDailyVolume": 27560877,
+      "changePercent": -12.33,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ZIM": {
+      "shortShares": 3006094,
+      "prevShortShares": 3234353,
+      "daysToCover": 2.19,
+      "avgDailyVolume": 1370465,
+      "changePercent": -7.06,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ARRY": {
+      "shortShares": 30781511,
+      "prevShortShares": 29195316,
+      "daysToCover": 5.46,
+      "avgDailyVolume": 5633850,
+      "changePercent": 5.43,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "BEAM": {
+      "shortShares": 23215449,
+      "prevShortShares": 22881525,
+      "daysToCover": 8.93,
+      "avgDailyVolume": 2599432,
+      "changePercent": 1.46,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TXG": {
+      "shortShares": 16252519,
+      "prevShortShares": 16339596,
+      "daysToCover": 5.34,
+      "avgDailyVolume": 3043005,
+      "changePercent": -0.53,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "LUNR": {
+      "shortShares": 37774781,
+      "prevShortShares": 34036834,
+      "daysToCover": 3.83,
+      "avgDailyVolume": 9862487,
+      "changePercent": 10.98,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "SYM": {
+      "shortShares": 15766165,
+      "prevShortShares": 16146759,
+      "daysToCover": 9.72,
+      "avgDailyVolume": 1621508,
+      "changePercent": -2.36,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "EVGO": {
+      "shortShares": 41740637,
+      "prevShortShares": 45449189,
+      "daysToCover": 14.14,
+      "avgDailyVolume": 2950948,
+      "changePercent": -8.16,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "RGTI": {
+      "shortShares": 61351381,
+      "prevShortShares": 58632870,
+      "daysToCover": 2.81,
+      "avgDailyVolume": 21805618,
+      "changePercent": 4.64,
+      "exchange": "SC",
+      "settlementDate": "2026-07-15"
+    },
+    "QBTS": {
+      "shortShares": 65067516,
+      "prevShortShares": 63219621,
+      "daysToCover": 3.68,
+      "avgDailyVolume": 17689798,
+      "changePercent": 2.92,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CART": {
+      "shortShares": 16788358,
+      "prevShortShares": 19261771,
+      "daysToCover": 3.86,
+      "avgDailyVolume": 4353423,
+      "changePercent": -12.84,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "U": {
+      "shortShares": 33891131,
+      "prevShortShares": 34558878,
+      "daysToCover": 4.68,
+      "avgDailyVolume": 7244127,
+      "changePercent": -1.93,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "UPST": {
+      "shortShares": 26176982,
+      "prevShortShares": 25838509,
+      "daysToCover": 7.13,
+      "avgDailyVolume": 3672305,
+      "changePercent": 1.31,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "STNE": {
+      "shortShares": 17559073,
+      "prevShortShares": 15734746,
+      "daysToCover": 4.04,
+      "avgDailyVolume": 4347789,
+      "changePercent": 11.59,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "S": {
+      "shortShares": 21251177,
+      "prevShortShares": 23106360,
+      "daysToCover": 2.53,
+      "avgDailyVolume": 8390240,
+      "changePercent": -8.03,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "MNDY": {
+      "shortShares": 6898980,
+      "prevShortShares": 7203836,
+      "daysToCover": 7.82,
+      "avgDailyVolume": 882723,
+      "changePercent": -4.23,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "GLBE": {
+      "shortShares": 3682503,
+      "prevShortShares": 4315336,
+      "daysToCover": 3.2,
+      "avgDailyVolume": 1149976,
+      "changePercent": -14.66,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "MBLY": {
+      "shortShares": 33527617,
+      "prevShortShares": 32192864,
+      "daysToCover": 4.4,
+      "avgDailyVolume": 7624819,
+      "changePercent": 4.15,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "PLTK": {
+      "shortShares": 7409293,
+      "prevShortShares": 7977668,
+      "daysToCover": 6.68,
+      "avgDailyVolume": 1109480,
+      "changePercent": -7.12,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ODD": {
+      "shortShares": 6816893,
+      "prevShortShares": 7975674,
+      "daysToCover": 6.78,
+      "avgDailyVolume": 1005133,
+      "changePercent": -14.53,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "FVRR": {
+      "shortShares": 3153516,
+      "prevShortShares": 3238847,
+      "daysToCover": 6.57,
+      "avgDailyVolume": 479667,
+      "changePercent": -2.63,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "AA": {
+      "shortShares": 8981785,
+      "prevShortShares": 8425769,
+      "daysToCover": 1.29,
+      "avgDailyVolume": 6969483,
+      "changePercent": 6.6,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ABBV": {
+      "shortShares": 22632412,
+      "prevShortShares": 21899078,
+      "daysToCover": 3.45,
+      "avgDailyVolume": 6559915,
+      "changePercent": 3.35,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ABT": {
+      "shortShares": 24846147,
+      "prevShortShares": 23387895,
+      "daysToCover": 2.14,
+      "avgDailyVolume": 11611821,
+      "changePercent": 6.24,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ACN": {
+      "shortShares": 33556522,
+      "prevShortShares": 31841682,
+      "daysToCover": 3.79,
+      "avgDailyVolume": 8843467,
+      "changePercent": 5.39,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ADM": {
+      "shortShares": 16767637,
+      "prevShortShares": 17596532,
+      "daysToCover": 5.58,
+      "avgDailyVolume": 3002522,
+      "changePercent": -4.71,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ADP": {
+      "shortShares": 14436618,
+      "prevShortShares": 14867435,
+      "daysToCover": 6.92,
+      "avgDailyVolume": 2086623,
+      "changePercent": -2.9,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ADSK": {
+      "shortShares": 8733657,
+      "prevShortShares": 8773171,
+      "daysToCover": 4.52,
+      "avgDailyVolume": 1931984,
+      "changePercent": -0.45,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "AEP": {
+      "shortShares": 32904126,
+      "prevShortShares": 36014039,
+      "daysToCover": 6.85,
+      "avgDailyVolume": 4806039,
+      "changePercent": -8.64,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "AIG": {
+      "shortShares": 9347479,
+      "prevShortShares": 9480851,
+      "daysToCover": 2.65,
+      "avgDailyVolume": 3532883,
+      "changePercent": -1.41,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "AJG": {
+      "shortShares": 7990928,
+      "prevShortShares": 6819347,
+      "daysToCover": 4.3,
+      "avgDailyVolume": 1856609,
+      "changePercent": 17.18,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ALB": {
+      "shortShares": 10733519,
+      "prevShortShares": 11001407,
+      "daysToCover": 5.75,
+      "avgDailyVolume": 1867312,
+      "changePercent": -2.44,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "AME": {
+      "shortShares": 3196479,
+      "prevShortShares": 3371344,
+      "daysToCover": 3.66,
+      "avgDailyVolume": 872837,
+      "changePercent": -5.19,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "AMP": {
+      "shortShares": 3277937,
+      "prevShortShares": 3681764,
+      "daysToCover": 4.96,
+      "avgDailyVolume": 660768,
+      "changePercent": -10.97,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "AMT": {
+      "shortShares": 7640281,
+      "prevShortShares": 7656891,
+      "daysToCover": 2.48,
+      "avgDailyVolume": 3083594,
+      "changePercent": -0.22,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ANET": {
+      "shortShares": 19887856,
+      "prevShortShares": 21632457,
+      "daysToCover": 2.24,
+      "avgDailyVolume": 8859221,
+      "changePercent": -8.06,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "AON": {
+      "shortShares": 4554648,
+      "prevShortShares": 3695856,
+      "daysToCover": 4.04,
+      "avgDailyVolume": 1126077,
+      "changePercent": 23.24,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "APH": {
+      "shortShares": 16508135,
+      "prevShortShares": 15988270,
+      "daysToCover": 2.51,
+      "avgDailyVolume": 6585269,
+      "changePercent": 3.25,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "APO": {
+      "shortShares": 29180717,
+      "prevShortShares": 31282725,
+      "daysToCover": 6.17,
+      "avgDailyVolume": 4729447,
+      "changePercent": -6.72,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ARE": {
+      "shortShares": 7824611,
+      "prevShortShares": 7563460,
+      "daysToCover": 4.88,
+      "avgDailyVolume": 1603265,
+      "changePercent": 3.45,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ATO": {
+      "shortShares": 3502581,
+      "prevShortShares": 3619550,
+      "daysToCover": 3.21,
+      "avgDailyVolume": 1090397,
+      "changePercent": -3.23,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "AVB": {
+      "shortShares": 3181902,
+      "prevShortShares": 2998509,
+      "daysToCover": 3.67,
+      "avgDailyVolume": 866153,
+      "changePercent": 6.12,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "AVY": {
+      "shortShares": 2735907,
+      "prevShortShares": 2540879,
+      "daysToCover": 4.18,
+      "avgDailyVolume": 654242,
+      "changePercent": 7.68,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "AWK": {
+      "shortShares": 11016023,
+      "prevShortShares": 11036004,
+      "daysToCover": 5.48,
+      "avgDailyVolume": 2008699,
+      "changePercent": -0.18,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "AXP": {
+      "shortShares": 11492443,
+      "prevShortShares": 10839567,
+      "daysToCover": 3.79,
+      "avgDailyVolume": 3031101,
+      "changePercent": 6.02,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BABA": {
+      "shortShares": 42139456,
+      "prevShortShares": 42358223,
+      "daysToCover": 2.81,
+      "avgDailyVolume": 15001266,
+      "changePercent": -0.52,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BAC": {
+      "shortShares": 96837373,
+      "prevShortShares": 90912451,
+      "daysToCover": 2.93,
+      "avgDailyVolume": 33012469,
+      "changePercent": 6.52,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BCE": {
+      "shortShares": 27750616,
+      "prevShortShares": 24352259,
+      "daysToCover": 6.58,
+      "avgDailyVolume": 4218395,
+      "changePercent": 13.95,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BG": {
+      "shortShares": 6290656,
+      "prevShortShares": 6604653,
+      "daysToCover": 4.29,
+      "avgDailyVolume": 1464774,
+      "changePercent": -4.75,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BHP": {
+      "shortShares": 15686869,
+      "prevShortShares": 18102611,
+      "daysToCover": 6.39,
+      "avgDailyVolume": 2454660,
+      "changePercent": -13.34,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BKNG": {
+      "shortShares": 22805449,
+      "prevShortShares": 29767945,
+      "daysToCover": 3.56,
+      "avgDailyVolume": 6400258,
+      "changePercent": -23.39,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "BLK": {
+      "shortShares": 2095185,
+      "prevShortShares": 2073854,
+      "daysToCover": 2.59,
+      "avgDailyVolume": 808320,
+      "changePercent": 1.03,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BMY": {
+      "shortShares": 44935362,
+      "prevShortShares": 40531289,
+      "daysToCover": 4.24,
+      "avgDailyVolume": 10603478,
+      "changePercent": 10.87,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BP": {
+      "shortShares": 11007637,
+      "prevShortShares": 10722922,
+      "daysToCover": 1.12,
+      "avgDailyVolume": 9809426,
+      "changePercent": 2.66,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BRK.B": {
+      "shortShares": 13030468,
+      "prevShortShares": 12987527,
+      "daysToCover": 3.31,
+      "avgDailyVolume": 3941178,
+      "changePercent": 0.33,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BTI": {
+      "shortShares": 6875973,
+      "prevShortShares": 6334764,
+      "daysToCover": 1.93,
+      "avgDailyVolume": 3558558,
+      "changePercent": 8.54,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "C": {
+      "shortShares": 28765148,
+      "prevShortShares": 27205962,
+      "daysToCover": 2.05,
+      "avgDailyVolume": 14035931,
+      "changePercent": 5.73,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CAH": {
+      "shortShares": 6748293,
+      "prevShortShares": 7073002,
+      "daysToCover": 2.63,
+      "avgDailyVolume": 2564718,
+      "changePercent": -4.59,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CAT": {
+      "shortShares": 8054245,
+      "prevShortShares": 9052419,
+      "daysToCover": 2.81,
+      "avgDailyVolume": 2868137,
+      "changePercent": -11.03,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CB": {
+      "shortShares": 4158816,
+      "prevShortShares": 4574418,
+      "daysToCover": 2.32,
+      "avgDailyVolume": 1791525,
+      "changePercent": -9.09,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CCI": {
+      "shortShares": 12058531,
+      "prevShortShares": 12610171,
+      "daysToCover": 3.09,
+      "avgDailyVolume": 3898323,
+      "changePercent": -4.37,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CCL": {
+      "shortShares": 33756235,
+      "prevShortShares": 33733508,
+      "daysToCover": 1.9,
+      "avgDailyVolume": 17764066,
+      "changePercent": 0.07,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CI": {
+      "shortShares": 6178422,
+      "prevShortShares": 6226238,
+      "daysToCover": 4.31,
+      "avgDailyVolume": 1432328,
+      "changePercent": -0.77,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CL": {
+      "shortShares": 16716514,
+      "prevShortShares": 17529142,
+      "daysToCover": 3.86,
+      "avgDailyVolume": 4332104,
+      "changePercent": -4.64,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CME": {
+      "shortShares": 5837310,
+      "prevShortShares": 6011422,
+      "daysToCover": 1.88,
+      "avgDailyVolume": 3110735,
+      "changePercent": -2.9,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CMI": {
+      "shortShares": 2352281,
+      "prevShortShares": 2457427,
+      "daysToCover": 2.91,
+      "avgDailyVolume": 807732,
+      "changePercent": -4.28,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CNC": {
+      "shortShares": 13435405,
+      "prevShortShares": 15126981,
+      "daysToCover": 3.36,
+      "avgDailyVolume": 4002879,
+      "changePercent": -11.18,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "COF": {
+      "shortShares": 12880294,
+      "prevShortShares": 11748005,
+      "daysToCover": 3.18,
+      "avgDailyVolume": 4052003,
+      "changePercent": 9.64,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "COP": {
+      "shortShares": 20698828,
+      "prevShortShares": 19181879,
+      "daysToCover": 3.14,
+      "avgDailyVolume": 6586037,
+      "changePercent": 7.91,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "COR": {
+      "shortShares": 5872438,
+      "prevShortShares": 5498838,
+      "daysToCover": 3.91,
+      "avgDailyVolume": 1500836,
+      "changePercent": 6.79,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CRM": {
+      "shortShares": 46465690,
+      "prevShortShares": 50636166,
+      "daysToCover": 3.84,
+      "avgDailyVolume": 12114051,
+      "changePercent": -8.24,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CSCO": {
+      "shortShares": 64824369,
+      "prevShortShares": 53800162,
+      "daysToCover": 2.92,
+      "avgDailyVolume": 22179760,
+      "changePercent": 20.49,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CVNA": {
+      "shortShares": 76207110,
+      "prevShortShares": 73327814,
+      "daysToCover": 8.42,
+      "avgDailyVolume": 9054432,
+      "changePercent": 3.93,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CVS": {
+      "shortShares": 19524883,
+      "prevShortShares": 19938997,
+      "daysToCover": 2.72,
+      "avgDailyVolume": 7190543,
+      "changePercent": -2.08,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CVX": {
+      "shortShares": 20366208,
+      "prevShortShares": 18851523,
+      "daysToCover": 2.48,
+      "avgDailyVolume": 8213724,
+      "changePercent": 8.03,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "D": {
+      "shortShares": 27609781,
+      "prevShortShares": 26996519,
+      "daysToCover": 4.87,
+      "avgDailyVolume": 5671405,
+      "changePercent": 2.27,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "DAL": {
+      "shortShares": 25220397,
+      "prevShortShares": 29082856,
+      "daysToCover": 3.23,
+      "avgDailyVolume": 7815367,
+      "changePercent": -13.28,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "DASH": {
+      "shortShares": 18781477,
+      "prevShortShares": 21383277,
+      "daysToCover": 4.69,
+      "avgDailyVolume": 4000781,
+      "changePercent": -12.17,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "DE": {
+      "shortShares": 6649037,
+      "prevShortShares": 7114332,
+      "daysToCover": 6.03,
+      "avgDailyVolume": 1102616,
+      "changePercent": -6.54,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "DEO": {
+      "shortShares": 4022940,
+      "prevShortShares": 4302349,
+      "daysToCover": 4.29,
+      "avgDailyVolume": 936676,
+      "changePercent": -6.49,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "DHR": {
+      "shortShares": 10096457,
+      "prevShortShares": 10858205,
+      "daysToCover": 2.73,
+      "avgDailyVolume": 3695196,
+      "changePercent": -7.02,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "DIS": {
+      "shortShares": 22638865,
+      "prevShortShares": 23782253,
+      "daysToCover": 2.24,
+      "avgDailyVolume": 10102948,
+      "changePercent": -4.81,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "DLR": {
+      "shortShares": 8469909,
+      "prevShortShares": 8056159,
+      "daysToCover": 2.14,
+      "avgDailyVolume": 3952383,
+      "changePercent": 5.14,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "DOV": {
+      "shortShares": 3321139,
+      "prevShortShares": 3535342,
+      "daysToCover": 2.99,
+      "avgDailyVolume": 1112116,
+      "changePercent": -6.06,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ECL": {
+      "shortShares": 3314735,
+      "prevShortShares": 3615944,
+      "daysToCover": 3.18,
+      "avgDailyVolume": 1043152,
+      "changePercent": -8.33,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "EL": {
+      "shortShares": 7988300,
+      "prevShortShares": 7927737,
+      "daysToCover": 3.23,
+      "avgDailyVolume": 2475421,
+      "changePercent": 0.76,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ELV": {
+      "shortShares": 6025314,
+      "prevShortShares": 6009556,
+      "daysToCover": 3.52,
+      "avgDailyVolume": 1709546,
+      "changePercent": 0.26,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "EMR": {
+      "shortShares": 11776220,
+      "prevShortShares": 11594899,
+      "daysToCover": 5.49,
+      "avgDailyVolume": 2143797,
+      "changePercent": 1.56,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "EOG": {
+      "shortShares": 17400049,
+      "prevShortShares": 18957813,
+      "daysToCover": 5.72,
+      "avgDailyVolume": 3042098,
+      "changePercent": -8.22,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "EQIX": {
+      "shortShares": 1877216,
+      "prevShortShares": 1773603,
+      "daysToCover": 3.56,
+      "avgDailyVolume": 526708,
+      "changePercent": 5.84,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ETN": {
+      "shortShares": 7980434,
+      "prevShortShares": 9291286,
+      "daysToCover": 4.09,
+      "avgDailyVolume": 1948992,
+      "changePercent": -14.11,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "EW": {
+      "shortShares": 11352019,
+      "prevShortShares": 11466764,
+      "daysToCover": 2.51,
+      "avgDailyVolume": 4522301,
+      "changePercent": -1,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "F": {
+      "shortShares": 96466645,
+      "prevShortShares": 103870610,
+      "daysToCover": 2.03,
+      "avgDailyVolume": 47530780,
+      "changePercent": -7.13,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "FCX": {
+      "shortShares": 28591644,
+      "prevShortShares": 30884821,
+      "daysToCover": 1.88,
+      "avgDailyVolume": 15238902,
+      "changePercent": -7.42,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "FDX": {
+      "shortShares": 5969116,
+      "prevShortShares": 5668738,
+      "daysToCover": 3.62,
+      "avgDailyVolume": 1646663,
+      "changePercent": 5.3,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "FOXA": {
+      "shortShares": 48168776,
+      "prevShortShares": 39600807,
+      "daysToCover": 7.35,
+      "avgDailyVolume": 6550772,
+      "changePercent": 21.64,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "GE": {
+      "shortShares": 14900112,
+      "prevShortShares": 12927498,
+      "daysToCover": 3.96,
+      "avgDailyVolume": 3766508,
+      "changePercent": 15.26,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "GEHC": {
+      "shortShares": 18451068,
+      "prevShortShares": 14368819,
+      "daysToCover": 3.86,
+      "avgDailyVolume": 4786116,
+      "changePercent": 28.41,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "GEV": {
+      "shortShares": 10117771,
+      "prevShortShares": 11681775,
+      "daysToCover": 3.98,
+      "avgDailyVolume": 2542336,
+      "changePercent": -13.39,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "GIS": {
+      "shortShares": 54425353,
+      "prevShortShares": 51888435,
+      "daysToCover": 4.43,
+      "avgDailyVolume": 12272931,
+      "changePercent": 4.89,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "GM": {
+      "shortShares": 24454839,
+      "prevShortShares": 26945999,
+      "daysToCover": 4.12,
+      "avgDailyVolume": 5929237,
+      "changePercent": -9.25,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "GOLD": {
+      "shortShares": 3046848,
+      "prevShortShares": 3105358,
+      "daysToCover": 7.59,
+      "avgDailyVolume": 401495,
+      "changePercent": -1.88,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "GS": {
+      "shortShares": 6311123,
+      "prevShortShares": 6482001,
+      "daysToCover": 3.36,
+      "avgDailyVolume": 1876647,
+      "changePercent": -2.64,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "GSK": {
+      "shortShares": 13759806,
+      "prevShortShares": 12755267,
+      "daysToCover": 4.45,
+      "avgDailyVolume": 3093122,
+      "changePercent": 7.88,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "HAL": {
+      "shortShares": 34569025,
+      "prevShortShares": 31705321,
+      "daysToCover": 3.69,
+      "avgDailyVolume": 9372485,
+      "changePercent": 9.03,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "HCA": {
+      "shortShares": 5826249,
+      "prevShortShares": 5354923,
+      "daysToCover": 3.13,
+      "avgDailyVolume": 1864076,
+      "changePercent": 8.8,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "HD": {
+      "shortShares": 12827409,
+      "prevShortShares": 13269053,
+      "daysToCover": 3.63,
+      "avgDailyVolume": 3534334,
+      "changePercent": -3.33,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "HLT": {
+      "shortShares": 5078910,
+      "prevShortShares": 5149033,
+      "daysToCover": 2.76,
+      "avgDailyVolume": 1839989,
+      "changePercent": -1.36,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "HMC": {
+      "shortShares": 2081567,
+      "prevShortShares": 1744187,
+      "daysToCover": 1.44,
+      "avgDailyVolume": 1440657,
+      "changePercent": 19.34,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "HSBC": {
+      "shortShares": 6187588,
+      "prevShortShares": 5478358,
+      "daysToCover": 5.05,
+      "avgDailyVolume": 1226225,
+      "changePercent": 12.95,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "HSY": {
+      "shortShares": 9063797,
+      "prevShortShares": 9916072,
+      "daysToCover": 4.3,
+      "avgDailyVolume": 2107747,
+      "changePercent": -8.59,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "HUM": {
+      "shortShares": 4251822,
+      "prevShortShares": 4327430,
+      "daysToCover": 3.23,
+      "avgDailyVolume": 1315609,
+      "changePercent": -1.75,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "HWM": {
+      "shortShares": 7843614,
+      "prevShortShares": 7839248,
+      "daysToCover": 4.02,
+      "avgDailyVolume": 1949763,
+      "changePercent": 0.06,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "IBM": {
+      "shortShares": 33088057,
+      "prevShortShares": 34277714,
+      "daysToCover": 2.17,
+      "avgDailyVolume": 15261035,
+      "changePercent": -3.47,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ICE": {
+      "shortShares": 9058341,
+      "prevShortShares": 10596219,
+      "daysToCover": 2,
+      "avgDailyVolume": 4532676,
+      "changePercent": -14.51,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "IHG": {
+      "shortShares": 414276,
+      "prevShortShares": 392059,
+      "daysToCover": 1.49,
+      "avgDailyVolume": 277649,
+      "changePercent": 5.67,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "INFY": {
+      "shortShares": 166731165,
+      "prevShortShares": 197367421,
+      "daysToCover": 7.04,
+      "avgDailyVolume": 23672840,
+      "changePercent": -15.52,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "IQV": {
+      "shortShares": 5260010,
+      "prevShortShares": 4977929,
+      "daysToCover": 4.24,
+      "avgDailyVolume": 1240429,
+      "changePercent": 5.67,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "IR": {
+      "shortShares": 14070824,
+      "prevShortShares": 16737056,
+      "daysToCover": 4.34,
+      "avgDailyVolume": 3241968,
+      "changePercent": -15.93,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ITW": {
+      "shortShares": 9536648,
+      "prevShortShares": 10136715,
+      "daysToCover": 8.12,
+      "avgDailyVolume": 1175048,
+      "changePercent": -5.92,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "JNJ": {
+      "shortShares": 27425456,
+      "prevShortShares": 26576975,
+      "daysToCover": 3.67,
+      "avgDailyVolume": 7473091,
+      "changePercent": 3.19,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "JPM": {
+      "shortShares": 29481916,
+      "prevShortShares": 26871351,
+      "daysToCover": 2.63,
+      "avgDailyVolume": 11219796,
+      "changePercent": 9.72,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "KO": {
+      "shortShares": 47770310,
+      "prevShortShares": 49570664,
+      "daysToCover": 2.95,
+      "avgDailyVolume": 16176522,
+      "changePercent": -3.63,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "LLY": {
+      "shortShares": 10278892,
+      "prevShortShares": 9353153,
+      "daysToCover": 4.07,
+      "avgDailyVolume": 2527511,
+      "changePercent": 9.9,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "LMT": {
+      "shortShares": 3113955,
+      "prevShortShares": 3508118,
+      "daysToCover": 3.36,
+      "avgDailyVolume": 927105,
+      "changePercent": -11.24,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "LUV": {
+      "shortShares": 31577502,
+      "prevShortShares": 31162829,
+      "daysToCover": 6.14,
+      "avgDailyVolume": 5140364,
+      "changePercent": 1.33,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "LVS": {
+      "shortShares": 17759508,
+      "prevShortShares": 18051820,
+      "daysToCover": 4.59,
+      "avgDailyVolume": 3867068,
+      "changePercent": -1.62,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "LYV": {
+      "shortShares": 25270606,
+      "prevShortShares": 23957755,
+      "daysToCover": 12.36,
+      "avgDailyVolume": 2044719,
+      "changePercent": 5.48,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "MA": {
+      "shortShares": 9060825,
+      "prevShortShares": 7749084,
+      "daysToCover": 2.84,
+      "avgDailyVolume": 3191741,
+      "changePercent": 16.93,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "MAR": {
+      "shortShares": 5005551,
+      "prevShortShares": 5441815,
+      "daysToCover": 3.49,
+      "avgDailyVolume": 1433684,
+      "changePercent": -8.02,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "MCD": {
+      "shortShares": 11465084,
+      "prevShortShares": 10976120,
+      "daysToCover": 2.46,
+      "avgDailyVolume": 4658741,
+      "changePercent": 4.45,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "MCK": {
+      "shortShares": 3878060,
+      "prevShortShares": 4117777,
+      "daysToCover": 4.12,
+      "avgDailyVolume": 941580,
+      "changePercent": -5.82,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "MDLZ": {
+      "shortShares": 33740434,
+      "prevShortShares": 36385509,
+      "daysToCover": 4.08,
+      "avgDailyVolume": 8266995,
+      "changePercent": -7.27,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "MDT": {
+      "shortShares": 19025990,
+      "prevShortShares": 19087345,
+      "daysToCover": 2.45,
+      "avgDailyVolume": 7779714,
+      "changePercent": -0.32,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "MET": {
+      "shortShares": 12774912,
+      "prevShortShares": 14290276,
+      "daysToCover": 4.18,
+      "avgDailyVolume": 3053738,
+      "changePercent": -10.6,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "MGM": {
+      "shortShares": 19944652,
+      "prevShortShares": 18910443,
+      "daysToCover": 7.51,
+      "avgDailyVolume": 2654377,
+      "changePercent": 5.47,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "MPC": {
+      "shortShares": 6412255,
+      "prevShortShares": 7290864,
+      "daysToCover": 3.18,
+      "avgDailyVolume": 2013578,
+      "changePercent": -12.05,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "MRK": {
+      "shortShares": 29359028,
+      "prevShortShares": 31381267,
+      "daysToCover": 3.42,
+      "avgDailyVolume": 8575599,
+      "changePercent": -6.44,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "MS": {
+      "shortShares": 17224493,
+      "prevShortShares": 17686436,
+      "daysToCover": 3.14,
+      "avgDailyVolume": 5493832,
+      "changePercent": -2.61,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "MSI": {
+      "shortShares": 3471505,
+      "prevShortShares": 3667472,
+      "daysToCover": 4.33,
+      "avgDailyVolume": 801935,
+      "changePercent": -5.34,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "MU": {
+      "shortShares": 36211849,
+      "prevShortShares": 31669690,
+      "daysToCover": 1,
+      "avgDailyVolume": 43382203,
+      "changePercent": 14.34,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "NEM": {
+      "shortShares": 19917795,
+      "prevShortShares": 19486635,
+      "daysToCover": 2.92,
+      "avgDailyVolume": 6825057,
+      "changePercent": 2.21,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "NET": {
+      "shortShares": 9834475,
+      "prevShortShares": 9277677,
+      "daysToCover": 3.1,
+      "avgDailyVolume": 3169257,
+      "changePercent": 6,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "NIO": {
+      "shortShares": 128280501,
+      "prevShortShares": 130234812,
+      "daysToCover": 5.19,
+      "avgDailyVolume": 24703034,
+      "changePercent": -1.5,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "NKE": {
+      "shortShares": 63943595,
+      "prevShortShares": 72292448,
+      "daysToCover": 2.46,
+      "avgDailyVolume": 25942006,
+      "changePercent": -11.55,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "NOW": {
+      "shortShares": 55711860,
+      "prevShortShares": 62126642,
+      "daysToCover": 3.1,
+      "avgDailyVolume": 17961133,
+      "changePercent": -10.33,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "NU": {
+      "shortShares": 154746079,
+      "prevShortShares": 148358897,
+      "daysToCover": 1.54,
+      "avgDailyVolume": 100625217,
+      "changePercent": 4.31,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "NUE": {
+      "shortShares": 4020946,
+      "prevShortShares": 4384931,
+      "daysToCover": 3.22,
+      "avgDailyVolume": 1246846,
+      "changePercent": -8.3,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "NVO": {
+      "shortShares": 31094150,
+      "prevShortShares": 27780646,
+      "daysToCover": 3.34,
+      "avgDailyVolume": 9315762,
+      "changePercent": 11.93,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "NVS": {
+      "shortShares": 5713789,
+      "prevShortShares": 5355498,
+      "daysToCover": 3.59,
+      "avgDailyVolume": 1590064,
+      "changePercent": 6.69,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "O": {
+      "shortShares": 40024135,
+      "prevShortShares": 43482417,
+      "daysToCover": 7.24,
+      "avgDailyVolume": 5532011,
+      "changePercent": -7.95,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ORCL": {
+      "shortShares": 50068756,
+      "prevShortShares": 41966703,
+      "daysToCover": 1.16,
+      "avgDailyVolume": 43167418,
+      "changePercent": 19.31,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "OXY": {
+      "shortShares": 24076079,
+      "prevShortShares": 26337816,
+      "daysToCover": 2.32,
+      "avgDailyVolume": 10386189,
+      "changePercent": -8.59,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "PFE": {
+      "shortShares": 163820439,
+      "prevShortShares": 163578117,
+      "daysToCover": 3.83,
+      "avgDailyVolume": 42807581,
+      "changePercent": 0.15,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "PG": {
+      "shortShares": 23118701,
+      "prevShortShares": 23954411,
+      "daysToCover": 2.53,
+      "avgDailyVolume": 9137032,
+      "changePercent": -3.49,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "PGR": {
+      "shortShares": 9609478,
+      "prevShortShares": 7791620,
+      "daysToCover": 2.99,
+      "avgDailyVolume": 3213213,
+      "changePercent": 23.33,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "PH": {
+      "shortShares": 1453850,
+      "prevShortShares": 1595703,
+      "daysToCover": 2.85,
+      "avgDailyVolume": 510933,
+      "changePercent": -8.89,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "PINS": {
+      "shortShares": 57443101,
+      "prevShortShares": 59627233,
+      "daysToCover": 5.44,
+      "avgDailyVolume": 10553601,
+      "changePercent": -3.66,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "PLD": {
+      "shortShares": 13453134,
+      "prevShortShares": 13048598,
+      "daysToCover": 3.95,
+      "avgDailyVolume": 3403972,
+      "changePercent": 3.1,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "PLTR": {
+      "shortShares": 77877652,
+      "prevShortShares": 87264219,
+      "daysToCover": 1.83,
+      "avgDailyVolume": 42481966,
+      "changePercent": -10.76,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "PM": {
+      "shortShares": 17496016,
+      "prevShortShares": 18203066,
+      "daysToCover": 3.95,
+      "avgDailyVolume": 4428823,
+      "changePercent": -3.88,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "PSA": {
+      "shortShares": 6608871,
+      "prevShortShares": 6731327,
+      "daysToCover": 7.61,
+      "avgDailyVolume": 868467,
+      "changePercent": -1.82,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "PSX": {
+      "shortShares": 7929673,
+      "prevShortShares": 8062970,
+      "daysToCover": 3.01,
+      "avgDailyVolume": 2637537,
+      "changePercent": -1.65,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "RACE": {
+      "shortShares": 3408874,
+      "prevShortShares": 3639128,
+      "daysToCover": 8.14,
+      "avgDailyVolume": 418556,
+      "changePercent": -6.33,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "RBLX": {
+      "shortShares": 29317704,
+      "prevShortShares": 28990061,
+      "daysToCover": 3.95,
+      "avgDailyVolume": 7428363,
+      "changePercent": 1.13,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "RCI": {
+      "shortShares": 15943319,
+      "prevShortShares": 13403095,
+      "daysToCover": 11.52,
+      "avgDailyVolume": 1383928,
+      "changePercent": 18.95,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "RCL": {
+      "shortShares": 13080319,
+      "prevShortShares": 12701856,
+      "daysToCover": 5.92,
+      "avgDailyVolume": 2208807,
+      "changePercent": 2.98,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "REGN": {
+      "shortShares": 3501203,
+      "prevShortShares": 3494420,
+      "daysToCover": 4.72,
+      "avgDailyVolume": 741224,
+      "changePercent": 0.19,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "RIO": {
+      "shortShares": 9263337,
+      "prevShortShares": 10350517,
+      "daysToCover": 3.2,
+      "avgDailyVolume": 2891028,
+      "changePercent": -10.5,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ROK": {
+      "shortShares": 3780315,
+      "prevShortShares": 4228239,
+      "daysToCover": 5.37,
+      "avgDailyVolume": 703801,
+      "changePercent": -10.59,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ROKU": {
+      "shortShares": 8245711,
+      "prevShortShares": 5959833,
+      "daysToCover": 2.52,
+      "avgDailyVolume": 3275595,
+      "changePercent": 38.35,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "RTX": {
+      "shortShares": 17070096,
+      "prevShortShares": 16114183,
+      "daysToCover": 4.04,
+      "avgDailyVolume": 4227583,
+      "changePercent": 5.93,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SAP": {
+      "shortShares": 9595666,
+      "prevShortShares": 11228568,
+      "daysToCover": 3.79,
+      "avgDailyVolume": 2532286,
+      "changePercent": -14.54,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SCCO": {
+      "shortShares": 11023738,
+      "prevShortShares": 11666779,
+      "daysToCover": 10.52,
+      "avgDailyVolume": 1047421,
+      "changePercent": -5.51,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SCHW": {
+      "shortShares": 22669193,
+      "prevShortShares": 25024929,
+      "daysToCover": 2.68,
+      "avgDailyVolume": 8451705,
+      "changePercent": -9.41,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SHEL": {
+      "shortShares": 27764613,
+      "prevShortShares": 29567259,
+      "daysToCover": 4.57,
+      "avgDailyVolume": 6075646,
+      "changePercent": -6.1,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SLB": {
+      "shortShares": 63230378,
+      "prevShortShares": 53765342,
+      "daysToCover": 5.71,
+      "avgDailyVolume": 11078275,
+      "changePercent": 17.6,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SNAP": {
+      "shortShares": 91270073,
+      "prevShortShares": 113125166,
+      "daysToCover": 2.7,
+      "avgDailyVolume": 33792988,
+      "changePercent": -19.32,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SNY": {
+      "shortShares": 7371480,
+      "prevShortShares": 6646490,
+      "daysToCover": 2.44,
+      "avgDailyVolume": 3019812,
+      "changePercent": 10.91,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "SO": {
+      "shortShares": 36593870,
+      "prevShortShares": 37411093,
+      "daysToCover": 8.44,
+      "avgDailyVolume": 4336965,
+      "changePercent": -2.18,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SONY": {
+      "shortShares": 14876415,
+      "prevShortShares": 16263945,
+      "daysToCover": 3.28,
+      "avgDailyVolume": 4534640,
+      "changePercent": -8.53,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SPG": {
+      "shortShares": 10230095,
+      "prevShortShares": 10848176,
+      "daysToCover": 5.61,
+      "avgDailyVolume": 1823386,
+      "changePercent": -5.7,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SPGI": {
+      "shortShares": 5061368,
+      "prevShortShares": 3437187,
+      "daysToCover": 2.24,
+      "avgDailyVolume": 2257509,
+      "changePercent": 47.25,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SPOT": {
+      "shortShares": 6561019,
+      "prevShortShares": 6297025,
+      "daysToCover": 4.53,
+      "avgDailyVolume": 1448228,
+      "changePercent": 4.19,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SQM": {
+      "shortShares": 2243442,
+      "prevShortShares": 2190934,
+      "daysToCover": 2.56,
+      "avgDailyVolume": 876022,
+      "changePercent": 2.4,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SRE": {
+      "shortShares": 13658735,
+      "prevShortShares": 14632805,
+      "daysToCover": 4.91,
+      "avgDailyVolume": 2783058,
+      "changePercent": -6.66,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "STLA": {
+      "shortShares": 109835654,
+      "prevShortShares": 100720074,
+      "daysToCover": 5.56,
+      "avgDailyVolume": 19747865,
+      "changePercent": 9.05,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SYK": {
+      "shortShares": 7029895,
+      "prevShortShares": 6924236,
+      "daysToCover": 2.68,
+      "avgDailyVolume": 2622653,
+      "changePercent": 1.53,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "T": {
+      "shortShares": 107643650,
+      "prevShortShares": 125702888,
+      "daysToCover": 1.34,
+      "avgDailyVolume": 80586115,
+      "changePercent": -14.37,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "TJX": {
+      "shortShares": 17974454,
+      "prevShortShares": 16856747,
+      "daysToCover": 3.52,
+      "avgDailyVolume": 5105538,
+      "changePercent": 6.63,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "TM": {
+      "shortShares": 872952,
+      "prevShortShares": 1030022,
+      "daysToCover": 1.82,
+      "avgDailyVolume": 478974,
+      "changePercent": -15.25,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "TMO": {
+      "shortShares": 5298322,
+      "prevShortShares": 5351535,
+      "daysToCover": 2.98,
+      "avgDailyVolume": 1778419,
+      "changePercent": -0.99,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "TRI": {
+      "shortShares": 13914278,
+      "prevShortShares": 14624761,
+      "daysToCover": 7.3,
+      "avgDailyVolume": 1906154,
+      "changePercent": -4.86,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TSM": {
+      "shortShares": 33350090,
+      "prevShortShares": 27731361,
+      "daysToCover": 2.34,
+      "avgDailyVolume": 14272955,
+      "changePercent": 20.26,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "TTE": {
+      "shortShares": 5738075,
+      "prevShortShares": 5321050,
+      "daysToCover": 3.84,
+      "avgDailyVolume": 1493625,
+      "changePercent": 7.84,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "TU": {
+      "shortShares": 69363311,
+      "prevShortShares": 66895777,
+      "daysToCover": 12.13,
+      "avgDailyVolume": 5720058,
+      "changePercent": 3.69,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "UHS": {
+      "shortShares": 3400680,
+      "prevShortShares": 3020568,
+      "daysToCover": 3.78,
+      "avgDailyVolume": 900385,
+      "changePercent": 12.58,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "UNH": {
+      "shortShares": 17338297,
+      "prevShortShares": 18410503,
+      "daysToCover": 3.46,
+      "avgDailyVolume": 5008517,
+      "changePercent": -5.82,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "UNP": {
+      "shortShares": 28233358,
+      "prevShortShares": 28484157,
+      "daysToCover": 12.49,
+      "avgDailyVolume": 2259844,
+      "changePercent": -0.88,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "UPS": {
+      "shortShares": 24444387,
+      "prevShortShares": 23118697,
+      "daysToCover": 6.3,
+      "avgDailyVolume": 3882627,
+      "changePercent": 5.73,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "USB": {
+      "shortShares": 24772569,
+      "prevShortShares": 23654933,
+      "daysToCover": 3.43,
+      "avgDailyVolume": 7220824,
+      "changePercent": 4.72,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "V": {
+      "shortShares": 23581970,
+      "prevShortShares": 20676753,
+      "daysToCover": 2.66,
+      "avgDailyVolume": 8877106,
+      "changePercent": 14.05,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "VALE": {
+      "shortShares": 58497355,
+      "prevShortShares": 61521242,
+      "daysToCover": 2.55,
+      "avgDailyVolume": 22924655,
+      "changePercent": -4.92,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "VLO": {
+      "shortShares": 10973199,
+      "prevShortShares": 10378936,
+      "daysToCover": 3.93,
+      "avgDailyVolume": 2790570,
+      "changePercent": 5.73,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "VMC": {
+      "shortShares": 6549851,
+      "prevShortShares": 6009130,
+      "daysToCover": 6.51,
+      "avgDailyVolume": 1006547,
+      "changePercent": 9,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "VOD": {
+      "shortShares": 9032541,
+      "prevShortShares": 8745200,
+      "daysToCover": 1.66,
+      "avgDailyVolume": 5454333,
+      "changePercent": 3.29,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "VZ": {
+      "shortShares": 85680317,
+      "prevShortShares": 94985050,
+      "daysToCover": 2.44,
+      "avgDailyVolume": 35055586,
+      "changePercent": -9.8,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "WBD": {
+      "shortShares": 64955283,
+      "prevShortShares": 74390174,
+      "daysToCover": 3.56,
+      "avgDailyVolume": 18265486,
+      "changePercent": -12.68,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "WELL": {
+      "shortShares": 19065952,
+      "prevShortShares": 19373177,
+      "daysToCover": 6.7,
+      "avgDailyVolume": 2844286,
+      "changePercent": -1.59,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "WFC": {
+      "shortShares": 28993166,
+      "prevShortShares": 28597263,
+      "daysToCover": 1.75,
+      "avgDailyVolume": 16545703,
+      "changePercent": 1.38,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "WMT": {
+      "shortShares": 74400164,
+      "prevShortShares": 83880603,
+      "daysToCover": 3.41,
+      "avgDailyVolume": 21810772,
+      "changePercent": -11.3,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "WPM": {
+      "shortShares": 3147651,
+      "prevShortShares": 3390686,
+      "daysToCover": 2.11,
+      "avgDailyVolume": 1492798,
+      "changePercent": -7.17,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "XOM": {
+      "shortShares": 42688964,
+      "prevShortShares": 37809438,
+      "daysToCover": 2.94,
+      "avgDailyVolume": 14514465,
+      "changePercent": 12.91,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "XPEV": {
+      "shortShares": 44990669,
+      "prevShortShares": 55259076,
+      "daysToCover": 6.55,
+      "avgDailyVolume": 6871634,
+      "changePercent": -18.58,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BA": {
+      "shortShares": 14686375,
+      "prevShortShares": 13625059,
+      "daysToCover": 3.23,
+      "avgDailyVolume": 4552042,
+      "changePercent": 7.79,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "UBER": {
+      "shortShares": 51841219,
+      "prevShortShares": 56087568,
+      "daysToCover": 3.83,
+      "avgDailyVolume": 13549632,
+      "changePercent": -7.57,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CMG": {
+      "shortShares": 50630812,
+      "prevShortShares": 51904860,
+      "daysToCover": 3.03,
+      "avgDailyVolume": 16701372,
+      "changePercent": -2.45,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "GD": {
+      "shortShares": 2890568,
+      "prevShortShares": 3141061,
+      "daysToCover": 2.62,
+      "avgDailyVolume": 1101959,
+      "changePercent": -7.97,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "NOC": {
+      "shortShares": 2324381,
+      "prevShortShares": 2356082,
+      "daysToCover": 2.63,
+      "avgDailyVolume": 884681,
+      "changePercent": -1.35,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "LHX": {
+      "shortShares": 3088626,
+      "prevShortShares": 3376848,
+      "daysToCover": 2.81,
+      "avgDailyVolume": 1100565,
+      "changePercent": -8.54,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BX": {
+      "shortShares": 23614025,
+      "prevShortShares": 23138068,
+      "daysToCover": 6.07,
+      "avgDailyVolume": 3892386,
+      "changePercent": 2.06,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "KKR": {
+      "shortShares": 15305280,
+      "prevShortShares": 15642821,
+      "daysToCover": 4.39,
+      "avgDailyVolume": 3488075,
+      "changePercent": -2.16,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "TGT": {
+      "shortShares": 20099170,
+      "prevShortShares": 18658100,
+      "daysToCover": 4.67,
+      "avgDailyVolume": 4302648,
+      "changePercent": 7.72,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "LOW": {
+      "shortShares": 11089170,
+      "prevShortShares": 10033932,
+      "daysToCover": 4.12,
+      "avgDailyVolume": 2690869,
+      "changePercent": 10.52,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "CCJ": {
+      "shortShares": 7333887,
+      "prevShortShares": 6656076,
+      "daysToCover": 2.07,
+      "avgDailyVolume": 3534863,
+      "changePercent": 10.18,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "LNG": {
+      "shortShares": 4232389,
+      "prevShortShares": 3908838,
+      "daysToCover": 2.15,
+      "avgDailyVolume": 1969377,
+      "changePercent": 8.28,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "DVN": {
+      "shortShares": 31503519,
+      "prevShortShares": 29339968,
+      "daysToCover": 2.56,
+      "avgDailyVolume": 12311090,
+      "changePercent": 7.37,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ELF": {
+      "shortShares": 7643710,
+      "prevShortShares": 11978483,
+      "daysToCover": 2.79,
+      "avgDailyVolume": 2737886,
+      "changePercent": -36.19,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "ONON": {
+      "shortShares": 21251241,
+      "prevShortShares": 20710841,
+      "daysToCover": 5.31,
+      "avgDailyVolume": 4000285,
+      "changePercent": 2.61,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "VRT": {
+      "shortShares": 11209855,
+      "prevShortShares": 14478165,
+      "daysToCover": 2.38,
+      "avgDailyVolume": 4710912,
+      "changePercent": -22.57,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "STT": {
+      "shortShares": 5064704,
+      "prevShortShares": 5016917,
+      "daysToCover": 2.09,
+      "avgDailyVolume": 2422475,
+      "changePercent": 0.95,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "MO": {
+      "shortShares": 53134147,
+      "prevShortShares": 51448610,
+      "daysToCover": 8.6,
+      "avgDailyVolume": 6175621,
+      "changePercent": 3.28,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "TRV": {
+      "shortShares": 6552038,
+      "prevShortShares": 7946226,
+      "daysToCover": 4.38,
+      "avgDailyVolume": 1495783,
+      "changePercent": -17.55,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "AFL": {
+      "shortShares": 12496303,
+      "prevShortShares": 12583956,
+      "daysToCover": 7.4,
+      "avgDailyVolume": 1687779,
+      "changePercent": -0.7,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "VST": {
+      "shortShares": 12604861,
+      "prevShortShares": 15917274,
+      "daysToCover": 3.17,
+      "avgDailyVolume": 3981167,
+      "changePercent": -20.81,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "WM": {
+      "shortShares": 6219339,
+      "prevShortShares": 6359537,
+      "daysToCover": 3.74,
+      "avgDailyVolume": 1660937,
+      "changePercent": -2.2,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "PWR": {
+      "shortShares": 3171042,
+      "prevShortShares": 3337307,
+      "daysToCover": 3.14,
+      "avgDailyVolume": 1009271,
+      "changePercent": -4.98,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "DECK": {
+      "shortShares": 5839678,
+      "prevShortShares": 6559671,
+      "daysToCover": 3.12,
+      "avgDailyVolume": 1870249,
+      "changePercent": -10.98,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "STZ": {
+      "shortShares": 8254203,
+      "prevShortShares": 7572909,
+      "daysToCover": 3.25,
+      "avgDailyVolume": 2542772,
+      "changePercent": 9,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "NCLH": {
+      "shortShares": 81737353,
+      "prevShortShares": 84532720,
+      "daysToCover": 6.05,
+      "avgDailyVolume": 13507380,
+      "changePercent": -3.31,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "AMC": {
+      "shortShares": 49558149,
+      "prevShortShares": 52940300,
+      "daysToCover": 1.12,
+      "avgDailyVolume": 44322503,
+      "changePercent": -6.39,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "RH": {
+      "shortShares": 5842532,
+      "prevShortShares": 5772447,
+      "daysToCover": 7.39,
+      "avgDailyVolume": 790476,
+      "changePercent": 1.21,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "IONQ": {
+      "shortShares": 47045003,
+      "prevShortShares": 44033601,
+      "daysToCover": 2.81,
+      "avgDailyVolume": 16728171,
+      "changePercent": 6.84,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "JOBY": {
+      "shortShares": 109764445,
+      "prevShortShares": 99792462,
+      "daysToCover": 2.43,
+      "avgDailyVolume": 45123784,
+      "changePercent": 9.99,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BWXT": {
+      "shortShares": 2997312,
+      "prevShortShares": 2930204,
+      "daysToCover": 3.58,
+      "avgDailyVolume": 836202,
+      "changePercent": 2.29,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "SPY": {
+      "shortShares": 96827747,
+      "prevShortShares": 109815483,
+      "daysToCover": 2.15,
+      "avgDailyVolume": 44940359,
+      "changePercent": -11.83,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "IWM": {
+      "shortShares": 79811318,
+      "prevShortShares": 80125139,
+      "daysToCover": 4.17,
+      "avgDailyVolume": 19145149,
+      "changePercent": -0.39,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "XLF": {
+      "shortShares": 148996035,
+      "prevShortShares": 144813204,
+      "daysToCover": 4.01,
+      "avgDailyVolume": 37151686,
+      "changePercent": 2.89,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "XLE": {
+      "shortShares": 61343547,
+      "prevShortShares": 55243146,
+      "daysToCover": 1.92,
+      "avgDailyVolume": 32022062,
+      "changePercent": 11.04,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "XLK": {
+      "shortShares": 17947371,
+      "prevShortShares": 17078226,
+      "daysToCover": 1.91,
+      "avgDailyVolume": 9402927,
+      "changePercent": 5.09,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "GLD": {
+      "shortShares": 13500524,
+      "prevShortShares": 11638691,
+      "daysToCover": 2.09,
+      "avgDailyVolume": 6447554,
+      "changePercent": 16,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "HYG": {
+      "shortShares": 86778998,
+      "prevShortShares": 94328582,
+      "daysToCover": 3.07,
+      "avgDailyVolume": 28251763,
+      "changePercent": -8,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    },
+    "GME": {
+      "shortShares": 55426276,
+      "prevShortShares": 55856110,
+      "daysToCover": 16.14,
+      "avgDailyVolume": 3433961,
+      "changePercent": -0.77,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "AAL": {
+      "shortShares": 63578122,
+      "prevShortShares": 57852431,
+      "daysToCover": 1,
+      "avgDailyVolume": 142667371,
+      "changePercent": 9.9,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "AAPL": {
+      "shortShares": 146547784,
+      "prevShortShares": 140526320,
+      "daysToCover": 3.06,
+      "avgDailyVolume": 47952794,
+      "changePercent": 4.28,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ABNB": {
+      "shortShares": 13994933,
+      "prevShortShares": 14889750,
+      "daysToCover": 4.44,
+      "avgDailyVolume": 3150865,
+      "changePercent": -6.01,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ACB": {
+      "shortShares": 7996414,
+      "prevShortShares": 7608784,
+      "daysToCover": 6.83,
+      "avgDailyVolume": 1170618,
+      "changePercent": 5.09,
+      "exchange": "SC",
+      "settlementDate": "2026-07-15"
+    },
+    "ADBE": {
+      "shortShares": 20264951,
+      "prevShortShares": 19612201,
+      "daysToCover": 3.79,
+      "avgDailyVolume": 5344526,
+      "changePercent": 3.33,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ADI": {
+      "shortShares": 10464738,
+      "prevShortShares": 12030161,
+      "daysToCover": 2.73,
+      "avgDailyVolume": 3835989,
+      "changePercent": -13.01,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ALGN": {
+      "shortShares": 4825290,
+      "prevShortShares": 4682178,
+      "daysToCover": 5.35,
+      "avgDailyVolume": 902373,
+      "changePercent": 3.06,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "AMAT": {
+      "shortShares": 16703697,
+      "prevShortShares": 19913996,
+      "daysToCover": 1.65,
+      "avgDailyVolume": 10093729,
+      "changePercent": -16.12,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "AMD": {
+      "shortShares": 39768152,
+      "prevShortShares": 41583210,
+      "daysToCover": 1.55,
+      "avgDailyVolume": 25582906,
+      "changePercent": -4.36,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "AMGN": {
+      "shortShares": 12845008,
+      "prevShortShares": 12870865,
+      "daysToCover": 6.36,
+      "avgDailyVolume": 2018823,
+      "changePercent": -0.2,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "AMZN": {
+      "shortShares": 106566350,
+      "prevShortShares": 100349673,
+      "daysToCover": 2.76,
+      "avgDailyVolume": 38648773,
+      "changePercent": 6.2,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "APP": {
+      "shortShares": 12561495,
+      "prevShortShares": 12114286,
+      "daysToCover": 2.21,
+      "avgDailyVolume": 5691878,
+      "changePercent": 3.69,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ARM": {
+      "shortShares": 17460573,
+      "prevShortShares": 17227301,
+      "daysToCover": 2.92,
+      "avgDailyVolume": 5976106,
+      "changePercent": 1.35,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ASML": {
+      "shortShares": 1284921,
+      "prevShortShares": 1132572,
+      "daysToCover": 1,
+      "avgDailyVolume": 2091755,
+      "changePercent": 13.45,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "AVGO": {
+      "shortShares": 68638929,
+      "prevShortShares": 70123497,
+      "daysToCover": 3.02,
+      "avgDailyVolume": 22758366,
+      "changePercent": -2.12,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "AZN": {
+      "shortShares": 2533640,
+      "prevShortShares": 1530055,
+      "daysToCover": 1,
+      "avgDailyVolume": 3192074,
+      "changePercent": 65.59,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "BIDU": {
+      "shortShares": 9771793,
+      "prevShortShares": 11723089,
+      "daysToCover": 3.77,
+      "avgDailyVolume": 2591640,
+      "changePercent": -16.64,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "BILI": {
+      "shortShares": 20436615,
+      "prevShortShares": 20466671,
+      "daysToCover": 9.98,
+      "avgDailyVolume": 2047310,
+      "changePercent": -0.15,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "BNTX": {
+      "shortShares": 2271284,
+      "prevShortShares": 2324296,
+      "daysToCover": 2.91,
+      "avgDailyVolume": 780258,
+      "changePercent": -2.28,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "BYDDY": {
+      "shortShares": 1751778,
+      "prevShortShares": 2023815,
+      "daysToCover": 1,
+      "avgDailyVolume": 3052724,
+      "changePercent": -13.44,
+      "exchange": "OTC",
+      "settlementDate": "2026-07-15"
+    },
+    "CDNS": {
+      "shortShares": 6187380,
+      "prevShortShares": 6034189,
+      "daysToCover": 4.08,
+      "avgDailyVolume": 1516231,
+      "changePercent": 2.54,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CEG": {
+      "shortShares": 10654877,
+      "prevShortShares": 12153531,
+      "daysToCover": 3.03,
+      "avgDailyVolume": 3512945,
+      "changePercent": -12.33,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CELH": {
+      "shortShares": 39938164,
+      "prevShortShares": 37290385,
+      "daysToCover": 5.42,
+      "avgDailyVolume": 7373340,
+      "changePercent": 7.1,
+      "exchange": "SC",
+      "settlementDate": "2026-07-15"
+    },
+    "CGC": {
+      "shortShares": 23094605,
+      "prevShortShares": 23737484,
+      "daysToCover": 5.98,
+      "avgDailyVolume": 3862407,
+      "changePercent": -2.71,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CHTR": {
+      "shortShares": 20265471,
+      "prevShortShares": 21047488,
+      "daysToCover": 9.42,
+      "avgDailyVolume": 2150992,
+      "changePercent": -3.72,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CMCSA": {
+      "shortShares": 85090590,
+      "prevShortShares": 88032735,
+      "daysToCover": 2.61,
+      "avgDailyVolume": 32598857,
+      "changePercent": -3.34,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "COIN": {
+      "shortShares": 25046921,
+      "prevShortShares": 24859937,
+      "daysToCover": 3.67,
+      "avgDailyVolume": 6818290,
+      "changePercent": 0.75,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "COST": {
+      "shortShares": 6957664,
+      "prevShortShares": 7284892,
+      "daysToCover": 2.75,
+      "avgDailyVolume": 2532106,
+      "changePercent": -4.49,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CPRT": {
+      "shortShares": 38000433,
+      "prevShortShares": 39400963,
+      "daysToCover": 3.24,
+      "avgDailyVolume": 11721381,
+      "changePercent": -3.55,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CRWD": {
+      "shortShares": 27450228,
+      "prevShortShares": 7135732,
+      "daysToCover": 2.93,
+      "avgDailyVolume": 9372073,
+      "changePercent": 284.69,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CSX": {
+      "shortShares": 36965072,
+      "prevShortShares": 38966330,
+      "daysToCover": 3.64,
+      "avgDailyVolume": 10143094,
+      "changePercent": -5.14,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CTAS": {
+      "shortShares": 12164882,
+      "prevShortShares": 11929658,
+      "daysToCover": 5.21,
+      "avgDailyVolume": 2335276,
+      "changePercent": 1.97,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CTSH": {
+      "shortShares": 57093656,
+      "prevShortShares": 59750850,
+      "daysToCover": 5.84,
+      "avgDailyVolume": 9771609,
+      "changePercent": -4.45,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "DDOG": {
+      "shortShares": 12494014,
+      "prevShortShares": 14725487,
+      "daysToCover": 2.94,
+      "avgDailyVolume": 4247439,
+      "changePercent": -15.15,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "DLTR": {
+      "shortShares": 11202106,
+      "prevShortShares": 15465887,
+      "daysToCover": 3.75,
+      "avgDailyVolume": 2989732,
+      "changePercent": -27.57,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "DUOL": {
+      "shortShares": 7494489,
+      "prevShortShares": 7440425,
+      "daysToCover": 7.63,
+      "avgDailyVolume": 982814,
+      "changePercent": 0.73,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "DXCM": {
+      "shortShares": 18654724,
+      "prevShortShares": 18109268,
+      "daysToCover": 4.37,
+      "avgDailyVolume": 4273671,
+      "changePercent": 3.01,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "EA": {
+      "shortShares": 8723759,
+      "prevShortShares": 9527632,
+      "daysToCover": 4.58,
+      "avgDailyVolume": 1903875,
+      "changePercent": -8.44,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "EBAY": {
+      "shortShares": 14028859,
+      "prevShortShares": 14812259,
+      "daysToCover": 5.54,
+      "avgDailyVolume": 2534475,
+      "changePercent": -5.29,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ENPH": {
+      "shortShares": 22918331,
+      "prevShortShares": 23529439,
+      "daysToCover": 5.06,
+      "avgDailyVolume": 4531731,
+      "changePercent": -2.6,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ETSY": {
+      "shortShares": 13962269,
+      "prevShortShares": 13813015,
+      "daysToCover": 5.17,
+      "avgDailyVolume": 2699358,
+      "changePercent": 1.08,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "EXC": {
+      "shortShares": 36101256,
+      "prevShortShares": 43262787,
+      "daysToCover": 3.96,
+      "avgDailyVolume": 9108477,
+      "changePercent": -16.55,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "EXPE": {
+      "shortShares": 8470912,
+      "prevShortShares": 9377142,
+      "daysToCover": 6.16,
+      "avgDailyVolume": 1374783,
+      "changePercent": -9.66,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "FAST": {
+      "shortShares": 31475902,
+      "prevShortShares": 30905562,
+      "daysToCover": 3.4,
+      "avgDailyVolume": 9245045,
+      "changePercent": 1.85,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "FISV": {
+      "shortShares": 20623415,
+      "prevShortShares": 23234067,
+      "daysToCover": 2.88,
+      "avgDailyVolume": 7154343,
+      "changePercent": -11.24,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "FNKO": {
+      "shortShares": 4654633,
+      "prevShortShares": 4575846,
+      "daysToCover": 7.07,
+      "avgDailyVolume": 658812,
+      "changePercent": 1.72,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "FSLR": {
+      "shortShares": 9890366,
+      "prevShortShares": 8222758,
+      "daysToCover": 5.7,
+      "avgDailyVolume": 1734029,
+      "changePercent": 20.28,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "FTNT": {
+      "shortShares": 14492724,
+      "prevShortShares": 15056605,
+      "daysToCover": 3.13,
+      "avgDailyVolume": 4628961,
+      "changePercent": -3.75,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "GILD": {
+      "shortShares": 25261911,
+      "prevShortShares": 25484358,
+      "daysToCover": 3.67,
+      "avgDailyVolume": 6888646,
+      "changePercent": -0.87,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "GLNCY": {
+      "shortShares": 714376,
+      "prevShortShares": 429288,
+      "daysToCover": 1,
+      "avgDailyVolume": 1883868,
+      "changePercent": 66.41,
+      "exchange": "OTC",
+      "settlementDate": "2026-07-15"
+    },
+    "GOOGL": {
+      "shortShares": 78667609,
+      "prevShortShares": 85860436,
+      "daysToCover": 3.43,
+      "avgDailyVolume": 22906756,
+      "changePercent": -8.38,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "HON": {
+      "shortShares": 9556342,
+      "prevShortShares": 11623011,
+      "daysToCover": 2.35,
+      "avgDailyVolume": 4058451,
+      "changePercent": -17.78,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "HOOD": {
+      "shortShares": 38088351,
+      "prevShortShares": 37497084,
+      "daysToCover": 1.63,
+      "avgDailyVolume": 23428811,
+      "changePercent": 1.58,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "IDXX": {
+      "shortShares": 2100008,
+      "prevShortShares": 1939622,
+      "daysToCover": 2.99,
+      "avgDailyVolume": 702942,
+      "changePercent": 8.27,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ILMN": {
+      "shortShares": 8752414,
+      "prevShortShares": 7565780,
+      "daysToCover": 4.39,
+      "avgDailyVolume": 1994295,
+      "changePercent": 15.68,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "INTC": {
+      "shortShares": 120963181,
+      "prevShortShares": 127787110,
+      "daysToCover": 1.17,
+      "avgDailyVolume": 103825959,
+      "changePercent": -5.34,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "INTU": {
+      "shortShares": 15822306,
+      "prevShortShares": 14572405,
+      "daysToCover": 3.46,
+      "avgDailyVolume": 4568963,
+      "changePercent": 8.58,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ISRG": {
+      "shortShares": 6708471,
+      "prevShortShares": 7322479,
+      "daysToCover": 2.42,
+      "avgDailyVolume": 2772775,
+      "changePercent": -8.39,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "JAKK": {
+      "shortShares": 509412,
+      "prevShortShares": 471429,
+      "daysToCover": 10.39,
+      "avgDailyVolume": 49024,
+      "changePercent": 8.06,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "JD": {
+      "shortShares": 32163620,
+      "prevShortShares": 30581710,
+      "daysToCover": 4.27,
+      "avgDailyVolume": 7532264,
+      "changePercent": 5.17,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "KDP": {
+      "shortShares": 62953820,
+      "prevShortShares": 73382337,
+      "daysToCover": 4.31,
+      "avgDailyVolume": 14601280,
+      "changePercent": -14.21,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "KLAC": {
+      "shortShares": 27939763,
+      "prevShortShares": 34375617,
+      "daysToCover": 2.03,
+      "avgDailyVolume": 13773473,
+      "changePercent": -18.72,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "LCID": {
+      "shortShares": 65009679,
+      "prevShortShares": 63467930,
+      "daysToCover": 2.21,
+      "avgDailyVolume": 29410591,
+      "changePercent": 2.43,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "LI": {
+      "shortShares": 26699182,
+      "prevShortShares": 25173630,
+      "daysToCover": 7.11,
+      "avgDailyVolume": 3756321,
+      "changePercent": 6.06,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "LRCX": {
+      "shortShares": 29520485,
+      "prevShortShares": 28314664,
+      "daysToCover": 2.41,
+      "avgDailyVolume": 12261057,
+      "changePercent": 4.26,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "LULU": {
+      "shortShares": 9991496,
+      "prevShortShares": 9850529,
+      "daysToCover": 3.9,
+      "avgDailyVolume": 2563795,
+      "changePercent": 1.43,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "LYFT": {
+      "shortShares": 89615386,
+      "prevShortShares": 91519638,
+      "daysToCover": 9.12,
+      "avgDailyVolume": 9830730,
+      "changePercent": -2.08,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "MCHP": {
+      "shortShares": 35231436,
+      "prevShortShares": 39365750,
+      "daysToCover": 3.45,
+      "avgDailyVolume": 10208361,
+      "changePercent": -10.5,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "MDB": {
+      "shortShares": 2836336,
+      "prevShortShares": 3884826,
+      "daysToCover": 2,
+      "avgDailyVolume": 1415592,
+      "changePercent": -26.99,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "MELI": {
+      "shortShares": 966840,
+      "prevShortShares": 1001769,
+      "daysToCover": 2.43,
+      "avgDailyVolume": 397345,
+      "changePercent": -3.49,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "META": {
+      "shortShares": 37847633,
+      "prevShortShares": 34489980,
+      "daysToCover": 1.61,
+      "avgDailyVolume": 23552375,
+      "changePercent": 9.74,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "MNST": {
+      "shortShares": 18659100,
+      "prevShortShares": 20118217,
+      "daysToCover": 3.59,
+      "avgDailyVolume": 5201447,
+      "changePercent": -7.25,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "MPWR": {
+      "shortShares": 2456955,
+      "prevShortShares": 2214362,
+      "daysToCover": 2.67,
+      "avgDailyVolume": 919274,
+      "changePercent": 10.96,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "MRNA": {
+      "shortShares": 52401842,
+      "prevShortShares": 53185640,
+      "daysToCover": 6.07,
+      "avgDailyVolume": 8626893,
+      "changePercent": -1.47,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "MRVL": {
+      "shortShares": 32479302,
+      "prevShortShares": 34082367,
+      "daysToCover": 1.22,
+      "avgDailyVolume": 26559116,
+      "changePercent": -4.7,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "MSFT": {
+      "shortShares": 92373474,
+      "prevShortShares": 89063316,
+      "daysToCover": 2.85,
+      "avgDailyVolume": 32422509,
+      "changePercent": 3.72,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "NCBDY": {
+      "shortShares": 104162,
+      "prevShortShares": 65437,
+      "daysToCover": 1,
+      "avgDailyVolume": 158479,
+      "changePercent": 59.18,
+      "exchange": "OTC",
+      "settlementDate": "2026-07-15"
+    },
+    "NFLX": {
+      "shortShares": 99746573,
+      "prevShortShares": 104117446,
+      "daysToCover": 2.55,
+      "avgDailyVolume": 39050525,
+      "changePercent": -4.2,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "NSRGY": {
+      "shortShares": 208474,
+      "prevShortShares": 166035,
+      "daysToCover": 1,
+      "avgDailyVolume": 999793,
+      "changePercent": 25.56,
+      "exchange": "OTC",
+      "settlementDate": "2026-07-15"
+    },
+    "NTDOY": {
+      "shortShares": 5838232,
+      "prevShortShares": 2022460,
+      "daysToCover": 1,
+      "avgDailyVolume": 7969237,
+      "changePercent": 188.67,
+      "exchange": "OTC",
+      "settlementDate": "2026-07-15"
+    },
+    "NTES": {
+      "shortShares": 2556355,
+      "prevShortShares": 2604375,
+      "daysToCover": 2.42,
+      "avgDailyVolume": 1058425,
+      "changePercent": -1.84,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "NVDA": {
+      "shortShares": 324052767,
+      "prevShortShares": 310126785,
+      "daysToCover": 2.47,
+      "avgDailyVolume": 131174356,
+      "changePercent": 4.49,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "NXPI": {
+      "shortShares": 8743250,
+      "prevShortShares": 8768869,
+      "daysToCover": 2.29,
+      "avgDailyVolume": 3822638,
+      "changePercent": -0.29,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ODFL": {
+      "shortShares": 8732782,
+      "prevShortShares": 9181039,
+      "daysToCover": 5.85,
+      "avgDailyVolume": 1491927,
+      "changePercent": -4.88,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "OKTA": {
+      "shortShares": 7573550,
+      "prevShortShares": 8603620,
+      "daysToCover": 2.4,
+      "avgDailyVolume": 3149369,
+      "changePercent": -11.97,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ON": {
+      "shortShares": 31300388,
+      "prevShortShares": 29775620,
+      "daysToCover": 2.78,
+      "avgDailyVolume": 11259100,
+      "changePercent": 5.12,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "PANW": {
+      "shortShares": 20423492,
+      "prevShortShares": 25002502,
+      "daysToCover": 2.83,
+      "avgDailyVolume": 7228923,
+      "changePercent": -18.31,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "PAYX": {
+      "shortShares": 19234786,
+      "prevShortShares": 20374922,
+      "daysToCover": 6.66,
+      "avgDailyVolume": 2887390,
+      "changePercent": -5.6,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "PCAR": {
+      "shortShares": 14875664,
+      "prevShortShares": 15104358,
+      "daysToCover": 5.25,
+      "avgDailyVolume": 2831188,
+      "changePercent": -1.51,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "PDD": {
+      "shortShares": 32783501,
+      "prevShortShares": 38173571,
+      "daysToCover": 4.48,
+      "avgDailyVolume": 7325330,
+      "changePercent": -14.12,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "PEP": {
+      "shortShares": 32637580,
+      "prevShortShares": 33304413,
+      "daysToCover": 3.28,
+      "avgDailyVolume": 9939243,
+      "changePercent": -2,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "PLBY": {
+      "shortShares": 3394559,
+      "prevShortShares": 2964217,
+      "daysToCover": 4.77,
+      "avgDailyVolume": 711966,
+      "changePercent": 14.52,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "PYPL": {
+      "shortShares": 54774095,
+      "prevShortShares": 54915943,
+      "daysToCover": 2.73,
+      "avgDailyVolume": 20040910,
+      "changePercent": -0.26,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "QCOM": {
+      "shortShares": 36152231,
+      "prevShortShares": 40203445,
+      "daysToCover": 2.63,
+      "avgDailyVolume": 13743214,
+      "changePercent": -10.08,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "RHHBY": {
+      "shortShares": 3475809,
+      "prevShortShares": 3927414,
+      "daysToCover": 1,
+      "avgDailyVolume": 3703062,
+      "changePercent": -11.5,
+      "exchange": "OTC",
+      "settlementDate": "2026-07-15"
+    },
+    "RIVN": {
+      "shortShares": 140540265,
+      "prevShortShares": 150409525,
+      "daysToCover": 2.57,
+      "avgDailyVolume": 54647035,
+      "changePercent": -6.56,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ROST": {
+      "shortShares": 10265464,
+      "prevShortShares": 10781855,
+      "daysToCover": 4.28,
+      "avgDailyVolume": 2397707,
+      "changePercent": -4.79,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "RUN": {
+      "shortShares": 65915171,
+      "prevShortShares": 65073480,
+      "daysToCover": 6.38,
+      "avgDailyVolume": 10325996,
+      "changePercent": 1.29,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "RYAAY": {
+      "shortShares": 2447764,
+      "prevShortShares": 2088564,
+      "daysToCover": 1.2,
+      "avgDailyVolume": 2045541,
+      "changePercent": 17.2,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "SBUX": {
+      "shortShares": 46903610,
+      "prevShortShares": 48192060,
+      "daysToCover": 7.41,
+      "avgDailyVolume": 6328662,
+      "changePercent": -2.67,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "SEDG": {
+      "shortShares": 10741694,
+      "prevShortShares": 10402264,
+      "daysToCover": 5.06,
+      "avgDailyVolume": 2124900,
+      "changePercent": 3.26,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "SIRI": {
+      "shortShares": 36718070,
+      "prevShortShares": 36423582,
+      "daysToCover": 9.54,
+      "avgDailyVolume": 3847538,
+      "changePercent": 0.81,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "SMCI": {
+      "shortShares": 97146633,
+      "prevShortShares": 103192503,
+      "daysToCover": 2.97,
+      "avgDailyVolume": 32743679,
+      "changePercent": -5.86,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "SNDL": {
+      "shortShares": 1956751,
+      "prevShortShares": 1874028,
+      "daysToCover": 1.2,
+      "avgDailyVolume": 1635714,
+      "changePercent": 4.41,
+      "exchange": "SC",
+      "settlementDate": "2026-07-15"
+    },
+    "SNPS": {
+      "shortShares": 5608882,
+      "prevShortShares": 5418434,
+      "daysToCover": 4.16,
+      "avgDailyVolume": 1348593,
+      "changePercent": 3.51,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TCOM": {
+      "shortShares": 13486568,
+      "prevShortShares": 13188073,
+      "daysToCover": 5.35,
+      "avgDailyVolume": 2523160,
+      "changePercent": 2.26,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TEAM": {
+      "shortShares": 17645455,
+      "prevShortShares": 16902283,
+      "daysToCover": 5.22,
+      "avgDailyVolume": 3381354,
+      "changePercent": 4.4,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TLRY": {
+      "shortShares": 16225934,
+      "prevShortShares": 17798474,
+      "daysToCover": 4.17,
+      "avgDailyVolume": 3892949,
+      "changePercent": -8.84,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TMUS": {
+      "shortShares": 22533542,
+      "prevShortShares": 20010780,
+      "daysToCover": 4.84,
+      "avgDailyVolume": 4653134,
+      "changePercent": 12.61,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TRIP": {
+      "shortShares": 32680502,
+      "prevShortShares": 33000280,
+      "daysToCover": 11.02,
+      "avgDailyVolume": 2965425,
+      "changePercent": -0.97,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TSLA": {
+      "shortShares": 70646375,
+      "prevShortShares": 79109257,
+      "daysToCover": 1.78,
+      "avgDailyVolume": 39663962,
+      "changePercent": -10.7,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TTWO": {
+      "shortShares": 7607084,
+      "prevShortShares": 8661180,
+      "daysToCover": 4.09,
+      "avgDailyVolume": 1859662,
+      "changePercent": -12.17,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TWLO": {
+      "shortShares": 4212905,
+      "prevShortShares": 4396191,
+      "daysToCover": 2.4,
+      "avgDailyVolume": 1755748,
+      "changePercent": -4.17,
+      "exchange": "NYSE",
+      "settlementDate": "2026-07-15"
+    },
+    "TXN": {
+      "shortShares": 15763842,
+      "prevShortShares": 16881127,
+      "daysToCover": 2.27,
+      "avgDailyVolume": 6929280,
+      "changePercent": -6.62,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "UAL": {
+      "shortShares": 21814905,
+      "prevShortShares": 20960520,
+      "daysToCover": 4.86,
+      "avgDailyVolume": 4489040,
+      "changePercent": 4.08,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "VRTX": {
+      "shortShares": 4986691,
+      "prevShortShares": 4938472,
+      "daysToCover": 3.1,
+      "avgDailyVolume": 1607817,
+      "changePercent": 0.98,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "WDAY": {
+      "shortShares": 27369617,
+      "prevShortShares": 29641659,
+      "daysToCover": 6.67,
+      "avgDailyVolume": 4102466,
+      "changePercent": -7.67,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ZS": {
+      "shortShares": 8049396,
+      "prevShortShares": 8285100,
+      "daysToCover": 2.84,
+      "avgDailyVolume": 2833457,
+      "changePercent": -2.84,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "AXON": {
+      "shortShares": 3714055,
+      "prevShortShares": 4074449,
+      "daysToCover": 3.49,
+      "avgDailyVolume": 1063377,
+      "changePercent": -8.85,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "FANG": {
+      "shortShares": 9172001,
+      "prevShortShares": 10005127,
+      "daysToCover": 4.42,
+      "avgDailyVolume": 2074243,
+      "changePercent": -8.33,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "DKNG": {
+      "shortShares": 39353188,
+      "prevShortShares": 41747254,
+      "daysToCover": 3.89,
+      "avgDailyVolume": 10128597,
+      "changePercent": -5.73,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "SOFI": {
+      "shortShares": 185956377,
+      "prevShortShares": 188100006,
+      "daysToCover": 2.25,
+      "avgDailyVolume": 82778936,
+      "changePercent": -1.14,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "AFRM": {
+      "shortShares": 16725898,
+      "prevShortShares": 19326088,
+      "daysToCover": 4.58,
+      "avgDailyVolume": 3649010,
+      "changePercent": -13.45,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "RKLB": {
+      "shortShares": 45847931,
+      "prevShortShares": 42599639,
+      "daysToCover": 2.43,
+      "avgDailyVolume": 18852301,
+      "changePercent": 7.63,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "MARA": {
+      "shortShares": 110275677,
+      "prevShortShares": 106931027,
+      "daysToCover": 2.48,
+      "avgDailyVolume": 44493339,
+      "changePercent": 3.13,
+      "exchange": "SC",
+      "settlementDate": "2026-07-15"
+    },
+    "ASTS": {
+      "shortShares": 59349055,
+      "prevShortShares": 64715042,
+      "daysToCover": 4.82,
+      "avgDailyVolume": 12320966,
+      "changePercent": -8.29,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "QQQ": {
+      "shortShares": 67036554,
+      "prevShortShares": 64030392,
+      "daysToCover": 1.88,
+      "avgDailyVolume": 35581927,
+      "changePercent": 4.69,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "TLT": {
+      "shortShares": 93857485,
+      "prevShortShares": 101542253,
+      "daysToCover": 4.51,
+      "avgDailyVolume": 20796617,
+      "changePercent": -7.57,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "ESLT": {
+      "shortShares": 216536,
+      "prevShortShares": 191535,
+      "daysToCover": 2.79,
+      "avgDailyVolume": 77563,
+      "changePercent": 13.05,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "NICE": {
+      "shortShares": 2613856,
+      "prevShortShares": 2819749,
+      "daysToCover": 6.99,
+      "avgDailyVolume": 374171,
+      "changePercent": -7.3,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "CHKP": {
+      "shortShares": 5511634,
+      "prevShortShares": 5414021,
+      "daysToCover": 4.73,
+      "avgDailyVolume": 1166329,
+      "changePercent": 1.8,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "GILT": {
+      "shortShares": 1629401,
+      "prevShortShares": 1538340,
+      "daysToCover": 3.41,
+      "avgDailyVolume": 478027,
+      "changePercent": 5.92,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "GRAB": {
+      "shortShares": 315168660,
+      "prevShortShares": 253118773,
+      "daysToCover": 8,
+      "avgDailyVolume": 39377501,
+      "changePercent": 24.51,
+      "exchange": "NNM",
+      "settlementDate": "2026-07-15"
+    },
+    "SEA": {
+      "shortShares": 2613,
+      "prevShortShares": 2561,
+      "daysToCover": 1,
+      "avgDailyVolume": 41292,
+      "changePercent": 2.03,
+      "exchange": "ARCA",
+      "settlementDate": "2026-07-15"
+    }
+  }
+}
