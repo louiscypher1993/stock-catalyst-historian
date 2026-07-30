@@ -40,6 +40,18 @@
  * lookup.
  *
  * unreliable_reason-flagged rows are excluded entirely (never checked).
+ *
+ * DURABLE-MIRROR SELF-HEALING (added 2026-07-29 after the mirror-gap audit).
+ * Local sqlite is the idempotency ledger, but it cannot distinguish "already
+ * mirrored" from "written locally, mirror failed" -- so a failed upsert used to
+ * leave a row permanently absent from Supabase (existsStmt saw it locally and
+ * counted it `skippedExisting` on every later run). That silently lost ~292
+ * rows / two whole settlement days and biased the pre-v9.4 2W baseline. Now:
+ *   1. upsertOutcomes isolates + retries each batch (one bad batch no longer
+ *      aborts the remaining ones);
+ *   2. each run reads the durable store's keys and re-mirrors any local row
+ *      missing from it, straight from sqlite -- so any future gap repairs
+ *      itself on the next run instead of persisting.
  */
 import 'dotenv/config';
 import Database from 'better-sqlite3';
@@ -235,15 +247,51 @@ async function upsertPriceCache(rowsToWrite: Array<{ symbol: string; date: strin
 // src/db/supabase_outcome_results_migration.sql -- else PostgREST 404s the
 // missing relation and the caller's try/catch logs a warning (schema-drift
 // hazard) without touching the local db.
-async function upsertOutcomes(rows: Array<Record<string, any>>): Promise<void> {
-  if (rows.length === 0) return;
+// Returns the number of rows that FAILED to mirror. Each batch is isolated and
+// retried: before the 2026-07-29 fix a single failing batch threw out of the
+// whole loop, so every LATER batch was skipped too -- one transient error lost
+// ~292 rows (two entire settlement days) permanently. Per-batch try/catch +
+// one retry contains the blast radius to a single batch; the reconciliation
+// pass in main() then repairs whatever still failed on a later run.
+async function upsertOutcomes(rows: Array<Record<string, any>>): Promise<number> {
+  if (rows.length === 0) return 0;
+  let failed = 0;
   for (const batch of chunk(rows, SUPABASE_WRITE_CHUNK)) {
-    await sb('outcome_results?on_conflict=symbol,run_date,horizon', {
-      method: 'POST',
-      headers: { Prefer: 'resolution=merge-duplicates' },
-      body: JSON.stringify(batch),
-    });
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await sb('outcome_results?on_conflict=symbol,run_date,horizon', {
+          method: 'POST',
+          headers: { Prefer: 'resolution=merge-duplicates' },
+          body: JSON.stringify(batch),
+        });
+        break;
+      } catch (e) {
+        if (attempt >= 2) {
+          console.warn(`  batch of ${batch.length} failed after ${attempt} attempts (will self-heal next run):`, e);
+          failed += batch.length;
+          break;
+        }
+        await sleep(1000);
+      }
+    }
   }
+  return failed;
+}
+
+// Every (symbol,run_date,horizon) key already present in the DURABLE store.
+// This is what makes the mirror self-healing: the local sqlite existence check
+// alone cannot tell "already mirrored" from "written locally but the mirror
+// failed", so a lost row used to be skipped as `skippedExisting` forever.
+async function fetchOutcomeKeys(): Promise<Set<string>> {
+  const keys = new Set<string>();
+  const pageSize = 1000;
+  for (let offset = 0; ; offset += pageSize) {
+    const rows: Array<{ symbol: string; run_date: string; horizon: string }> =
+      (await sb(`outcome_results?select=symbol,run_date,horizon&limit=${pageSize}&offset=${offset}`)) ?? [];
+    for (const r of rows) keys.add(`${r.symbol}|${r.run_date}|${r.horizon}`);
+    if (rows.length < pageSize) break;
+  }
+  return keys;
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────
@@ -328,6 +376,20 @@ async function main() {
     console.log(`Loaded cache rows for ${supabaseCache.size} symbol(s)`);
   } catch (e) {
     console.warn('daily_prices_cache read failed -- continuing without it this run:', e);
+  }
+
+  // Durable-store keys, for the reconciliation pass below. Fail-soft: if this
+  // read fails we fall back to the old local-only behaviour for this run
+  // (an empty set would otherwise look like "nothing is mirrored" and trigger a
+  // full re-mirror of every local row -- harmless because the upsert is
+  // idempotent, but a pointless amount of traffic).
+  console.log('Fetching outcome_results keys from Supabase (mirror reconciliation)...');
+  let durableKeys: Set<string> | null = null;
+  try {
+    durableKeys = await fetchOutcomeKeys();
+    console.log(`Durable store currently holds ${durableKeys.size} outcome row(s)`);
+  } catch (e) {
+    console.warn('outcome_results key read failed -- skipping reconciliation this run:', e);
   }
 
   const today = todayStr();
@@ -415,12 +477,40 @@ async function main() {
     console.warn('daily_prices_cache write-back failed -- this run\'s results are unaffected, just no cache benefit next time:', e);
   }
 
-  console.log(`Mirroring ${pendingOutcomeWrites.length} outcome row(s) to Supabase outcome_results (durable store)...`);
+  // ── Mirror reconciliation (the 2026-07-29 mirror-gap fix) ────────────────
+  // Any row that exists LOCALLY but not in the durable store is a previously-
+  // failed mirror. Without this, existsStmt sees the local row on every later
+  // run, counts it `skippedExisting`, and the durable store can never self-heal
+  // -- exactly how ~292 rows (target dates 2026-07-21/22) went permanently
+  // missing and biased the pre-v9.4 2W baseline. Re-mirrored straight from the
+  // local db: no Yahoo re-fetch, no recomputation.
+  let reconciled: Array<Record<string, any>> = [];
+  if (durableKeys) {
+    const pendingKeys = new Set(pendingOutcomeWrites.map(o => `${o.symbol}|${o.run_date}|${o.horizon}`));
+    const localRows = outDb.prepare(
+      `SELECT symbol, run_date, horizon, predicted_return, predicted_tier, actual_return, target_date, matched_price_date, actual_source, checked_at
+       FROM outcome_tracker WHERE actual_return IS NOT NULL`
+    ).all() as Array<Record<string, any>>;
+    reconciled = localRows.filter(r => {
+      const k = `${r.symbol}|${r.run_date}|${r.horizon}`;
+      return !durableKeys!.has(k) && !pendingKeys.has(k);
+    });
+    if (reconciled.length > 0) {
+      console.log(`\nRECONCILIATION: ${reconciled.length} local row(s) missing from the durable store (previously-failed mirrors) -- re-mirroring.`);
+    }
+  }
+
+  const toMirror = [...pendingOutcomeWrites, ...reconciled];
+  console.log(`Mirroring ${toMirror.length} outcome row(s) to Supabase outcome_results (${pendingOutcomeWrites.length} new, ${reconciled.length} reconciled)...`);
   // Fail-soft -- local outcome_tracker.db already has these rows; a missing
   // table (migration not yet applied) or Supabase blip just means no durable
-  // mirror this run, not lost data.
+  // mirror this run, not lost data. Per-batch isolation + retry lives inside
+  // upsertOutcomes; whatever still fails is picked up by the next run's
+  // reconciliation pass rather than being lost forever.
   try {
-    await upsertOutcomes(pendingOutcomeWrites);
+    const failedCount = await upsertOutcomes(toMirror);
+    if (failedCount > 0) console.warn(`  ${failedCount} row(s) did not mirror this run -- next run's reconciliation will retry them.`);
+    else if (toMirror.length > 0) console.log('  mirror ok.');
   } catch (e) {
     console.warn('outcome_results upsert failed -- local db unaffected; apply src/db/supabase_outcome_results_migration.sql if the table is missing:', e);
   }
