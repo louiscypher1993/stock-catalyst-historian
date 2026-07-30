@@ -32,9 +32,10 @@
  *     adjacent daily observations are NOT independent) -- inflates apparent
  *     T for both Sharpe estimation and CSCV block count. Not corrected here
  *     (would need a Newey-West-style adjustment); documented, not hidden.
- *   - PBO's CSCV block size is 1 (one run_date per block) because T=14 is
- *     already too short to subdivide further -- minimum-resolution CSCV, not
- *     the paper's typical setup with many more, larger blocks.
+ *   - CSCV partitions the series into at most 14 blocks. While T<=14 that means
+ *     one run_date per block (maximum resolution); as data accumulates the
+ *     blocks grow instead of the split count exploding, which keeps the run
+ *     bounded (C(14,7)=3432 splits) no matter how long the history gets.
  *   - All current data is PRE-v9.4 (post-v9.4 2W has n=0 until ~2026-08-05).
  *     Re-run after that date for a checkpoint-era-consistent read.
  *
@@ -137,9 +138,40 @@ function variantSeries(byDate: Map<string, DayRow[]>, dates: string[], v: Varian
 }
 
 // ── CSCV / PBO (Bailey, Borwein, Lopez de Prado, Zhu 2015-ish companion method) ──
-function combinationsBitmasks(T: number, k: number): number[] {
+// CSCV is defined over S BLOCKS, not over T individual observations. Enumerating
+// splits of individual periods (block size 1) is a degenerate case that only
+// works while T is tiny, and it fails badly as data accumulates:
+//   T=24 -> 2.7M masks (slow)   T=28 -> 40M (OOM)
+//   T>=31 -> `1 << T` OVERFLOWS 32-bit signed, the loop never executes, and PBO
+//            comes back NaN -- a silently WRONG answer, not an error.
+// Since 2W run_dates accumulate daily post-checkpoint, that would have broken
+// exactly when this tool became useful. Blocking bounds the split count
+// regardless of T (C(14,7)=3432) and matches the method as published.
+const S_MAX_BLOCKS = 14;
+
+/** Largest EVEN block count <= min(S_MAX_BLOCKS, T), for a symmetric IS/OOS split. */
+function blockCountFor(T: number): number {
+  const s = Math.min(S_MAX_BLOCKS, T);
+  return s % 2 === 0 ? s : s - 1;
+}
+
+/** Partition [0..T) into S contiguous, near-equal blocks of period indices. */
+function partitionIntoBlocks(T: number, S: number): number[][] {
+  const blocks: number[][] = [];
+  for (let b = 0; b < S; b++) {
+    const start = Math.floor((b * T) / S);
+    const end = Math.floor(((b + 1) * T) / S);
+    const idx: number[] = [];
+    for (let t = start; t < end; t++) idx.push(t);
+    blocks.push(idx);
+  }
+  return blocks;
+}
+
+/** All bitmasks over S blocks with exactly k bits set. S <= 14, so this is bounded. */
+function combinationsBitmasks(S: number, k: number): number[] {
   const out: number[] = [];
-  for (let mask = 0; mask < (1 << T); mask++) {
+  for (let mask = 0; mask < (1 << S); mask++) {
     let bits = 0, m = mask;
     while (m) { bits += m & 1; m >>= 1; }
     if (bits === k) out.push(mask);
@@ -148,14 +180,18 @@ function combinationsBitmasks(T: number, k: number): number[] {
 }
 function sharpeOf(vals: number[]): number { const s = std(vals); return s === 0 || !Number.isFinite(s) ? 0 : mean(vals) / s; }
 
-function computePBO(matrix: number[][], T: number): { pbo: number; splits: number; blockSize: number } {
+function computePBO(matrix: number[][], T: number): { pbo: number; splits: number; blocks: number; blockSize: string } {
   const M = matrix.length; // number of trial variants
-  const half = Math.floor(T / 2);
-  const masks = combinationsBitmasks(T, half);
+  const S = blockCountFor(T);
+  const blocks = partitionIntoBlocks(T, S);
+  const masks = combinationsBitmasks(S, S / 2);
+  const sizes = blocks.map(b => b.length);
+  const blockSize = Math.min(...sizes) === Math.max(...sizes)
+    ? `${sizes[0]}` : `${Math.min(...sizes)}-${Math.max(...sizes)}`;
   let overfitCount = 0;
   for (const mask of masks) {
     const isIdx: number[] = [], oosIdx: number[] = [];
-    for (let t = 0; t < T; t++) ((mask >> t) & 1 ? isIdx : oosIdx).push(t);
+    for (let b = 0; b < S; b++) ((mask >> b) & 1 ? isIdx : oosIdx).push(...blocks[b]);
     const isSharpes = matrix.map(series => sharpeOf(isIdx.map(i => series[i])));
     const oosSharpes = matrix.map(series => sharpeOf(oosIdx.map(i => series[i])));
     let bestIS = 0; for (let m = 1; m < M; m++) if (isSharpes[m] > isSharpes[bestIS]) bestIS = m;
@@ -165,7 +201,7 @@ function computePBO(matrix: number[][], T: number): { pbo: number; splits: numbe
     const logit = Math.log(omega / (1 - omega));
     if (logit > 0) overfitCount++; // IS-winner landed below the OOS median -> overfit signal
   }
-  return { pbo: overfitCount / masks.length, splits: masks.length, blockSize: Math.floor(T / T) };
+  return { pbo: overfitCount / masks.length, splits: masks.length, blocks: S, blockSize };
 }
 
 // ── main ─────────────────────────────────────────────────────────────────
@@ -259,14 +295,14 @@ async function main() {
     console.log(`   ${v.name.padEnd(28)} mean ${pct(mean(s)).padStart(9)}   Sharpe ${fixed(sharpeOf(s)).padStart(7)}   (full-sample, not CSCV)`);
   });
 
+  // Blocking handles any T (odd included), so no periods are discarded.
   const T = dates.length;
-  if (T % 2 !== 0) console.log(`\n ⚠ T=${T} is odd — dropping the most recent day for an even IS/OOS split.`);
-  const evenT = T % 2 === 0 ? T : T - 1;
-  const matrix = seriesByVariant.map(s => s.slice(0, evenT));
-  const { pbo, splits } = computePBO(matrix, evenT);
+  const matrix = seriesByVariant;
+  const { pbo, splits, blocks, blockSize } = computePBO(matrix, T);
 
-  console.log(`\n CSCV: T=${evenT} periods, block size=1 (minimum resolution — T too short to subdivide further),`);
-  console.log(`   ${splits} symmetric IS/OOS splits evaluated.`);
+  console.log(`\n CSCV: T=${T} periods partitioned into ${blocks} blocks of ${blockSize} period(s),`);
+  console.log(`   ${splits} symmetric IS/OOS block-splits evaluated.`);
+  if (T <= S_MAX_BLOCKS) console.log(`   (T <= ${S_MAX_BLOCKS}, so block size is 1 — maximum resolution.)`);
   console.log(`\n   PBO = ${fixed(pbo, 3)}  (${(pbo * 100).toFixed(1)}% of splits: the in-sample-best variant ranked`);
   console.log(`   BELOW the out-of-sample median among all ${VARIANTS.length} variants)`);
   const pboVerdict = pbo > 0.5 ? 'MORE LIKELY THAN NOT overfit — the chosen selection rule\'s apparent edge over'
