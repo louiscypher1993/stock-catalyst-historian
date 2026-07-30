@@ -52,6 +52,16 @@
  *   2. each run reads the durable store's keys and re-mirrors any local row
  *      missing from it, straight from sqlite -- so any future gap repairs
  *      itself on the next run instead of persisting.
+ *
+ * REHYDRATION (added 2026-07-30). The same durable read also flows BACKWARDS:
+ * any durable row the local db lacks is inserted (OR IGNORE -- local always
+ * wins) before the main loop. outcome_tracker.db is gitignored and lives in the
+ * actions cache, which GitHub evicts after 7 idle days; without this, an evicted
+ * run treats every matured row as new and re-resolves all ~4,000 from Yahoo,
+ * which would likely blow the 20-minute CI timeout. Measured redundancy on a
+ * WARM cache (2026-07-30) was already 979 of 1,296 rows. It also keeps
+ * `outcomeScoreboard --source local` -- the DEFAULT source -- from silently
+ * reading a partial dataset after a cache loss.
  */
 import 'dotenv/config';
 import Database from 'better-sqlite3';
@@ -278,20 +288,34 @@ async function upsertOutcomes(rows: Array<Record<string, any>>): Promise<number>
   return failed;
 }
 
-// Every (symbol,run_date,horizon) key already present in the DURABLE store.
-// This is what makes the mirror self-healing: the local sqlite existence check
-// alone cannot tell "already mirrored" from "written locally but the mirror
-// failed", so a lost row used to be skipped as `skippedExisting` forever.
-async function fetchOutcomeKeys(): Promise<Set<string>> {
-  const keys = new Set<string>();
+// Every row already present in the DURABLE store, full columns.
+//
+// Two jobs, both of which need the durable store rather than local sqlite:
+//   1. RECONCILIATION -- the local existence check alone cannot tell "already
+//      mirrored" from "written locally but the mirror failed", so a lost row
+//      used to be skipped as `skippedExisting` forever.
+//   2. REHYDRATION -- outcome_tracker.db is gitignored and lives in the actions
+//      cache, which GitHub evicts after 7 idle days. On an evicted run every
+//      matured row looks brand new, so the tracker re-resolves ALL of them from
+//      Yahoo: measured at 75% redundant re-work even with a WARM cache
+//      (979 of 1,296 rows on 2026-07-30), and ~4,000 rows cold, which would
+//      likely exceed the 20-minute CI timeout and leave the run wedged.
+// Fetching whole rows rather than just keys costs the same number of requests
+// and lets main() restore the local db from the durable one, which also keeps
+// `outcomeScoreboard --source local` (the DEFAULT source) honest -- a keys-only
+// skip would suppress the re-fetch but leave local silently sparse forever.
+const DURABLE_COLUMNS = 'symbol,run_date,horizon,predicted_return,predicted_tier,actual_return,target_date,matched_price_date,actual_source,checked_at';
+
+async function fetchOutcomeRows(): Promise<Array<Record<string, any>>> {
+  const all: Array<Record<string, any>> = [];
   const pageSize = 1000;
   for (let offset = 0; ; offset += pageSize) {
-    const rows: Array<{ symbol: string; run_date: string; horizon: string }> =
-      (await sb(`outcome_results?select=symbol,run_date,horizon&limit=${pageSize}&offset=${offset}`)) ?? [];
-    for (const r of rows) keys.add(`${r.symbol}|${r.run_date}|${r.horizon}`);
+    const rows: Array<Record<string, any>> =
+      (await sb(`outcome_results?select=${DURABLE_COLUMNS}&limit=${pageSize}&offset=${offset}`)) ?? [];
+    all.push(...rows);
     if (rows.length < pageSize) break;
   }
-  return keys;
+  return all;
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────
@@ -362,6 +386,25 @@ async function main() {
     INSERT INTO outcome_tracker (symbol, run_date, horizon, predicted_return, predicted_tier, actual_return, target_date, matched_price_date, actual_source, checked_at)
     VALUES (@symbol, @run_date, @horizon, @predicted_return, @predicted_tier, @actual_return, @target_date, @matched_price_date, @actual_source, @checked_at)
   `);
+  // OR IGNORE: local always wins on conflict. Rehydration restores what the
+  // cache lost; it must never overwrite a row this machine already holds.
+  const hydrateStmt = outDb.prepare(`
+    INSERT OR IGNORE INTO outcome_tracker (symbol, run_date, horizon, predicted_return, predicted_tier, actual_return, target_date, matched_price_date, actual_source, checked_at)
+    VALUES (@symbol, @run_date, @horizon, @predicted_return, @predicted_tier, @actual_return, @target_date, @matched_price_date, @actual_source, @checked_at)
+  `);
+  const hydrateAll = outDb.transaction((rows: Array<Record<string, any>>) => {
+    let inserted = 0;
+    for (const r of rows) {
+      inserted += hydrateStmt.run({
+        symbol: r.symbol, run_date: r.run_date, horizon: r.horizon,
+        predicted_return: r.predicted_return ?? null, predicted_tier: r.predicted_tier ?? null,
+        actual_return: r.actual_return ?? null, target_date: r.target_date ?? null,
+        matched_price_date: r.matched_price_date ?? null, actual_source: r.actual_source ?? null,
+        checked_at: r.checked_at ?? null,
+      }).changes;
+    }
+    return inserted;
+  });
 
   console.log('Fetching inference_results from Supabase...');
   const rows = await fetchAllInferenceResults();
@@ -378,18 +421,24 @@ async function main() {
     console.warn('daily_prices_cache read failed -- continuing without it this run:', e);
   }
 
-  // Durable-store keys, for the reconciliation pass below. Fail-soft: if this
-  // read fails we fall back to the old local-only behaviour for this run
-  // (an empty set would otherwise look like "nothing is mirrored" and trigger a
-  // full re-mirror of every local row -- harmless because the upsert is
-  // idempotent, but a pointless amount of traffic).
-  console.log('Fetching outcome_results keys from Supabase (mirror reconciliation)...');
+  // Durable store, for rehydration + the reconciliation pass below. Fail-soft:
+  // if this read fails we fall back to the old local-only behaviour for this run
+  // (a null set means no rehydration and no reconciliation -- an EMPTY set would
+  // instead look like "nothing is mirrored" and trigger a full re-mirror of
+  // every local row: harmless because the upsert is idempotent, but a pointless
+  // amount of traffic).
+  console.log('Fetching outcome_results from Supabase (rehydration + mirror reconciliation)...');
   let durableKeys: Set<string> | null = null;
   try {
-    durableKeys = await fetchOutcomeKeys();
+    const durableRows = await fetchOutcomeRows();
+    durableKeys = new Set(durableRows.map(r => `${r.symbol}|${r.run_date}|${r.horizon}`));
     console.log(`Durable store currently holds ${durableKeys.size} outcome row(s)`);
+    // Restore anything the local db is missing BEFORE the main loop, so
+    // existsStmt sees it and the row is not needlessly re-resolved from Yahoo.
+    const hydrated = hydrateAll(durableRows);
+    if (hydrated > 0) console.log(`REHYDRATED ${hydrated} durable row(s) into the local db (cache loss or first run on this machine) -- these will not be re-fetched.`);
   } catch (e) {
-    console.warn('outcome_results key read failed -- skipping reconciliation this run:', e);
+    console.warn('outcome_results read failed -- skipping rehydration + reconciliation this run:', e);
   }
 
   const today = todayStr();
