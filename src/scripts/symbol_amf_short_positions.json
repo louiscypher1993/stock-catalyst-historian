@@ -1,0 +1,78 @@
+{
+  "_note": "symbol -> AMF aggregate net short position (France, .PA only). Individual holder disclosures aggregated here (latest row per holder+ISIN among OPEN positions, summed) to match the FCA ANSP shape. Source: AMF open data via data.gouv.fr, free/no-auth, URL resolved dynamically (timestamped filename). Joined via ISIN->FIGI, not name matching. Rebuild via buildAmfShortPositions.ts.",
+  "_built": "2026-07-30",
+  "_sourceUrl": "https://object-api.infra.data.gouv.fr/amf/VAD/export_od_vad_20260729111500_20260729123000.csv",
+  "_frenchIssuersWithOpenPositions": 82,
+  "amfShortPositions": {
+    "CAP.PA": {
+      "aggregateShortPercent": 1.92,
+      "holders": 3,
+      "latestPositionDate": "2026-07-27",
+      "isin": "FR0000125338",
+      "issuer": "CAPGEMINI"
+    },
+    "DSY.PA": {
+      "aggregateShortPercent": 0.69,
+      "holders": 1,
+      "latestPositionDate": "2026-07-23",
+      "isin": "FR0014003TT8",
+      "issuer": "DASSAULT SYSTEMES"
+    },
+    "AM.PA": {
+      "aggregateShortPercent": 0.5,
+      "holders": 1,
+      "latestPositionDate": "2026-07-23",
+      "isin": "FR0014004L86",
+      "issuer": "DASSAULT AVIATION"
+    },
+    "GFC.PA": {
+      "aggregateShortPercent": 1.23,
+      "holders": 2,
+      "latestPositionDate": "2026-07-17",
+      "isin": "FR0010040865",
+      "issuer": "GECINA"
+    },
+    "TEP.PA": {
+      "aggregateShortPercent": 11.82,
+      "holders": 10,
+      "latestPositionDate": "2026-07-27",
+      "isin": "FR0000051807",
+      "issuer": "TELEPERFORMANCE"
+    },
+    "CA.PA": {
+      "aggregateShortPercent": 1.73,
+      "holders": 2,
+      "latestPositionDate": "2026-07-24",
+      "isin": "FR0000120172",
+      "issuer": "CARREFOUR"
+    },
+    "LI.PA": {
+      "aggregateShortPercent": 0.81,
+      "holders": 1,
+      "latestPositionDate": "2026-06-18",
+      "isin": "FR0000121964",
+      "issuer": "KLEPIERRE"
+    },
+    "WLN.PA": {
+      "aggregateShortPercent": 5.35,
+      "holders": 6,
+      "latestPositionDate": "2026-07-27",
+      "isin": "FR00140182K6",
+      "issuer": "WORLDLINE"
+    },
+    "TTE.PA": {
+      "aggregateShortPercent": 0.88,
+      "holders": 1,
+      "latestPositionDate": "2026-05-06",
+      "isin": "FR0000120271",
+      "issuer": "TOTALENERGIES SE"
+    },
+    "ETL.PA": {
+      "aggregateShortPercent": 1.7,
+      "holders": 2,
+      "latestPositionDate": "2026-07-01",
+      "isin": "FR0010221234",
+      "issuer": "EUTELSAT COMMUNICATIONS"
+    }
+  }
+}
