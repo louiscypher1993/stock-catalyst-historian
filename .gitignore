@@ -29,3 +29,5 @@ src/ml/scratch/
 
 # Synthetic-pot sweep inputs/outputs (large, regenerable, local-analysis only)
 synthetic_pots/
+# local data backups (market_cache.db is ~1.8GB and holds irreplaceable expired-FMP-premium data)
+backups/
