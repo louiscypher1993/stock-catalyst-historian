@@ -65,9 +65,38 @@ const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 interface Bar { date: string; open: number | null; high: number | null; low: number | null; close: number; volume: number | null; adjClose: number | null; }
 
-async function fetchMax(symbol: string, attempt = 1): Promise<Bar[] | null> {
+// Epoch for 1960-01-01: earlier than any bar Yahoo serves, so one request covers
+// a symbol's entire life.
+const PERIOD_START = Math.floor(new Date('1960-01-01T00:00:00Z').getTime() / 1000);
+
+/**
+ * CRITICAL: use period1/period2, NEVER `range=max`.
+ *
+ * `range=max` SILENTLY IGNORES `interval=1d` and downgrades granularity — AAPL
+ * comes back `dataGranularity: '3mo'`, other symbols weekly. The first version of
+ * this script used it and wrote 218,180 weekly/quarterly bars into a table called
+ * daily_prices; the rows looked plausible (real prices, real dates) and only the
+ * 7-day gaps between them gave it away. Those rows would have been useless for
+ * rolling betas AND could have corrupted outcomeTracker, which nearest-matches
+ * prices within +/-3 days. period1/period2 returns true daily bars for full
+ * history (AAPL 11,500 from 1980, BP.L 9,766 from 1988).
+ *
+ * The guard below is the real defence: never trust the response's own claim, check
+ * the actual spacing between bars and reject anything that is not daily.
+ */
+function isDaily(timestamps: number[], granularity: string | undefined): boolean {
+  if (granularity && granularity !== '1d') return false;
+  if (timestamps.length < 10) return true;                 // too short to judge; harmless
+  const gaps: number[] = [];
+  for (let i = 1; i < Math.min(timestamps.length, 200); i++) gaps.push((timestamps[i] - timestamps[i - 1]) / 86400);
+  gaps.sort((a, b) => a - b);
+  return gaps[Math.floor(gaps.length / 2)] <= 4;           // weekends make 3 normal; 7 means weekly
+}
+
+async function fetchDailyHistory(symbol: string, attempt = 1): Promise<Bar[] | null> {
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(normaliseForYahoo(symbol))}?interval=1d&range=max&events=div%2Csplit`;
+    const p2 = Math.floor(Date.now() / 1000);
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(normaliseForYahoo(symbol))}?interval=1d&period1=${PERIOD_START}&period2=${p2}`;
     const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(30000) });
     if (res.status === 404) return null;
     if (res.status === 429 || res.status >= 500) throw new Error(`HTTP ${res.status}`);
@@ -75,6 +104,10 @@ async function fetchMax(symbol: string, attempt = 1): Promise<Bar[] | null> {
     const data: any = await res.json();
     const r = data?.chart?.result?.[0];
     if (!r?.timestamp) return null;
+    if (!isDaily(r.timestamp, r.meta?.dataGranularity)) {
+      console.warn(`  ${symbol}: REJECTED — not daily (granularity=${r.meta?.dataGranularity}); nothing written`);
+      return null;
+    }
     const q = r.indicators?.quote?.[0] ?? {};
     const adj = r.indicators?.adjclose?.[0]?.adjclose ?? [];
     const out: Bar[] = [];
@@ -91,7 +124,7 @@ async function fetchMax(symbol: string, attempt = 1): Promise<Bar[] | null> {
   } catch (e) {
     if (attempt >= 3) { console.warn(`  ${symbol} failed after ${attempt}: ${e}`); return null; }
     await sleep(1500 * attempt);
-    return fetchMax(symbol, attempt + 1);
+    return fetchDailyHistory(symbol, attempt + 1);
   }
 }
 
@@ -136,7 +169,7 @@ async function main() {
 
   let done = 0, added = 0, noData = 0, extended = 0;
   for (const symbol of todo) {
-    const bars = await fetchMax(symbol);
+    const bars = await fetchDailyHistory(symbol);
     await sleep(REQUEST_DELAY_MS);
     if (!bars || bars.length === 0) { noData++; done++; continue; }
 
