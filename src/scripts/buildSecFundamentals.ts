@@ -36,6 +36,7 @@
  *   $env:SEC_CONTACT="name email"; npx tsx src/scripts/buildSecFundamentals.ts
  *   npx tsx src/scripts/buildSecFundamentals.ts --limit 20     # smoke test
  */
+import 'dotenv/config';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
