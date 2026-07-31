@@ -14,9 +14,22 @@
  * two heads with a directional read.
  *
  * Reuses the scoreboard's EXACT loader + stat helpers (imported, not re-derived)
- * so the two tools can never disagree on a number. Runnable any time — today it's
- * a dry run (only 2D has matured post-v9.4); re-run after ~Aug 5 for the 2W (rec-
- * basis) readout, and months later for 3M/6M.
+ * so the two tools can never disagree on a number.
+ *
+ * DAY-CLUSTERED THROUGHOUT (reworked 2026-07-31). The unit of independence is
+ * the RUN_DATE, not the row: every name scanned on one day shares that day's
+ * market move. So IC is computed WITHIN each run_date and averaged across dates,
+ * significance uses the across-date t-stat with small-sample Student-t critical
+ * values, readiness counts run_dates rather than rows, and the comparison target
+ * is TEST_IC_DAILY (the anchor re-measured the same way) rather than the pooled
+ * TEST_IC. Pooled figures are still printed, labelled "legacy", for continuity
+ * with earlier readouts. See icVerdict() for what the day-blind version would
+ * have concluded on real data, and dailyIC() in outcomeScoreboard.ts for why.
+ *
+ * CONSEQUENCE FOR TIMING: 2W needs ~MIN_RUN_DATES scan dates whose 2W windows
+ * have closed, so the honest rec-basis verdict lands well after the first 2W row
+ * matures (~Aug 5) — plan on early September, and treat anything sooner as
+ * directional. This is a real cost of measuring it correctly, not a regression.
  *
  * Usage:
  *   npx tsx src/scripts/readoutHarness.ts                       # supabase, deploy 2026-07-22
@@ -24,21 +37,30 @@
  *   npx tsx src/scripts/readoutHarness.ts --deploy 2026-07-22 --position 50 --min-n 30
  */
 import 'dotenv/config';
-import { loadRows, TEST_IC, HORIZON_ORDER, HORIZON_HEAD, mean, std, spearman, pearson, type Row } from './outcomeScoreboard';
+import {
+  loadRows, TEST_IC, TEST_IC_DAILY, HORIZON_ORDER, HORIZON_HEAD,
+  mean, std, spearman, pearson, dailyIC, tCrit95, type Row, type DailyIC,
+} from './outcomeScoreboard';
 import { roundTripCost } from '../costModel';
 
 const V9_4_DEPLOY = '2026-07-22';
 const HORIZON_DAYS: Record<string, number> = { '2D': 2, '2W': 14, '1M': 30, '3M': 91, '6M': 182 };
+// Minimum contributing run_dates before the harness will render a verdict at
+// all. Below this the t-stat is too unstable to act on however tempting the
+// point estimate looks — at 6 dates the 95% bar is already t≥2.57.
+const MIN_RUN_DATES = 10;
 
 interface Stats {
   n: number; ic: number; pear: number; signHit: number;
   meanPred: number; meanAct: number; sigPred: number; sigAct: number; sigRatio: number;
   actGross: number; actNet: number; actN: number; meanDiv: number;
+  daily: DailyIC;
 }
 
 function computeStats(rows: Row[], positionGBP: number): Stats {
   const n = rows.length;
-  const empty: Stats = { n, ic: NaN, pear: NaN, signHit: NaN, meanPred: NaN, meanAct: NaN, sigPred: NaN, sigAct: NaN, sigRatio: NaN, actGross: NaN, actNet: NaN, actN: 0, meanDiv: NaN };
+  const daily = dailyIC(rows);
+  const empty: Stats = { n, ic: NaN, pear: NaN, signHit: NaN, meanPred: NaN, meanAct: NaN, sigPred: NaN, sigAct: NaN, sigRatio: NaN, actGross: NaN, actNet: NaN, actN: 0, meanDiv: NaN, daily };
   if (n === 0) return empty;
   const pred = rows.map(r => r.predicted_return);
   const act = rows.map(r => r.actual_return);
@@ -53,7 +75,7 @@ function computeStats(rows: Row[], positionGBP: number): Stats {
     meanPred: mean(pred), meanAct: mean(act), sigPred, sigAct, sigRatio: sigAct / sigPred,
     actGross: buyIdx.length ? mean(buyIdx.map(i => act[i])) : NaN,
     actNet: buyIdx.length ? mean(buyIdx.map(i => net[i])) : NaN,
-    actN: buyIdx.length, meanDiv: mean(div),
+    actN: buyIdx.length, meanDiv: mean(div), daily,
   };
 }
 
@@ -64,24 +86,56 @@ function dIC(post: number, pre: number): string { return Number.isFinite(post) &
 function addDays(d: string, days: number): string { const x = new Date(d); x.setUTCDate(x.getUTCDate() + days); return x.toISOString().slice(0, 10); }
 function col(s: string, w = 14): string { return s.padStart(w); }
 
-// IC-vs-anchor verdict (the "did it work live" call). Uses the actual n (not a
-// hardcoded threshold string) via the standard Spearman SE approximation
-// (1/sqrt(n-3)) so the read scales honestly as the sample grows, and treats a
-// clearly NEGATIVE IC as its own case — anti-correlated ranking is a materially
-// different (and more concerning) result than "no signal yet" (IC≈0).
+// IC-vs-anchor verdict (the "did it work live" call).
+//
+// REWORKED 2026-07-31 — the previous version was day-blind and would have
+// declared success on noise. It scored POOLED live IC against the POOLED anchor
+// using SE=1/sqrt(n-3), which treats every row as an independent observation.
+// Rows from one scan date share that date's market move, so on the post-v9.4 2D
+// slice that SE was 2.3x too small (0.0396 vs 0.0923) AND the pooled IC itself
+// read 0.174 — comfortably over the `anchor - 0.03` bar — off per-day ICs of
+// -0.108/-0.180/+0.078/-0.147/+0.378/+0.227, mean +0.041 at t=0.45. It would
+// have printed "AT/ABOVE the v9.4 anchor ✓ — train/serve parity holding" on a
+// sample containing no detectable signal, on the one script whose entire job is
+// to be right on checkpoint day.
+//
+// Now: mean daily (cross-sectional) IC vs the DAILY anchor, with two gates that
+// must BOTH pass before any claim about the anchor is made —
+//   1. enough run_dates for a t-stat to mean anything (MIN_RUN_DATES);
+//   2. live signal distinguishable from zero at 95% (Student-t, small-sample
+//      critical values — 1.96 is far too permissive at these date counts).
+// Only then is live compared to the anchor, and as a two-sample test that
+// carries the ANCHOR's uncertainty too (it is itself an estimate off 210-331
+// dates), not as a bare threshold.
 function icVerdict(h: string, s: Stats): string {
-  const anchor = TEST_IC[h];
-  if (!Number.isFinite(s.ic)) return 'n/a';
-  if (h === '1M') return 'dead-band head — low IC is by design';
-  const se = s.n > 3 ? 1 / Math.sqrt(s.n - 3) : NaN;
-  const seNote = Number.isFinite(se) ? ` (n=${s.n}, IC SE≈${se.toFixed(3)})` : '';
-  if (s.ic >= anchor - 0.03) return `AT/ABOVE the v9.4 anchor ✓ — train/serve parity holding${seNote}`;
-  if (s.ic >= anchor * 0.5) return `partway to anchor (${f3(anchor).trim()})${seNote} — watch as n grows`;
-  if (s.ic > 0.02) return `well short of anchor ${f3(anchor).trim()}${seNote} ⚠ — live IC << held-out test`;
-  if (s.ic < -0.02 && Number.isFinite(se) && Math.abs(s.ic) > se) {
-    return `NEGATIVE and outside noise band${seNote} ⚠⚠ — anti-correlated, not just weak; keep watching, do not act on it yet (single early horizon, still n<~500)`;
+  const d = s.daily;
+  const a = TEST_IC_DAILY[h];
+  if (!a || !Number.isFinite(d.meanIC)) return 'n/a';
+
+  const desc = `mean daily IC ${f3(d.meanIC).trim()} ± ${d.seIC.toFixed(3)}, t=${d.t.toFixed(2)}, ${d.days} run_date(s), ${(d.pctPos * 100).toFixed(0)}% positive`;
+  if (d.days < MIN_RUN_DATES) {
+    return `NO VERDICT — only ${d.days} run_date(s), need ≥${MIN_RUN_DATES} (${desc})`;
   }
-  return `no live signal yet (IC≈0)${seNote} ⚠ — consistent with noise at this n; re-check as n grows`;
+
+  const crit = tCrit95(d.days - 1);
+  if (h === '1M') {
+    return `dead-band head — its daily anchor is ${f3(a.ic).trim()} (≈0 BY DESIGN, not a target); ${desc}`;
+  }
+  if (d.t <= -crit) {
+    return `ANTI-CORRELATED ⚠⚠ — ${desc}; significantly below zero at 95% (|t|≥${crit.toFixed(2)}). Materially worse than "no signal": the ranking is inverted.`;
+  }
+  if (Math.abs(d.t) < crit) {
+    return `NO SIGNAL YET ⚠ — ${desc}; not distinguishable from zero at 95% (needs |t|≥${crit.toFixed(2)} on ${d.days - 1} df). Anchor comparison withheld — a point estimate near ${f3(a.ic).trim()} means nothing at this t.`;
+  }
+
+  // Live signal is real. Only now is it worth asking how it compares to the
+  // anchor — as a two-sample z carrying both estimates' standard errors.
+  const seAnchor = a.sd / Math.sqrt(a.days);
+  const z = (d.meanIC - a.ic) / Math.sqrt(d.seIC * d.seIC + seAnchor * seAnchor);
+  const vs = `${desc}; vs daily anchor ${f3(a.ic).trim()} z=${z.toFixed(2)}`;
+  if (z >= -1) return `AT/ABOVE the v9.4 daily anchor ✓ — train/serve parity holding (${vs})`;
+  if (z <= -2) return `REAL signal but SIGNIFICANTLY BELOW the daily anchor ⚠ — ${vs}. Live ranking works, just weaker than held-out test.`;
+  return `real signal, below the daily anchor but inside noise — ${vs}`;
 }
 
 async function main() {
@@ -103,19 +157,23 @@ async function main() {
   const rule = '─'.repeat(80);
   console.log(`\n${line}`);
   console.log(` v9.4 READOUT HARNESS — pre/post-deploy A/B   ·   deploy ${deploy}`);
-  console.log(` source: ${source === 'supabase' ? 'supabase (durable outcome_results)' : source}   ·   cost @ £${positionGBP}   ·   ready threshold n≥${minN}`);
+  console.log(` source: ${source === 'supabase' ? 'supabase (durable outcome_results)' : source}   ·   cost @ £${positionGBP}   ·   verdict needs ≥${MIN_RUN_DATES} run_dates (σ-watch n≥${minN})`);
   console.log(` PRE-v9.4:  ${pre.length} rows  (${preDates[0] ?? '—'} → ${preDates[preDates.length - 1] ?? '—'})`);
   console.log(` POST-v9.4: ${post.length} rows  (${postDates[0] ?? '—'} → ${postDates[postDates.length - 1] ?? '—'})`);
   console.log(line);
 
   // ── readiness matrix ──
-  console.log(`\n READINESS`);
+  // Readiness is governed by RUN_DATES, not rows: 600 rows from 3 scan dates
+  // still cannot support a verdict, because the day is the unit of independence.
+  console.log(`\n READINESS   (unit of independence = run_date, not row)`);
   for (const h of HORIZON_ORDER) {
-    const pn = post.filter(r => r.horizon === h).length;
+    const hp = post.filter(r => r.horizon === h);
+    const pn = hp.length;
+    const days = dailyIC(hp).days;
     const matures = addDays(earliestPost, HORIZON_DAYS[h]);
-    const state = pn >= minN ? `✅ ready       (post n=${pn})`
-      : pn > 0 ? `◐ thin         (post n=${pn} < ${minN} — anecdote)`
-      : `⏳ pending      (post n=0; first matures ~${matures})`;
+    const state = days >= MIN_RUN_DATES ? `✅ ready        (${days} run_dates, n=${pn})`
+      : pn > 0 ? `◐ thin          (${days}/${MIN_RUN_DATES} run_dates, n=${pn} — directional only)`
+      : `⏳ pending       (n=0; first matures ~${matures})`;
     console.log(`   ${h.padEnd(3)} ${HORIZON_HEAD[h].padEnd(16)} ${state}`);
   }
 
@@ -124,8 +182,9 @@ async function main() {
     const preS = computeStats(pre.filter(r => r.horizon === h), positionGBP);
     const postS = computeStats(post.filter(r => r.horizon === h), positionGBP);
     const anchor = TEST_IC[h];
+    const anchorD = TEST_IC_DAILY[h];
     console.log(`\n${rule}`);
-    console.log(`▸ ${h}  [${HORIZON_HEAD[h]}]   v9.4 test-IC anchor ${f3(anchor).trim()}${h === '2W' ? '   ← recommendation basis' : ''}`);
+    console.log(`▸ ${h}  [${HORIZON_HEAD[h]}]   v9.4 DAILY anchor ${f3(anchorD.ic).trim()} (pooled ${f3(anchor).trim()})${h === '2W' ? '   ← recommendation basis' : ''}`);
 
     if (postS.n === 0) {
       const matures = addDays(earliestPost, HORIZON_DAYS[h]);
@@ -135,16 +194,23 @@ async function main() {
     }
 
     console.log(`   ${'metric'.padEnd(20)} ${col('pre-v9.4')} ${col('post-v9.4')} ${col('Δ')}`);
-    console.log(`   ${'n'.padEnd(20)} ${col(String(preS.n))} ${col(String(postS.n))} ${col('')}`);
-    console.log(`   ${'realized IC'.padEnd(20)} ${col(f3(preS.ic))} ${col(f3(postS.ic))} ${col(dIC(postS.ic, preS.ic))}`);
+    console.log(`   ${'n (rows)'.padEnd(20)} ${col(String(preS.n))} ${col(String(postS.n))} ${col('')}`);
+    console.log(`   ${'run_dates'.padEnd(20)} ${col(String(preS.daily.days))} ${col(String(postS.daily.days))} ${col('')}`);
+    console.log(`   ${'MEAN DAILY IC'.padEnd(20)} ${col(f3(preS.daily.meanIC))} ${col(f3(postS.daily.meanIC))} ${col(dIC(postS.daily.meanIC, preS.daily.meanIC))}`);
+    console.log(`   ${'  ± SE (clustered)'.padEnd(20)} ${col(f3(preS.daily.seIC))} ${col(f3(postS.daily.seIC))} ${col('')}`);
+    const tf = (v: number) => (Number.isFinite(v) ? v.toFixed(2) : ' n/a');
+    console.log(`   ${'  t-stat'.padEnd(20)} ${col(tf(preS.daily.t))} ${col(tf(postS.daily.t))} ${col('')}`);
+    console.log(`   ${'  % days positive'.padEnd(20)} ${col(pct(preS.daily.pctPos, 0))} ${col(pct(postS.daily.pctPos, 0))} ${col('')}`);
+    console.log(`   ${'pooled IC (legacy)'.padEnd(20)} ${col(f3(preS.ic))} ${col(f3(postS.ic))} ${col(dIC(postS.ic, preS.ic))}`);
     console.log(`   ${'sign hit-rate'.padEnd(20)} ${col(pct(preS.signHit, 1))} ${col(pct(postS.signHit, 1))} ${col('')}`);
     console.log(`   ${'σ(pred)'.padEnd(20)} ${col(pct(preS.sigPred))} ${col(pct(postS.sigPred))} ${col('')}`);
     console.log(`   ${'σ(actual)'.padEnd(20)} ${col(pct(preS.sigAct))} ${col(pct(postS.sigAct))} ${col('')}`);
     console.log(`   ${'σ-ratio act/pred'.padEnd(20)} ${col(preS.sigRatio.toFixed(1) + 'x')} ${col(postS.sigRatio.toFixed(1) + 'x')} ${col('')}`);
     console.log(`   ${`buy-tier gross (n=${postS.actN})`.padEnd(20)} ${col(pct(preS.actGross))} ${col(pct(postS.actGross))} ${col('')}`);
     console.log(`   ${`buy-tier net @£${positionGBP}`.padEnd(20)} ${col(pct(preS.actNet))} ${col(pct(postS.actNet))} ${col('')}`);
-    const ready = postS.n >= minN;
-    console.log(`   VERDICT: ${ready ? icVerdict(h, postS) : `thin (n=${postS.n}) — directional only`}`);
+    // icVerdict now gates on run_dates itself, so it is always called — the old
+    // row-count gate could hide a "NO VERDICT" behind a vaguer "thin" message.
+    console.log(`   VERDICT: ${icVerdict(h, postS)}`);
   }
 
   // ── Phenomenon-2 watch (D2 6M primary, D5 2W secondary) ──
@@ -172,7 +238,11 @@ async function main() {
 
   // ── how to read ──
   console.log(`\n HOW TO READ`);
-  console.log(`   • IC approaching the test anchor = train/serve parity held → the deployed model works live.`);
+  console.log(`   • MEAN DAILY IC is the number. Pooled IC is kept only for continuity with earlier`);
+  console.log(`     readouts — it treats one scan date's rows as independent and flatters the result.`);
+  console.log(`   • Two gates before any anchor claim: ≥${MIN_RUN_DATES} run_dates, AND |t|≥ the 95% Student-t`);
+  console.log(`     critical value. A tempting point estimate at t<2 is noise, not an early win.`);
+  console.log(`   • Mean daily IC approaching the DAILY anchor = train/serve parity held → works live.`);
   console.log(`   • σ(pred) widening on D2/D5 = Phenomenon-2 resolving (benign); staying compressed = a real`);
   console.log(`     resolution defect (would motivate v11 size-stratified heads).`);
   console.log(`   • buy-tier GROSS = is the signal real; NET @£${positionGBP} = does it clear cost at this size`);

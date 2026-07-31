@@ -64,6 +64,36 @@ export const TEST_IC: Record<string, number> = {
   '6M': 0.1062, // D2
 };
 
+// v9.4 held-out TEST IC per head, measured the way the LIVE side should be
+// measured: cross-sectional Spearman WITHIN each test date, then averaged across
+// dates (`src/ml/scratch_testfold_ic_by_date.py`, 2026-07-31). `sd`/`days` are
+// the across-date spread and the number of contributing dates, which give the
+// anchor its own standard error (sd/sqrt(days)) so live-vs-anchor can be a real
+// two-sample comparison instead of a bare threshold.
+//
+// WHY THIS EXISTS ALONGSIDE TEST_IC. Pooling one Spearman over every row of the
+// test fold lets BETWEEN-DATE variation count as skill: if predictions run high
+// in periods that realized high returns, pooled IC rewards that even though the
+// live system uses these numbers to RANK NAMES AGAINST EACH OTHER on a given
+// day. The cross-sectional job is the daily number. The gap is large and not
+// uniform — 3M falls 0.2100→0.0709 and 2W (the recommendation basis) halves,
+// 0.2258→0.1111 — so the pooled anchors were a materially soft bar. The script's
+// pooled arm reproduces all five TEST_IC values exactly, which is what proves
+// these are the same models on the same fold, measured differently.
+//
+// NOTE ON `sd`: the test fold carries a median ~21-23 names per date, while the
+// live scan carries ~100-200. Fewer names per date = a noisier per-date IC, so
+// the anchor's `sd` is an UPPER bound on what live daily spread should look
+// like. The MEAN is comparable; the spread is not, so don't read live sd < 0.30
+// as an improvement.
+export const TEST_IC_DAILY: Record<string, { ic: number; sd: number; days: number }> = {
+  '2D': { ic: 0.0826, sd: 0.2968, days: 330 }, // D3   (pooled 0.1160)
+  '2W': { ic: 0.1111, sd: 0.3376, days: 331 }, // D5   (pooled 0.2258)
+  '1M': { ic: -0.0278, sd: 0.2799, days: 313 }, // B   (pooled 0.0599) — dead-band head, ≈0 by design
+  '3M': { ic: 0.0709, sd: 0.3177, days: 275 }, // D1   (pooled 0.2100)
+  '6M': { ic: 0.0977, sd: 0.2953, days: 210 }, // D2   (pooled 0.1062)
+};
+
 export const HORIZON_ORDER = ['2D', '2W', '1M', '3M', '6M'];
 export const HORIZON_HEAD: Record<string, string> = {
   '2D': 'D3', '2W': 'D5 (rec basis)', '1M': 'B (dead band)', '3M': 'D1', '6M': 'D2',
@@ -101,6 +131,73 @@ export function pearson(a: number[], b: number[]): number {
 }
 
 export function spearman(a: number[], b: number[]): number { return pearson(ranks(a), ranks(b)); }
+
+// ── day-clustered IC ────────────────────────────────────────────────────────
+// Rows from one scan date are NOT independent observations: they share that
+// day's market move, so a pooled IC's naive SE (1/sqrt(n-3)) badly overstates
+// confidence — measured at 2.3x on the 2026-07-31 post-v9.4 2D slice (pooled SE
+// 0.0396 vs day-clustered 0.0923). Worse, a pooled IC is dominated by whichever
+// dates contributed the most rows: that same slice read pooled IC 0.174 (an
+// apparent pass vs the 0.116 anchor) off per-day ICs of -0.108/-0.180/+0.078/
+// -0.147/+0.378/+0.227, i.e. mean +0.041 at t=0.45 — no signal at all.
+//
+// So: IC within each run_date, then summarised across dates. `t` is the standard
+// IC t-stat (mean / (sd/sqrt(days))); `ir` is the information ratio (mean/sd).
+// Dates with fewer than `minPerDay` names have no meaningful cross-section to
+// rank and are dropped rather than contributing a near-random IC.
+export interface DailyIC {
+  days: number; meanIC: number; sdIC: number; seIC: number; t: number; ir: number;
+  pctPos: number; medianPerDay: number; rowsUsed: number;
+  perDay: Array<{ date: string; n: number; ic: number }>;
+}
+
+export function dailyIC(rows: Row[], minPerDay = 8): DailyIC {
+  const byDate = new Map<string, Row[]>();
+  for (const r of rows) {
+    if (!byDate.has(r.run_date)) byDate.set(r.run_date, []);
+    byDate.get(r.run_date)!.push(r);
+  }
+  const perDay: Array<{ date: string; n: number; ic: number }> = [];
+  for (const date of [...byDate.keys()].sort()) {
+    const g = byDate.get(date)!;
+    if (g.length < minPerDay) continue;
+    const ic = spearman(g.map(r => r.predicted_return), g.map(r => r.actual_return));
+    if (Number.isFinite(ic)) perDay.push({ date, n: g.length, ic });
+  }
+  const empty: DailyIC = { days: perDay.length, meanIC: NaN, sdIC: NaN, seIC: NaN, t: NaN, ir: NaN, pctPos: NaN, medianPerDay: NaN, rowsUsed: 0, perDay };
+  if (perDay.length < 2) return empty;
+  const ics = perDay.map(d => d.ic);
+  const m = mean(ics);
+  // sample sd (ddof=1) — these dates are a SAMPLE of trading days, not the population
+  const sd = Math.sqrt(ics.reduce((s, v) => s + (v - m) * (v - m), 0) / (ics.length - 1));
+  const se = sd / Math.sqrt(ics.length);
+  const ns = perDay.map(d => d.n).sort((a, b) => a - b);
+  return {
+    days: perDay.length, meanIC: m, sdIC: sd, seIC: se,
+    t: se > 0 ? m / se : NaN, ir: sd > 0 ? m / sd : NaN,
+    pctPos: ics.filter(v => v > 0).length / ics.length,
+    medianPerDay: ns[Math.floor(ns.length / 2)],
+    rowsUsed: perDay.reduce((s, d) => s + d.n, 0),
+    perDay,
+  };
+}
+
+// Two-sided 95% Student-t critical value. With only a handful of run_dates the
+// normal approximation (1.96) is far too permissive — at 5 dates the real bar is
+// 2.776 — and the whole point of this rework is to stop declaring victory early.
+export function tCrit95(df: number): number {
+  const table: Record<number, number> = {
+    1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306,
+    9: 2.262, 10: 2.228, 11: 2.201, 12: 2.179, 13: 2.160, 14: 2.145, 15: 2.131,
+    16: 2.120, 17: 2.110, 18: 2.101, 19: 2.093, 20: 2.086, 21: 2.080, 22: 2.074,
+    23: 2.069, 24: 2.064, 25: 2.060, 26: 2.056, 27: 2.052, 28: 2.048, 29: 2.045, 30: 2.042,
+  };
+  if (df < 1) return NaN;
+  if (df <= 30) return table[df];
+  if (df <= 60) return 2.000;
+  if (df <= 120) return 1.980;
+  return 1.960;
+}
 
 function pct(v: number, dp = 2): string {
   if (!Number.isFinite(v)) return '   n/a';
@@ -236,7 +333,20 @@ async function main() {
     const anecdote = n < MIN_N ? '  ⚠ low-n (anecdote)' : '';
 
     console.log(`\n▸ ${h}  [${HORIZON_HEAD[h]}]   n=${n}${anecdote}`);
-    console.log(`    realized IC ${fixed(ic)}   vs v9.4 test IC ${fixed(testIc)}   Δ ${Number.isFinite(dIc) ? (dIc >= 0 ? '+' : '') + dIc.toFixed(3) : 'n/a'}`);
+    console.log(`    pooled IC   ${fixed(ic)}   vs v9.4 pooled test IC ${fixed(testIc)}   Δ ${Number.isFinite(dIc) ? (dIc >= 0 ? '+' : '') + dIc.toFixed(3) : 'n/a'}`);
+    // The number to actually read. Pooled IC above is kept for continuity with
+    // the earlier readouts, but it treats one scan date's rows as independent
+    // observations and is dominated by the highest-row dates — see dailyIC().
+    const d = dailyIC(rows);
+    const anchorD = TEST_IC_DAILY[h];
+    if (d.days >= 2) {
+      const crit = tCrit95(d.days - 1);
+      const sig = Math.abs(d.t) >= crit ? '' : `  (not significant at 95%: |t| < ${crit.toFixed(2)} on ${d.days - 1} df)`;
+      console.log(`    mean daily IC ${fixed(d.meanIC)} ± ${fixed(d.seIC)}  t=${d.t.toFixed(2)}  over ${d.days} run_date(s), median ${d.medianPerDay} names/day, ${(d.pctPos * 100).toFixed(0)}% days positive${sig}`);
+      console.log(`      vs v9.4 DAILY anchor ${fixed(anchorD.ic)}  ⇐ the like-for-like bar (pooled anchor ${fixed(testIc)} counts between-date moves as skill)`);
+    } else {
+      console.log(`    mean daily IC — only ${d.days} usable run_date(s) (need ≥2, and ≥8 names on a date to count it)`);
+    }
     console.log(`    Pearson ${fixed(pear)}   sign hit-rate ${pct(hit, 1)}   mean pred ${pct(mean(pred))}   mean actual ${pct(mean(act))}`);
     // Phenomenon-2 under-resolution check: if the model compresses predictions
     // (small σ) while realized returns spread wide (large σ), it's over-smoothing
