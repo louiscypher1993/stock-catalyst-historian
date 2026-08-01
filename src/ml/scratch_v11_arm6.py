@@ -121,6 +121,9 @@ def main():
                          'and aggregates, so no single window decides')
     ap.add_argument('--sweep', action='store_true',
                     help='sweep recency weighting to test whether D1 recovers without losing B')
+    ap.add_argument('--subtract', action='store_true',
+                    help='SUBTRACTION test: v9.4 data with the corrupt rows REMOVED rather '
+                         'than replaced by the union')
     args = ap.parse_args()
 
     leg = pd.read_csv(ML_DIR / 'features.csv', low_memory=False)
@@ -162,13 +165,15 @@ def main():
         all_rows.extend(run_window(EVAL, legA, v11B, FEATS, args))
 
     out = pd.DataFrame(all_rows)
-    fn = 'v11_arm6_sweep.csv' if args.sweep else 'v11_arm6_results.csv'
+    fn = ('v11_arm6_subtract.csv' if args.subtract
+          else 'v11_arm6_sweep.csv' if args.sweep else 'v11_arm6_results.csv')
     out.to_csv(OUT_DIR / fn, index=False)
     print(f'\nwrote {OUT_DIR / fn}')
     if out.empty:
         return
 
-    schemes = [s for s in ['A v9.4', 'B flat', 'B hl=10y', 'B hl=5y', 'B hl=3y', 'B >=2010',
+    schemes = [s for s in ['A v9.4', 'A -pre2021', 'A -nonevent', 'A -both',
+                           'B flat', 'B hl=10y', 'B hl=5y', 'B hl=3y', 'B >=2010',
                            'B v11-union'] if s in set(out['model'])]
     for w in windows:
         sub = out[out['window'] == w]
@@ -226,9 +231,33 @@ def run_window(EVAL, legA, v11B, FEATS, args):
     assert (evalA['symbol'].values == evalB['symbol'].values).all(), 'eval row misalignment'
     assert (evalA['date'].values == evalB['date'].values).all(), 'eval row misalignment'
 
+    # SUBTRACTION. Both arms compared so far are flawed: `A v9.4` still CONTAINS the
+    # 16,435 monthly-bar rows (wrong price features, wrong B/C labels) plus ~5,000
+    # non-events mislabelled is_null_sample=0, while `B union` ADDS 235k old rows that
+    # D1 and D3 measurably do not want. Nobody has tried simply REMOVING what is broken
+    # — which keeps the recent-data concentration D1 prefers while deleting exactly what
+    # was proven corrupt. Motivated by two findings pointing the same way: B improves
+    # whenever corrupt 1M labels are dropped, and D1/D3 prefer recent data.
+    if args.subtract:
+        # a row flagged as a REAL event cannot have |z| below the engine's own 1.80
+        # adaptive floor — those are injected non-events whose flag failed to persist
+        zc = 'z_score' if 'z_score' in legA.columns else None
+        bad_ne = ((legA['is_null_sample'] == 0) & (legA[zc].abs() < 1.80)) if zc else pd.Series(False, index=legA.index)
+        pre21 = legA['date'] < '2021-01-01'
+        A_no_pre = legA[~pre21].reset_index(drop=True)
+        A_no_ne = legA[~bad_ne].reset_index(drop=True)
+        A_clean = legA[~(pre21 | bad_ne)].reset_index(drop=True)
+        print(f'subtraction: full {len(legA):,} | -pre2021 {len(A_no_pre):,} '
+              f'| -nonevents {len(A_no_ne):,} (removed {int(bad_ne.sum()):,}) '
+              f'| -both {len(A_clean):,}')
+        variants = [('A v9.4', legA, evalA, None),
+                    ('A -pre2021', A_no_pre, evalA, None),
+                    ('A -nonevent', A_no_ne, evalA, None),
+                    ('A -both', A_clean, evalA, None),
+                    ('B >=2010', v11B[v11B['date'] >= '2010-01-01'].reset_index(drop=True), evalB, None)]
     # One weighting scheme is applied across ALL five heads and scored on the SAME fold.
     # Picking a different dataset per head would just overfit this one window.
-    if args.sweep:
+    elif args.sweep:
         v11_2010 = v11B[v11B['date'] >= '2010-01-01'].reset_index(drop=True)
         print(f'sweep: recency half-lives + a hard 2010 cutoff ({len(v11_2010):,} rows)')
         variants = [('A v9.4', legA, evalA, None),
