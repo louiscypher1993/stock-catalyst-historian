@@ -1,0 +1,105 @@
+name: Point-in-Time Snapshot
+
+# WHY THIS EXISTS. Several data sources return CURRENT STATE ONLY, not as-of-date
+# history — short-position registers, ClinicalTrials.gov, and Companies House all tell
+# you what is true today and nothing about what was true last month. The research report
+# is explicit: "you must snapshot them forward to preserve point-in-time correctness; do
+# not trust their present values in historical backtests."
+#
+# That inverts the usual priority. For these sources the value comes from WHEN CAPTURE
+# STARTS, not when the features get used — every week without a snapshot is a week of
+# history that can never be reconstructed. So this runs now, even though the features
+# themselves are deliberately NOT being wired until after the September checkpoint
+# (wiring them would require a retrain, which would reset the very checkpoint that is
+# currently accumulating evidence about v9.4).
+#
+# STORAGE. The artifacts are already git-tracked, so committing a refreshed file IS the
+# dated snapshot — git history becomes the point-in-time record with no new
+# infrastructure, no database, and nothing that can silently fail to persist. Recover any
+# past state with `git log --follow -- src/scripts/<file>.json`.
+#
+# DELIBERATELY EXCLUDED. Sources that are already historical by nature (SEC filings and
+# fundamentals, HKEX/EDINET announcements — each record carries its own filing date) or
+# effectively static (OpenFIGI, LEI). Re-snapshotting those would add megabytes per week
+# to the repo for no point-in-time gain; the five here total ~230 KB.
+#
+# TOUCHES NO MODEL. No feature, no retrain, no trial, no effect on live inference.
+
+on:
+  schedule:
+    # Sunday 06:00 UTC — clear of the Mon-Fri live-inference runs (07:00/15:30/20:00)
+    # and of the 21:30 outcome-tracker job.
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needs to commit the refreshed snapshots
+
+concurrency:
+  group: pit-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Each builder runs independently and a failure is tolerated: one dead endpoint
+      # should not cost the week's snapshot for the other four. A source that fails
+      # simply keeps last week's file and shows up as "unchanged" below.
+      - name: FCA short positions (UK)
+        run: npx tsx src/scripts/buildFcaShortPositions.ts || echo "::warning::FCA snapshot failed"
+
+      - name: AMF short positions (France)
+        run: npx tsx src/scripts/buildAmfShortPositions.ts || echo "::warning::AMF snapshot failed"
+
+      - name: FINRA short interest (US)
+        run: npx tsx src/scripts/buildShortInterest.ts || echo "::warning::FINRA snapshot failed"
+
+      - name: ClinicalTrials.gov
+        run: npx tsx src/scripts/buildClinicalTrials.ts || echo "::warning::ClinicalTrials snapshot failed"
+
+      # Only source here needing a key. Skipped rather than failed when absent, so the
+      # workflow still works for anyone without the secret configured.
+      - name: Companies House status (UK)
+        env:
+          COMPANIES_HOUSE_API_KEY: ${{ secrets.COMPANIES_HOUSE_API_KEY }}
+        run: |
+          if [ -z "$COMPANIES_HOUSE_API_KEY" ]; then
+            echo "::notice::COMPANIES_HOUSE_API_KEY not set — skipping UK company status"
+          else
+            npx tsx src/scripts/buildUkCompanyStatus.ts || echo "::warning::Companies House snapshot failed"
+          fi
+
+      - name: Commit the snapshot
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- src/scripts/symbol_fca_short_positions.json \
+                     src/scripts/symbol_amf_short_positions.json \
+                     src/scripts/symbol_short_interest.json \
+                     src/scripts/symbol_clinical_trials.json \
+                     src/scripts/symbol_uk_company_status.json
+          if git diff --cached --quiet; then
+            echo "no changes — sources reported identical state, nothing to snapshot"
+            exit 0
+          fi
+          echo "changed files:"
+          git diff --cached --name-only
+          # [skip ci] so this commit does not trigger other workflows
+          git commit -m "chore: point-in-time snapshot $(date -u +%Y-%m-%d) [skip ci]" \
+                     -m "Automated weekly capture of current-state-only sources. Git history is the
+          point-in-time record — these feeds return present state, so a value is only
+          attributable to a date because of when it was committed. Not wired as features
+          (that needs a retrain, deferred past the September checkpoint)."
+          git push
