@@ -123,6 +123,9 @@ def main():
     ap.add_argument('--folds', action='store_true',
                     help='run the production protocol over several non-overlapping test '
                          'windows; a single fold produced the non-replicating result')
+    ap.add_argument('--features-file', default=None,
+                    help='alternative features CSV (e.g. scratch/features_asyncfix.csv) '
+                         'to add as an extra arm alongside the untouched v9.4 baseline')
     args = ap.parse_args()
     global FOLD_MODE
     FOLD_MODE = args.folds
@@ -194,6 +197,20 @@ def main():
         ('v11-cand-ne', df[~(pre21 | bad_ne)], feats_v11),    # both + non-events
         ('v11-union', union, feats_v11),                      # REPLACE pre-2021 instead
     ]
+    if args.features_file:
+        # An alternative feature file (e.g. the async-close correction) enters as an
+        # extra arm against the UNTOUCHED v9.4 baseline, on the same fixed test fold and
+        # the same v9.4 feature list — so the corrected columns are the only difference.
+        alt = pd.read_csv(args.features_file, low_memory=False)
+        alt['date'] = alt['date'].astype(str).str[:10]
+        alt['is_us_listed'] = alt['symbol'].apply(
+            lambda s: 1 if ('.' not in str(s)) or str(s).endswith(('.NYSE', '.NASDAQ')) else 0
+        ).astype(int)
+        alt = alt[~((alt['overnight_gap_pct'].abs() >= 1.0) | (alt['excess_return'].abs() > 10))]
+        alt = alt.reset_index(drop=True)
+        name = Path(args.features_file).stem.replace('features_', '')
+        print(f'extra arm "{name}": {len(alt):,} rows from {args.features_file}')
+        ARMS = [ARMS[0], (name, alt, feats_v94)]
 
     # MULTI-FOLD. A single test fold is what produced yesterday's non-replicating result,
     # so the production protocol is now run over several non-overlapping test windows.
@@ -262,8 +279,11 @@ def main():
                   f'IC={ic:+.4f} t={t:+.2f} ({nd}d)  anchor {a_ic:+.4f}  z={z:+.2f}')
 
     res = pd.DataFrame(results)
-    res.to_csv(OUT_DIR / ('v11_candidate_folds.csv' if FOLD_MODE
-                          else 'v11_candidate_results.csv'), index=False)
+    # name the output after the arm under test so successive runs do not clobber
+    # each other (an earlier run of this script overwrote its predecessor's results)
+    tag = Path(args.features_file).stem.replace('features_', '') if args.features_file else 'v11'
+    res.to_csv(OUT_DIR / (f'{tag}_folds.csv' if FOLD_MODE
+                          else f'{tag}_candidate_results.csv'), index=False)
 
     if FOLD_MODE:
         print('\n' + '=' * 84)
