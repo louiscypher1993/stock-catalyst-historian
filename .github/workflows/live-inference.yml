@@ -69,4 +69,12 @@ jobs:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
           PIPELINE_RUN_SLOT: ${{ steps.slot.outputs.slot }}
+          # OBSERVATION ONLY — decisions still come from the SPY path exactly as before.
+          # Alongside them, the native-per-market benchmark verdict is computed and any
+          # DISAGREEMENT about whether a bar is an anomaly is written to
+          # shadow_benchmark_divergence. Switching live to 'native' would change ~33% of
+          # detections (only 67% overlap, measured in scratch_v12_live_shadow.py), and
+          # backtest cannot say which set performs better — this accumulates the live
+          # evidence to decide. To revert: delete this one line.
+          LIVE_BENCHMARK_MODE: shadow
         run: npx tsx src/LiveInferenceService.ts
