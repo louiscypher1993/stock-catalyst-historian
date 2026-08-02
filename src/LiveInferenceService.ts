@@ -97,6 +97,71 @@ const YAHOO_REQUEST_DELAY_MS = 75;
 // flag, behavior is byte-identical to today.
 const PULSE_MODE = process.env.PULSE_MODE === '1';
 
+// ---------------------------------------------------------------------------
+// BENCHMARK SELECTION (LIVE_BENCHMARK_MODE)
+//
+// THE DEFECT. buildSpyReturnMap is built once per run and passed to detectAnomaly
+// for EVERY symbol, so live hedges a Tokyo or London name against SPY. Training does
+// not: HistoricalEngine.ts:1533-1543 picks a native index per suffix. excess_return is
+// a model input AND the basis of the z-score that decides what counts as an anomaly at
+// all, so for the 445 symbols in these 11 markets (39.1% of training rows) both the
+// feature distribution and the detection criterion differ between train and serve.
+// The comment on buildBetaHedgedExcessReturns claims it "ports HistoricalEngine.ts
+// :1688-1723" — it ports the beta regression but not the benchmark selection.
+//
+// MEASURED BLAST RADIUS (scratch_v12_live_shadow.py, 2024-08-01 onward, 445 symbols):
+// detection COUNT barely moves (10,206 -> 9,990, -2.1%) but COMPOSITION does — only
+// 67% of detections persist; ~3,369 disappear and ~3,153 appear. Overlap tracks the
+// mechanism: .TO 80% (closes with the US) down to .ST 55%. That is a behavioural
+// change to a system issuing daily recommendations, which is why it is gated rather
+// than simply applied.
+//
+//   'spy'     (default, and the value when the var is unset) — byte-identical to the
+//             behaviour before this change. Nothing is fetched, nothing is computed.
+//   'shadow'  — decisions still use SPY; the native-benchmark result is computed
+//               alongside and divergences are logged. Zero behaviour change, but it
+//               accumulates the live evidence needed to judge the 33% churn.
+//   'native'  — the fix: hedge against the per-market index, and carry the last known
+//               benchmark return forward instead of substituting 0 for a missing one.
+const LIVE_BENCHMARK_MODE = (process.env.LIVE_BENCHMARK_MODE ?? 'spy').toLowerCase();
+
+// Ported verbatim from HistoricalEngine.ts:1533-1543 so live and training agree.
+const NATIVE_BENCHMARK: Record<string, string> = {
+  '.AX': '^AXJO', '.SW': '^SSMI', '.ST': '^OMX', '.SI': '^STI', '.L': '^FTSE',
+  '.DE': '^GDAXI', '.PA': '^FCHI', '.TO': '^GSPTSE', '.NS': '^BSESN',
+  '.BO': '^BSESN', '.HK': '^HSI',
+};
+
+/** Benchmark ticker training would have used for this symbol; '^GSPC' otherwise. */
+export function nativeBenchmarkTicker(symbol: string): string {
+  const u = String(symbol).toUpperCase();
+  for (const suffix of Object.keys(NATIVE_BENCHMARK)) {
+    if (u.endsWith(suffix)) return NATIVE_BENCHMARK[suffix];
+  }
+  return '^GSPC';
+}
+
+/** Forward-fill a return series across calendar gaps.
+ *  Used ONLY for the same-day hedge term. The beta window deliberately keeps using the
+ *  sparse map and skipping absent dates: repeating a stale return inside the regression
+ *  would bias the beta estimate, whereas substituting 0 for the same-day term (today's
+ *  `?? 0`) silently converts excess_return into the raw return. Absence is not zero. */
+function densifyForward(map: Map<string, number>): Map<string, number> {
+  const dates = [...map.keys()].sort();
+  if (!dates.length) return new Map();
+  const out = new Map<string, number>();
+  let last = map.get(dates[0])!;
+  const cur = new Date(dates[0] + 'T00:00:00Z');
+  const end = new Date(dates[dates.length - 1] + 'T00:00:00Z');
+  while (cur <= end) {
+    const key = cur.toISOString().slice(0, 10);
+    if (map.has(key)) last = map.get(key)!;
+    out.set(key, last);
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+  return out;
+}
+
 interface YahooBar {
   date: string;
   open: number;
@@ -230,7 +295,11 @@ export function buildSpyReturnMap(spyBars: YahooBar[]): Map<string, number> {
 // elsewhere in this function. Returns a parallel array of beta-hedged
 // excess returns, one per index of `bars` (index 0 is always 0, matching
 // training's i=0 boundary).
-function buildBetaHedgedExcessReturns(bars: YahooBar[], spyReturnByDate: Map<string, number>): number[] {
+function buildBetaHedgedExcessReturns(
+  bars: YahooBar[],
+  spyReturnByDate: Map<string, number>,
+  denseReturnByDate?: Map<string, number>,
+): number[] {
   const excessReturns: number[] = new Array(bars.length).fill(0);
   for (let i = 1; i < bars.length; i++) {
     const dailyReturn = (bars[i].close - bars[i - 1].close) / bars[i - 1].close;
@@ -259,7 +328,13 @@ function buildBetaHedgedExcessReturns(bars: YahooBar[], spyReturnByDate: Map<str
       if (varianceSpy > 0.0001) beta = covariance / varianceSpy;
     }
 
-    const spyReturnToday = spyReturnByDate.get(bars[i].date) ?? 0;
+    // `?? 0` is the defect: on a date with no benchmark bar the hedge silently
+    // vanishes and excess_return degenerates to the raw return (12-23% of bar-days
+    // on .NZ/.AX/Gulf markets). When a forward-filled series is supplied we carry the
+    // last known return instead; without one, behaviour is unchanged.
+    const spyReturnToday = denseReturnByDate
+      ? (spyReturnByDate.get(bars[i].date) ?? denseReturnByDate.get(bars[i].date) ?? 0)
+      : (spyReturnByDate.get(bars[i].date) ?? 0);
     excessReturns[i] = dailyReturn - beta * spyReturnToday;
   }
   return excessReturns;
@@ -273,10 +348,10 @@ function buildBetaHedgedExcessReturns(bars: YahooBar[], spyReturnByDate: Map<str
 // constant-scalar SPY subtraction canceled out exactly in the z-score, making
 // live's gate mathematically identical to using raw, non-market-adjusted
 // returns; see the F10 recon report for the algebraic proof.)
-export function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], spyReturnByDate: Map<string, number>, bypassZGate: boolean = false): AnomalySignal | null {
+export function detectAnomaly(symbol: string, companyName: string, bars: YahooBar[], spyReturnByDate: Map<string, number>, bypassZGate: boolean = false, denseReturnByDate?: Map<string, number>): AnomalySignal | null {
   if (bars.length < 12) return null;
 
-  const excessReturns = buildBetaHedgedExcessReturns(bars, spyReturnByDate);
+  const excessReturns = buildBetaHedgedExcessReturns(bars, spyReturnByDate, denseReturnByDate);
 
   const last = bars[bars.length - 1];
   const prev = bars[bars.length - 2];
@@ -1103,6 +1178,29 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
   }
   console.log(`[LiveInference] SPY daily-return series: ${spyReturnByDate.size} days`);
 
+  // Native per-market benchmarks. Only fetched when the mode asks for them, so the
+  // default path makes exactly the same API calls it did before.
+  const nativeReturnByTicker = new Map<string, Map<string, number>>();
+  const nativeDenseByTicker = new Map<string, Map<string, number>>();
+  if (LIVE_BENCHMARK_MODE === 'native' || LIVE_BENCHMARK_MODE === 'shadow') {
+    const tickers = [...new Set(Object.values(NATIVE_BENCHMARK))];
+    for (const t of tickers) {
+      try {
+        const b = await fetchYahooDailyHistory(t, '1y');
+        const m = buildSpyReturnMap(b);
+        nativeReturnByTicker.set(t, m);
+        nativeDenseByTicker.set(t, densifyForward(m));
+        await sleep(YAHOO_REQUEST_DELAY_MS);
+      } catch (err: any) {
+        console.warn(`[LiveInference] benchmark ${t} fetch failed: ${err.message} — ` +
+                     `symbols in that market fall back to SPY this run`);
+      }
+    }
+    console.log(`[LiveInference] mode=${LIVE_BENCHMARK_MODE}; native benchmark series: ` +
+                [...nativeReturnByTicker].map(([t, m]) => `${t}:${m.size}d`).join(' '));
+  }
+  let shadowChecked = 0, shadowDiverged = 0;
+
   const watchlistSymbols = new Set<string>();
   try {
     const { supabase } = await import('./db/supabaseClient');
@@ -1161,7 +1259,40 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
 
       const isWatchlisted = watchlistSymbols.has(symbol.toUpperCase());
       const isForced = forceAnalyzeSymbols.has(symbol.toUpperCase());
-      const anomaly = detectAnomaly(symbol, companyName, bars, spyReturnByDate, isForced);
+
+      const benchTicker = nativeBenchmarkTicker(symbol);
+      const nativeMap = nativeReturnByTicker.get(benchTicker);
+      const nativeDense = nativeDenseByTicker.get(benchTicker);
+      // 'native' acts on the per-market benchmark; every other mode acts on SPY, so
+      // the default path is untouched. A failed benchmark fetch also falls back to SPY.
+      const useNative = LIVE_BENCHMARK_MODE === 'native' && nativeMap !== undefined;
+      const anomaly = useNative
+        ? detectAnomaly(symbol, companyName, bars, nativeMap!, isForced, nativeDense)
+        : detectAnomaly(symbol, companyName, bars, spyReturnByDate, isForced);
+
+      // 'shadow': decide on SPY exactly as today, but compute the native-benchmark
+      // verdict alongside and log where the two disagree. This is how the 33% churn
+      // gets adjudicated on live outcomes instead of backtest.
+      if (LIVE_BENCHMARK_MODE === 'shadow' && nativeMap && benchTicker !== '^GSPC') {
+        try {
+          const shadow = detectAnomaly(symbol, companyName, bars, nativeMap, isForced, nativeDense);
+          shadowChecked++;
+          const zCur = anomaly?.zScore ?? null;
+          const zNat = shadow?.zScore ?? null;
+          const detCur = !!anomaly && Math.abs(anomaly.zScore) > Z_SCORE_THRESHOLD;
+          const detNat = !!shadow && Math.abs(shadow.zScore) > Z_SCORE_THRESHOLD;
+          if (detCur !== detNat) {
+            shadowDiverged++;
+            console.log(`[ShadowBench] ${symbol} ${runDate} bench=${benchTicker} ` +
+                        `z_spy=${zCur === null ? 'n/a' : zCur.toFixed(3)} ` +
+                        `z_native=${zNat === null ? 'n/a' : zNat.toFixed(3)} ` +
+                        `detected_spy=${detCur} detected_native=${detNat}`);
+          }
+        } catch (err: any) {
+          console.warn(`[ShadowBench] ${symbol}: ${err.message}`);
+        }
+      }
+
       if (!anomaly) continue;
 
       const isActualAnomaly = Math.abs(anomaly.zScore) > Z_SCORE_THRESHOLD;
@@ -1330,6 +1461,12 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
     }
   }
 
+  if (LIVE_BENCHMARK_MODE === 'shadow') {
+    console.log(`[ShadowBench] SUMMARY ${runDate}: ${shadowChecked} symbols compared, ` +
+                `${shadowDiverged} detection divergences ` +
+                `(${shadowChecked ? (100 * shadowDiverged / shadowChecked).toFixed(1) : '0.0'}%). ` +
+                `Decisions were made on SPY as usual — this run changed no behaviour.`);
+  }
   console.log(`[LiveInference] Done. Anomalies: ${anomalyCount}, Narratives: ${narrativeCount}, Notifications: ${notificationCount}`);
 
   if (PULSE_MODE) {
