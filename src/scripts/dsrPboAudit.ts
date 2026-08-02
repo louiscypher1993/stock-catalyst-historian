@@ -262,11 +262,23 @@ async function main() {
   console.log(`   (DSR = P(true Sharpe > 0 | selection bias from N independent trials). Not one number`);
   console.log(`    on purpose — picking a single "true" N is a judgment call, shown here instead of asserted.)`);
   console.log(`\n   ${'N (trials)'.padStart(12)} ${'E[max SR|N]'.padStart(14)} ${'DSR'.padStart(8)}   verdict`);
-  const N_SWEEP = [1, 2, 5, 10, 20, 50, 100, 500, 1000, 5000, 40000];
+  // TRIAL_LOG.md now records the actual configurations tried, so the two values below
+  // are no longer arbitrary points on a sweep — they are the ledger's count (21) and its
+  // conservative upper bound (33, which folds in the v1-v9.3 development versions).
+  // The sweep is kept around them: picking a single N is still a judgement, and the
+  // sweep shows how much that judgement matters. NOTE the log's central distinction —
+  // 21 is CONFIGURATIONS, not the 445 model FITS those configurations produced across
+  // heads and folds; using 445 would deflate the Sharpe into meaninglessness.
+  const N_LOGGED = 21, N_UPPER = 33;
+  const N_SWEEP = [1, 2, 5, 10, N_LOGGED, N_UPPER, 50, 100, 500, 1000, 5000, 40000]
+    .sort((a, b) => a - b);
+  console.log(`   (N=${N_LOGGED} is the count from TRIAL_LOG.md; N=${N_UPPER} its upper bound — both marked * below)`);
   for (const N of N_SWEEP) {
     const emax = expectedMaxSharpe(d.varSr, N);
     const dsr = deflatedSharpe(d, N);
-    console.log(`   ${String(N).padStart(12)} ${fixed(emax).padStart(14)} ${fixed(dsr, 4).padStart(8)}   ${verdictFor(dsr)}`);
+    const mark = N === N_LOGGED ? ' *  <- TRIAL_LOG.md count'
+               : N === N_UPPER ? ' *  <- TRIAL_LOG.md upper bound' : '';
+    console.log(`   ${String(N).padStart(12)} ${fixed(emax).padStart(14)} ${fixed(dsr, 4).padStart(8)}   ${verdictFor(dsr)}${mark}`);
   }
   console.log(`\n   For contrast, the SAME sweep on the unselective baseline (all scored symbols, no`);
   console.log(`   tier filter) — expect this to fail sooner if the tier selection is adding real value:`);
