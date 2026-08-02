@@ -1200,6 +1200,9 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
                 [...nativeReturnByTicker].map(([t, m]) => `${t}:${m.size}d`).join(' '));
   }
   let shadowChecked = 0, shadowDiverged = 0;
+  // Collected across the run and written in ONE upsert at the end — a round trip per
+  // symbol would add hundreds of calls to a job that already fetches per symbol.
+  const shadowRows: Array<Record<string, unknown>> = [];
 
   const watchlistSymbols = new Set<string>();
   try {
@@ -1287,6 +1290,18 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
                         `z_spy=${zCur === null ? 'n/a' : zCur.toFixed(3)} ` +
                         `z_native=${zNat === null ? 'n/a' : zNat.toFixed(3)} ` +
                         `detected_spy=${detCur} detected_native=${detNat}`);
+            shadowRows.push({
+              run_date: runDate,
+              run_slot: process.env.PIPELINE_RUN_SLOT || 'default',
+              symbol,
+              benchmark: benchTicker,
+              bar_date: bars[bars.length - 1]?.date ?? null,
+              z_spy: zCur,
+              z_native: zNat,
+              detected_spy: detCur,
+              detected_native: detNat,
+              close: bars[bars.length - 1]?.close ?? null,
+            });
           }
         } catch (err: any) {
           console.warn(`[ShadowBench] ${symbol}: ${err.message}`);
@@ -1466,6 +1481,30 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
                 `${shadowDiverged} detection divergences ` +
                 `(${shadowChecked ? (100 * shadowDiverged / shadowChecked).toFixed(1) : '0.0'}%). ` +
                 `Decisions were made on SPY as usual — this run changed no behaviour.`);
+    if (shadowRows.length) {
+      // A failed write here must be LOUD. The recorded hazard on this project is that a
+      // Supabase write fails while the run stays green, so the evidence silently never
+      // accumulates and nobody notices for weeks. The console lines above are the
+      // fallback record if this does fail.
+      try {
+        const { supabase } = await import('./db/supabaseClient');
+        const { error } = await supabase
+          .from('shadow_benchmark_divergence')
+          .upsert(shadowRows, { onConflict: 'run_date,run_slot,symbol' });
+        if (error) {
+          console.error(`[ShadowBench] SUPABASE WRITE FAILED (${error.code ?? '?'}): ${error.message}`);
+          console.error(`[ShadowBench] ${shadowRows.length} divergences for ${runDate} exist ONLY in this log. ` +
+                        (error.code === 'PGRST205'
+                          ? 'Table is missing — run the shadow_benchmark_divergence block in src/db/supabase_migration.sql.'
+                          : 'Check RLS/insert policy for the anon key on shadow_benchmark_divergence.'));
+        } else {
+          console.log(`[ShadowBench] wrote ${shadowRows.length} divergences to Supabase.`);
+        }
+      } catch (err: any) {
+        console.error(`[ShadowBench] SUPABASE WRITE THREW: ${err.message} — ` +
+                      `${shadowRows.length} divergences for ${runDate} exist only in this log.`);
+      }
+    }
   }
   console.log(`[LiveInference] Done. Anomalies: ${anomalyCount}, Narratives: ${narrativeCount}, Notifications: ${notificationCount}`);
 

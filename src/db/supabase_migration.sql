@@ -109,3 +109,49 @@ ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS digital_exhaust_velocity_
 
 -- Alpha Vantage NEWS_SENTIMENT, live run only (free tier budget too small for backfill)
 ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS alphavantage_sentiment_avg REAL;
+
+-- ---------------------------------------------------------------------------
+-- shadow_benchmark_divergence
+--
+-- Populated only when LIVE_BENCHMARK_MODE=shadow. Live decides on SPY exactly as
+-- it does today; the native-per-market benchmark verdict is computed alongside and
+-- every DISAGREEMENT about whether a bar is an anomaly is recorded here.
+--
+-- Why it exists: switching live to the training-matched benchmark would change ~33%
+-- of detections (10,206 -> 9,990 total but only 67% overlap; measured by
+-- src/ml/scratch_v12_live_shadow.py). Backtest cannot say which detection set performs
+-- better — only realised forward returns on the two disjoint sets can. This table is
+-- how that evidence accumulates without changing any behaviour.
+--
+-- To adjudicate later: take rows where detected_spy != detected_native, pull forward
+-- returns for each group from daily_prices, and compare. Whichever group's exclusive
+-- detections realise better outcomes wins.
+--
+-- run_slot is part of the key because live runs 3x/day (live-inference.yml) and the
+-- same symbol can legitimately diverge in more than one slot on the same date. It is
+-- NOT NULL with a default so the unique constraint behaves (NULLs compare distinct in
+-- Postgres, which would silently permit duplicates).
+CREATE TABLE IF NOT EXISTS shadow_benchmark_divergence (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  run_date DATE NOT NULL,
+  run_slot TEXT NOT NULL DEFAULT 'default',
+  symbol TEXT NOT NULL,
+  benchmark TEXT NOT NULL,
+  bar_date DATE,
+  z_spy REAL,
+  z_native REAL,
+  detected_spy BOOLEAN NOT NULL,
+  detected_native BOOLEAN NOT NULL,
+  close REAL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE (run_date, run_slot, symbol)
+);
+
+CREATE INDEX IF NOT EXISTS idx_shadow_div_run_date ON shadow_benchmark_divergence (run_date DESC);
+CREATE INDEX IF NOT EXISTS idx_shadow_div_symbol   ON shadow_benchmark_divergence (symbol);
+
+-- The live job authenticates with SUPABASE_ANON_KEY (see live-inference.yml), so anon
+-- must be able to write here exactly as it already can for inference_results. If RLS is
+-- enabled on this table without a matching policy the insert fails and the run stays
+-- green — the recorded silent-failure hazard. The service logs loudly on write failure
+-- for that reason, but the safest posture is to match whatever inference_results uses.
