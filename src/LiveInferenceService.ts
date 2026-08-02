@@ -1196,8 +1196,18 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
                      `symbols in that market fall back to SPY this run`);
       }
     }
+    // Markets with NO native index (.T, .KS, .SS, .SZ, .TW, Gulf, …) keep falling back
+    // to SPY, and they are exactly the ones that need carry-forward most: their bar can
+    // be AHEAD of SPY's. Confirmed live on 2026-08-02 — 2222.SR's last bar was 08-02
+    // (Saudi trades Sunday) while SPY's was 07-31, so `?? 0` zeroed the hedge on the
+    // DECISIVE bar and the z-score was computed on the raw return. The same happens on
+    // weekdays at the 07:00/15:30 UTC runs for any market that closes before the US.
+    // Without this, carry-forward would reach only the 11 native markets, which are the
+    // ones that need it least (a market and its own index share a calendar).
+    nativeDenseByTicker.set('^GSPC', densifyForward(spyReturnByDate));
     console.log(`[LiveInference] mode=${LIVE_BENCHMARK_MODE}; native benchmark series: ` +
-                [...nativeReturnByTicker].map(([t, m]) => `${t}:${m.size}d`).join(' '));
+                [...nativeReturnByTicker].map(([t, m]) => `${t}:${m.size}d`).join(' ') +
+                ` | SPY forward-fill: ${nativeDenseByTicker.get('^GSPC')!.size}d`);
   }
   let shadowChecked = 0, shadowDiverged = 0;
   // Collected across the run and written in ONE upsert at the end — a round trip per
@@ -1269,9 +1279,13 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       // 'native' acts on the per-market benchmark; every other mode acts on SPY, so
       // the default path is untouched. A failed benchmark fetch also falls back to SPY.
       const useNative = LIVE_BENCHMARK_MODE === 'native' && nativeMap !== undefined;
+      // In 'native' mode a symbol with no native index still gets carry-forward against
+      // SPY; in every other mode this is undefined and the path is unchanged.
+      const spyDense = LIVE_BENCHMARK_MODE === 'native'
+        ? nativeDenseByTicker.get('^GSPC') : undefined;
       const anomaly = useNative
         ? detectAnomaly(symbol, companyName, bars, nativeMap!, isForced, nativeDense)
-        : detectAnomaly(symbol, companyName, bars, spyReturnByDate, isForced);
+        : detectAnomaly(symbol, companyName, bars, spyReturnByDate, isForced, spyDense);
 
       // 'shadow': decide on SPY exactly as today, but compute the native-benchmark
       // verdict alongside and log where the two disagree. This is how the 33% churn
