@@ -81,6 +81,21 @@ jobs:
             npx tsx src/scripts/buildUkCompanyStatus.ts || echo "::warning::Companies House snapshot failed"
           fi
 
+      # APPEND-ONLY, unlike the five above. These are dated events merged on accession,
+      # so re-running adds rather than replaces and only genuinely new filings are
+      # fetched — the weekly cost after the first run is small. Also refreshes the
+      # accumulated CIK->ticker map, which has to be captured BEFORE a delisting because
+      # the SEC prunes delisted companies from company_tickers.json.
+      - name: SEC Form 25 delistings + CIK/ticker map
+        env:
+          SEC_CONTACT: ${{ secrets.SEC_CONTACT }}
+        run: |
+          if [ -z "$SEC_CONTACT" ]; then
+            echo "::notice::SEC_CONTACT not set — skipping delisting capture"
+          else
+            npx tsx src/scripts/buildDelistings.ts || echo "::warning::delisting capture failed"
+          fi
+
       - name: Commit the snapshot
         run: |
           git config user.name  "github-actions[bot]"
@@ -89,7 +104,9 @@ jobs:
                      src/scripts/symbol_amf_short_positions.json \
                      src/scripts/symbol_short_interest.json \
                      src/scripts/symbol_clinical_trials.json \
-                     src/scripts/symbol_uk_company_status.json
+                     src/scripts/symbol_uk_company_status.json \
+                     src/scripts/symbol_delistings.json \
+                     src/scripts/cik_ticker_map.json
           if git diff --cached --quiet; then
             echo "no changes — sources reported identical state, nothing to snapshot"
             exit 0
