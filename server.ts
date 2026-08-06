@@ -1451,7 +1451,10 @@ app.get('/api/scan-symbol/:symbol', async (req, res, next) => {
     const clampedReturn2d = Math.max(-0.20, Math.min(0.20, scores.model_d3_return_2d));
     const clampedReturn2w = Math.max(-0.35, Math.min(0.35, scores.model_d5_return_2w));
 
-    const rec = getRecommendation(scores.model_a_confidence, clampedReturn2w, scores.model_c_max_drawdown, trendContext);
+    // Pass the rank infer.py computed against the breakpoints of the Model C version it
+    // loaded. Without it this endpoint would silently fall back to PotService's v9.1
+    // table -- the exact model/breakpoint mismatch the version switch exists to prevent.
+    const rec = getRecommendation(scores.model_a_confidence, clampedReturn2w, scores.model_c_max_drawdown, trendContext, scores.model_c_percentile_rank);
 
     res.json({
       anomaly: true,

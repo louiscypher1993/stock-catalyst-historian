@@ -90,6 +90,12 @@ jobs:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
           PULSE_MODE: '1'
+          # MUST match live-inference.yml. Pulse runs write to the same inference_results
+          # table as the scheduled scans, so a different Model C here would put two
+          # incompatible drawdown scales in one day's rows -- and because the breakpoints
+          # differ per version, the recorded riskScore would not be comparable either.
+          # Change both files together or neither.
+          MODEL_C_VERSION: '9.5'
         run: npx tsx src/LiveInferenceService.ts ${{ steps.symbols.outputs.list }}
 
       # Only mark symbols as freshly scored after the inference step above

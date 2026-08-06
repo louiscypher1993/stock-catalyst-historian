@@ -77,4 +77,32 @@ jobs:
           # backtest cannot say which set performs better — this accumulates the live
           # evidence to decide. To revert: delete this one line.
           LIVE_BENCHMARK_MODE: shadow
+          # Model C v9.5 — drops the 16,435 pre-2021 rows whose max_adverse_excursion_1m
+          # was built from MONTHLY/QUARTERLY bars, plus one label outlier (III.L, a
+          # +113.54 GBp/GBP scale artefact that v9.4's filter cannot catch because it
+          # keys on gap/excess_return, never on the label). Measured over 4 folds against
+          # the deployed model: day-clustered rank IC +0.3333 -> +0.3537, paired t=5.15
+          # on 765 shared test days — the first result on this project to clear the
+          # Harvey-Liu-Zhu t>3 hurdle.
+          #
+          # THE VISIBLE CHANGE IS CALIBRATION, NOT RANKING. v9.1 reported a POSITIVE max
+          # drawdown — i.e. "never trades below entry" — on 84.3% of anomalies, because
+          # early stopping fired at iteration 24 of 1000 and left it stranded above
+          # base_score=0.5. v9.5 does so on 0.0%. The percentile RANK barely moves (on
+          # TRIP 2025-06-25 the riskScore drawdown term goes 24.1 -> 24.9 of 40), so
+          # position sizing shifts only slightly; what changes materially is the number
+          # printed to the user (LiveInferenceService.ts:866) and handed to the LLM (:922).
+          #
+          # infer.py emits model_c_percentile_rank + model_c_version alongside the
+          # prediction, computed against the breakpoints of the version it loaded, so a
+          # model can never be served against another version's table (that mismatch is
+          # worth ~18 riskScore points). An unknown version refuses to start.
+          # Verified by src/scripts/verifyModelCParity.ts: Python/TypeScript rank parity
+          # 0.000e+0 over 2,399 probes; unset => v9.1 byte-for-byte.
+          #
+          # NOTE: this does NOT touch the September IC checkpoint (model_c appears in no
+          # part of outcomeTracker/outcomeScoreboard/readoutHarness/dsrPboAudit), but it
+          # DOES shift pot-ledger position sizing from here on.
+          # To revert: delete this one line — the code then takes the '9.1' default.
+          MODEL_C_VERSION: '9.5'
         run: npx tsx src/LiveInferenceService.ts
