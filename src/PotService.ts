@@ -17,6 +17,12 @@ export interface PipelineResult {
   model_a_confidence:   number;
   model_b_return_1m:    number;
   model_c_max_drawdown: number;
+  /** Percentile rank of model_c_max_drawdown, computed by infer.py against the
+   *  breakpoints belonging to the Model C version it loaded (MODEL_C_VERSION).
+   *  Optional: absent on rows written before the switch and on rollback, in which
+   *  case modelCPercentileRank()'s v9.1 table applies. Never pair a model with
+   *  another version's breakpoints -- that shifts riskScore by ~18 points. */
+  model_c_percentile_rank?: number;
   model_d1_return_3m:   number;
   model_d2_return_6m:   number;
   model_d3_return_2d:   number;
@@ -438,7 +444,9 @@ function resolveHorizonSignal(result: PipelineResult, patience: number): {
 
   const modelA = result.model_a_confidence;
   const modelC = result.model_c_max_drawdown;
-  const modelCRank = modelCPercentileRank(modelC);
+  // Prefer the rank infer.py computed against the breakpoints of the Model C version it
+  // actually loaded; the local table below is v9.1's and is only correct for v9.1.
+  const modelCRank = result.model_c_percentile_rank ?? modelCPercentileRank(modelC);
 
   const confidenceTerm = (1 - modelA) * 30;
   const drawdownTerm   = (1 - modelCRank) * 40;

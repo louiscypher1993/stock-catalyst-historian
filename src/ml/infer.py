@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import sys
 import json
 import pickle
@@ -7,6 +8,58 @@ import xgboost as xgb
 from pathlib import Path
 
 ML_DIR = Path(__file__).parent
+
+# ── Model C version switch ────────────────────────────────────────────────────
+# '9.1' (default) = today's behaviour, byte for byte. '9.5' = the corrupt-row fix.
+MODEL_C_VERSION = os.environ.get('MODEL_C_VERSION', '9.1').strip() or '9.1'
+
+# WHY THE RANK IS COMPUTED HERE AND NOT IN TYPESCRIPT. C is consumed as a PERCENTILE
+# (modelCPercentileRank -> riskScore -> position size), and each model's breakpoints are
+# fitted to ITS OWN output distribution. Pairing a model with the other version's table
+# shifts the riskScore drawdown term by ~18 points — pure recalibration debt, measured in
+# scratch_c_decision_impact.py. Emitting the rank from the same process that loaded the
+# model makes that mismatch structurally impossible rather than merely documented.
+# The 9.1 table is a verbatim copy of PotService.ts:350-368; equivalence to the
+# TypeScript implementation is asserted to 12dp by scripts/verifyModelCParity.ts.
+_BREAKPOINTS_V91 = [
+    (0.00, -1.4857), (0.01, -0.0958), (0.02, -0.0717), (0.05, -0.0440),
+    (0.10, -0.0201), (0.20, 0.0235), (0.30, 0.0562), (0.40, 0.0686),
+    (0.50, 0.0770), (0.60, 0.0821), (0.70, 0.0862), (0.80, 0.0921),
+    (0.90, 0.0975), (0.95, 0.1002), (0.98, 0.1002), (0.99, 0.1009), (1.00, 0.1009),
+]
+
+
+def _load_breakpoints(version):
+    if version == '9.1':
+        return _BREAKPOINTS_V91
+    path = ML_DIR / f'model_c_breakpoints_v{version}.json'
+    if not path.exists():
+        raise SystemExit(
+            f'[infer] MODEL_C_VERSION={version} but {path.name} is missing. A Model C '
+            f'version MUST ship with its own breakpoints — serving it against another '
+            f"version's table misstates riskScore by ~18 points. Refusing to start.")
+    return [tuple(bp) for bp in json.loads(path.read_text())['breakpoints']]
+
+
+_BREAKPOINTS = _load_breakpoints(MODEL_C_VERSION)
+
+
+def model_c_percentile_rank(value):
+    """Piecewise-linear interpolation between breakpoints, clamped at both ends.
+    Mirrors PotService.ts::modelCPercentileRank exactly."""
+    bp = _BREAKPOINTS
+    if value <= bp[0][1]:
+        return bp[0][0]
+    if value >= bp[-1][1]:
+        return bp[-1][0]
+    for i in range(1, len(bp)):
+        p_hi, v_hi = bp[i]
+        p_lo, v_lo = bp[i - 1]
+        if value <= v_hi:
+            if v_hi == v_lo:
+                return p_hi          # degenerate flat segment (the p95-p98 tie)
+            return p_lo + ((value - v_lo) / (v_hi - v_lo)) * (p_hi - p_lo)
+    return 1.0
 
 MODEL_A_COLS = [
     'z_score',
@@ -47,8 +100,13 @@ def load_models():
     # sensitivity across 3 temporal folds showed D1 robust +0.04..+0.09, no
     # robust regression on any head. Old v9.3/v9.2/v9.1 files for these heads are
     # left on disk as a one-step rollback, not deleted.
+    # Model C is version-switched. v9.5 drops the 16,435 corrupt pre-2021 rows (labels
+    # built from MONTHLY/QUARTERLY bars) plus one label-outlier row, measured at +0.0204
+    # day-clustered rank IC over 4 folds, paired t=5.15 vs deployed — and it takes
+    # "predicts no downside" from 84.3% of anomalies to 0.0%. Default stays 9.1 so
+    # nothing changes until MODEL_C_VERSION=9.5 is set explicitly.
     model_c = xgb.XGBRegressor()
-    model_c.load_model(ML_DIR / 'model_c_v9.1.json')
+    model_c.load_model(ML_DIR / f'model_c_v{MODEL_C_VERSION}.json')
     model_b = xgb.XGBRegressor()
     model_b.load_model(ML_DIR / 'model_b_v9.4.json')
     model_d1 = xgb.XGBRegressor()
@@ -179,6 +237,11 @@ def infer(feature_vector: dict) -> dict:
         'model_a_confidence': round(model_a_conf, 4),
         'model_b_return_1m': round(pred_return_1m, 4),
         'model_c_max_drawdown': round(pred_drawdown, 4),
+        # Rank + version travel WITH the prediction so the consumer never has to guess
+        # which breakpoint table applies. TypeScript prefers these when present and falls
+        # back to its own v9.1 table when absent (old rows, or a rollback).
+        'model_c_percentile_rank': round(model_c_percentile_rank(pred_drawdown), 6),
+        'model_c_version': MODEL_C_VERSION,
         'model_d1_return_3m': round(pred_return_3m, 4),
         'model_d2_return_6m': round(pred_return_6m, 4),
         'model_d3_return_2d': round(pred_return_2d, 4),

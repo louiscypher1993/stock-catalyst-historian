@@ -193,6 +193,11 @@ export interface ModelScores {
   model_a_confidence: number;
   model_b_return_1m: number;
   model_c_max_drawdown: number;
+  // Emitted by infer.py alongside the prediction (MODEL_C_VERSION switch). Optional so
+  // pre-existing rows and a rollback both still typecheck; consumers fall back to
+  // PotService's v9.1 breakpoint table when absent.
+  model_c_percentile_rank?: number;
+  model_c_version?: string;
   model_d1_return_3m: number;
   model_d2_return_6m: number;
   model_d3_return_2d: number;
@@ -814,10 +819,15 @@ export function getRecommendation(
   modelA: number,
   modelD5: number,
   modelC: number,
-  trendContext: TrendContext
+  trendContext: TrendContext,
+  // Rank as computed by infer.py against the breakpoints belonging to the Model C
+  // version it actually loaded. Preferred when present because the model and its
+  // breakpoints must never be paired across versions -- doing so shifts the drawdown
+  // term by ~18 points. Absent (old rows, rollback) falls back to the v9.1 table here.
+  modelCRankFromInference?: number,
 ): Recommendation {
   const cfg = HORIZON_TIER_CONFIG.model_d5_return_2w!;
-  const modelCRank = modelCPercentileRank(modelC);
+  const modelCRank = modelCRankFromInference ?? modelCPercentileRank(modelC);
 
   const confidenceTerm = (1 - modelA) * 30;
   const drawdownTerm   = (1 - modelCRank) * 40;
@@ -1402,7 +1412,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       const clampedReturn2d = Math.max(-0.20, Math.min(0.20, scores.model_d3_return_2d));
       const clampedReturn3d = Math.max(-0.25, Math.min(0.25, scores.model_d4_return_3d));
       const clampedReturn2w = Math.max(-0.35, Math.min(0.35, scores.model_d5_return_2w));
-      const rec = getRecommendation(scores.model_a_confidence, clampedReturn2w, scores.model_c_max_drawdown, trendContext);
+      const rec = getRecommendation(scores.model_a_confidence, clampedReturn2w, scores.model_c_max_drawdown, trendContext, scores.model_c_percentile_rank);
       console.log(`[LiveInference]   scores=${JSON.stringify(scores)} rec=${JSON.stringify(rec)}`);
 
       const clampedScores = {
@@ -1465,6 +1475,7 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
         model_a_confidence:          clampedScores.model_a_confidence,
         model_b_return_1m:           clampedScores.model_b_return_1m,
         model_c_max_drawdown:        clampedScores.model_c_max_drawdown,
+        model_c_percentile_rank:     clampedScores.model_c_percentile_rank,
         model_d1_return_3m:          clampedScores.model_d1_return_3m,
         model_d2_return_6m:          clampedScores.model_d2_return_6m,
         model_d3_return_2d:          clampedScores.model_d3_return_2d,

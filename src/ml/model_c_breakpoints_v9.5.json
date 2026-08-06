@@ -1,0 +1,82 @@
+{
+  "version": "9.5",
+  "model_file": "model_c_v9.5.json",
+  "derived_from": {
+    "fold_rows": 7567,
+    "fold_start": "2025-05-29",
+    "fold_end": "2026-06-18",
+    "best_iteration": 65
+  },
+  "sign_convention": "higher modelC = safer (shallower drawdown); low percentile = historically riskiest tail",
+  "note": "Fitted to model_c_v9.5 outputs. NOT interchangeable with the v9.1 table in PotService.ts \u2014 pairing a model with the other version's breakpoints shifts the riskScore drawdown term by ~18 points.",
+  "breakpoints": [
+    [
+      0.0,
+      -0.6184
+    ],
+    [
+      0.01,
+      -0.3755
+    ],
+    [
+      0.02,
+      -0.3447
+    ],
+    [
+      0.05,
+      -0.2971
+    ],
+    [
+      0.1,
+      -0.2292
+    ],
+    [
+      0.2,
+      -0.1309
+    ],
+    [
+      0.3,
+      -0.0928
+    ],
+    [
+      0.4,
+      -0.0777
+    ],
+    [
+      0.5,
+      -0.0678
+    ],
+    [
+      0.6,
+      -0.0597
+    ],
+    [
+      0.7,
+      -0.0494
+    ],
+    [
+      0.8,
+      -0.042
+    ],
+    [
+      0.9,
+      -0.0351
+    ],
+    [
+      0.95,
+      -0.0319
+    ],
+    [
+      0.98,
+      -0.029
+    ],
+    [
+      0.99,
+      -0.0278
+    ],
+    [
+      1.0,
+      -0.0262
+    ]
+  ]
+}
