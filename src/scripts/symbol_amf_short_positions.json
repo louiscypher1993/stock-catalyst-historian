@@ -1,13 +1,13 @@
 {
   "_note": "symbol -> AMF aggregate net short position (France, .PA only). Individual holder disclosures aggregated here (latest row per holder+ISIN among OPEN positions, summed) to match the FCA ANSP shape. Source: AMF open data via data.gouv.fr, free/no-auth, URL resolved dynamically (timestamped filename). Joined via ISIN->FIGI, not name matching. Rebuild via buildAmfShortPositions.ts.",
-  "_built": "2026-08-02",
-  "_sourceUrl": "https://object-api.infra.data.gouv.fr/amf/VAD/export_od_vad_20260731111500_20260731123001.csv",
-  "_frenchIssuersWithOpenPositions": 81,
+  "_built": "2026-08-09",
+  "_sourceUrl": "https://object-api.infra.data.gouv.fr/amf/VAD/export_od_vad_20260807111500_20260807123000.csv",
+  "_frenchIssuersWithOpenPositions": 73,
   "amfShortPositions": {
     "CAP.PA": {
-      "aggregateShortPercent": 1.88,
-      "holders": 3,
-      "latestPositionDate": "2026-07-29",
+      "aggregateShortPercent": 3.05,
+      "holders": 4,
+      "latestPositionDate": "2026-08-03",
       "isin": "FR0000125338",
       "issuer": "CAPGEMINI"
     },
@@ -33,9 +33,9 @@
       "issuer": "GECINA"
     },
     "TEP.PA": {
-      "aggregateShortPercent": 10.38,
+      "aggregateShortPercent": 9.96,
       "holders": 8,
-      "latestPositionDate": "2026-07-29",
+      "latestPositionDate": "2026-08-05",
       "isin": "FR0000051807",
       "issuer": "TELEPERFORMANCE"
     },
@@ -54,9 +54,9 @@
       "issuer": "KLEPIERRE"
     },
     "WLN.PA": {
-      "aggregateShortPercent": 4.65,
-      "holders": 5,
-      "latestPositionDate": "2026-07-29",
+      "aggregateShortPercent": 3.66,
+      "holders": 4,
+      "latestPositionDate": "2026-08-05",
       "isin": "FR00140182K6",
       "issuer": "WORLDLINE"
     },
@@ -68,9 +68,9 @@
       "issuer": "TOTALENERGIES SE"
     },
     "ETL.PA": {
-      "aggregateShortPercent": 1.7,
+      "aggregateShortPercent": 1.78,
       "holders": 2,
-      "latestPositionDate": "2026-07-01",
+      "latestPositionDate": "2026-07-30",
       "isin": "FR0010221234",
       "issuer": "EUTELSAT COMMUNICATIONS"
     }
