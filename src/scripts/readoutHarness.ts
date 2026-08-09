@@ -26,15 +26,28 @@
  * with earlier readouts. See icVerdict() for what the day-blind version would
  * have concluded on real data, and dailyIC() in outcomeScoreboard.ts for why.
  *
- * CONSEQUENCE FOR TIMING: 2W needs ~MIN_RUN_DATES scan dates whose 2W windows
- * have closed, so the honest rec-basis verdict lands well after the first 2W row
- * matures (~Aug 5) — plan on early September, and treat anything sooner as
- * directional. This is a real cost of measuring it correctly, not a regression.
+ * TWO REGIME BOUNDARIES, NOT ONE (added 2026-08-09). v9.4 deployed on 2026-07-22, but
+ * train/serve parity was only restored on 2026-08-09 (LIVE_FEATURE_PARITY=all, fcbcaab).
+ * Between those dates the models were served `atr_shock_score` as range/ATR when they were
+ * fitted on range/PRICE, and `competitor_event_density` as a constant 0 against a training
+ * median of 30 — three of four heads produced output outside the middle 80% of their own
+ * anchor's fold. Those rows are v9.4 predictions on inputs the models never learned.
+ *
+ * They are EXCLUDED, not averaged in. Blending them with post-parity rows yields a number
+ * that describes neither regime, and this is the one script whose entire job is to be right
+ * on checkpoint day. The excluded cohort is printed with its row and run_date counts so the
+ * exclusion is visible; `--parity none` merges it back for reproducing older readouts.
+ *
+ * CONSEQUENCE FOR TIMING: 2W needs ~MIN_RUN_DATES scan dates whose 2W windows have closed.
+ * The parity boundary RESET that clock on 2026-08-09, so the honest rec-basis verdict moved
+ * from early September to roughly October. That is the price of measuring the system as
+ * designed rather than as misconfigured, and it is not a regression.
  *
  * Usage:
  *   npx tsx src/scripts/readoutHarness.ts                       # supabase, deploy 2026-07-22
  *   npx tsx src/scripts/readoutHarness.ts --source local
  *   npx tsx src/scripts/readoutHarness.ts --deploy 2026-07-22 --position 50 --min-n 30
+ *   npx tsx src/scripts/readoutHarness.ts --parity none         # merge the excluded cohort
  */
 import 'dotenv/config';
 import {
@@ -44,6 +57,18 @@ import {
 import { roundTripCost } from '../costModel';
 
 const V9_4_DEPLOY = '2026-07-22';
+// SECOND REGIME BOUNDARY. LIVE_FEATURE_PARITY=all went live 2026-08-09 12:07 UTC
+// (fcbcaab). Before it, the serving path fed every head `atr_shock_score` as range/ATR
+// when they were fitted on range/PRICE, and `competitor_event_density` as a constant 0
+// against a training median of 30 — so B, C and D3 all produced output outside the middle
+// 80% of their own anchor's fold (src/ml/scratch_parity_score.py).
+//
+// Rows scanned between V9_4_DEPLOY and here are therefore v9.4 predictions made on inputs
+// the models never learned. They are NOT a weaker version of the post-parity cohort, they
+// are a different experiment, and averaging the two produces a number describing neither.
+// They are EXCLUDED from the A/B and from readiness, and reported separately so the
+// exclusion is visible rather than silent.
+const PARITY_ENABLED = '2026-08-09';
 const HORIZON_DAYS: Record<string, number> = { '2D': 2, '2W': 14, '1M': 30, '3M': 91, '6M': 182 };
 // Minimum contributing run_dates before the harness will render a verdict at
 // all. Below this the t-stat is too unstable to act on however tempting the
@@ -143,23 +168,44 @@ async function main() {
   const arg = (k: string, d: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
   const source = arg('--source', 'supabase');
   const deploy = arg('--deploy', V9_4_DEPLOY);
+  // `--parity none` deliberately merges the contaminated cohort back in, for anyone who
+  // wants to reproduce a pre-2026-08-09 readout. It is not a sensible default.
+  const parityArg = arg('--parity', PARITY_ENABLED);
+  const parity = parityArg === 'none' ? deploy : parityArg;
   const positionGBP = Number(arg('--position', '50'));
   const minN = Number(arg('--min-n', '30'));
 
   const all = await loadRows(source, null, null);
   const pre = all.filter(r => r.run_date < deploy);
-  const post = all.filter(r => r.run_date >= deploy);
+  // v9.4 running on pre-parity (wrong) inputs — excluded from every comparison below
+  const mid = all.filter(r => r.run_date >= deploy && r.run_date < parity);
+  const post = all.filter(r => r.run_date >= parity);
   const preDates = pre.map(r => r.run_date).sort();
+  const midDates = mid.map(r => r.run_date).sort();
   const postDates = post.map(r => r.run_date).sort();
-  const earliestPost = postDates[0] ?? deploy;
+  const earliestPost = postDates[0] ?? parity;
 
   const line = '='.repeat(80);
   const rule = '─'.repeat(80);
   console.log(`\n${line}`);
-  console.log(` v9.4 READOUT HARNESS — pre/post-deploy A/B   ·   deploy ${deploy}`);
+  console.log(` v9.4 READOUT HARNESS — pre/post-deploy A/B   ·   deploy ${deploy}` +
+            (parity !== deploy ? `   ·   parity ${parity}` : '   ·   parity MERGED (--parity none)'));
   console.log(` source: ${source === 'supabase' ? 'supabase (durable outcome_results)' : source}   ·   cost @ £${positionGBP}   ·   verdict needs ≥${MIN_RUN_DATES} run_dates (σ-watch n≥${minN})`);
-  console.log(` PRE-v9.4:  ${pre.length} rows  (${preDates[0] ?? '—'} → ${preDates[preDates.length - 1] ?? '—'})`);
-  console.log(` POST-v9.4: ${post.length} rows  (${postDates[0] ?? '—'} → ${postDates[postDates.length - 1] ?? '—'})`);
+  console.log(` PRE-v9.4:      ${String(pre.length).padStart(5)} rows  (${preDates[0] ?? '—'} → ${preDates[preDates.length - 1] ?? '—'})`);
+  if (mid.length && parity !== deploy) {
+    const midDays = new Set(mid.map(r => r.run_date)).size;
+    console.log(` ── EXCLUDED:   ${String(mid.length).padStart(5)} rows  (${midDates[0] ?? '—'} → ${midDates[midDates.length - 1] ?? '—'}), ${midDays} run_date(s)`);
+    console.log(`    v9.4 predictions made BEFORE train/serve parity (${parity}). The models were fed`);
+    console.log(`    atr_shock_score as range/ATR when fitted on range/PRICE, and competitor_event_density`);
+    console.log(`    as 0 against a training median of 30 — three of four heads landed outside their own`);
+    console.log(`    anchor's fold. Not a noisier version of the cohort below; a different experiment.`);
+    console.log(`    Re-merge with --parity none if you need to reproduce an older readout.`);
+  }
+  const merged = parity === deploy;
+  console.log(` ${(merged ? 'POST-v9.4:' : 'POST-PARITY:').padEnd(14)}${String(post.length).padStart(5)} rows  (${postDates[0] ?? '—'} → ${postDates[postDates.length - 1] ?? '—'})` +
+              (merged
+                ? `   ⚠ INCLUDES pre-parity rows — NOT anchor-comparable`
+                : `   ← the only anchor-comparable cohort`));
   console.log(line);
 
   // ── readiness matrix ──
@@ -188,12 +234,12 @@ async function main() {
 
     if (postS.n === 0) {
       const matures = addDays(earliestPost, HORIZON_DAYS[h]);
-      console.log(`   ⏳ post-v9.4 not yet mature (n=0) — first matures ~${matures}.`);
+      console.log(`   ⏳ post-parity not yet mature (n=0) — first matures ~${matures}.`);
       console.log(`      pre-v9.4 baseline for reference:  IC ${f3(preS.ic).trim()}   σ-ratio ${Number.isFinite(preS.sigRatio) ? preS.sigRatio.toFixed(1) + 'x' : 'n/a'}   n=${preS.n}`);
       continue;
     }
 
-    console.log(`   ${'metric'.padEnd(20)} ${col('pre-v9.4')} ${col('post-v9.4')} ${col('Δ')}`);
+    console.log(`   ${'metric'.padEnd(20)} ${col('pre-v9.4')} ${col('post-parity')} ${col('Δ')}`);
     console.log(`   ${'n (rows)'.padEnd(20)} ${col(String(preS.n))} ${col(String(postS.n))} ${col('')}`);
     console.log(`   ${'run_dates'.padEnd(20)} ${col(String(preS.daily.days))} ${col(String(postS.daily.days))} ${col('')}`);
     console.log(`   ${'MEAN DAILY IC'.padEnd(20)} ${col(f3(preS.daily.meanIC))} ${col(f3(postS.daily.meanIC))} ${col(dIC(postS.daily.meanIC, preS.daily.meanIC))}`);
