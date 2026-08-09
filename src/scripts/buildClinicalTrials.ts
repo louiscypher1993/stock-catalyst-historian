@@ -38,13 +38,20 @@
  * Usage:
  *   npx tsx src/scripts/buildClinicalTrials.ts
  */
-import { readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import Database from 'better-sqlite3';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..', '..');
+// The candidate roster comes from market_cache.db, which is gitignored (2.7 GB) and
+// therefore ABSENT IN CI -- opening it threw, main().catch exited 1, and the workflow's
+// `|| echo "::warning::"` swallowed that, so the ClinicalTrials snapshot went green
+// having written nothing every week since 2026-07-30 while every other source updated.
+// The roster is a slow-moving list of ~50 pharma/biotech names, so it is cached here and
+// committed. Local runs (DB present) refresh it; CI reads it. Same output either way.
+const ROSTER_PATH = join(__dirname, 'clinical_trials_roster.json');
 const API_BASE = 'https://clinicaltrials.gov/api/v2/studies';
 const REQUEST_DELAY_MS = 1500; // conservative vs the ~50/min informal limit
 const ACTIVE_STATUSES = 'RECRUITING,ACTIVE_NOT_RECRUITING,ENROLLING_BY_INVITATION,NOT_YET_RECRUITING';
@@ -114,13 +121,31 @@ async function queryCompany(name: string): Promise<CtResult | null> {
 }
 
 async function main() {
-  const db = new Database(join(ROOT, 'market_cache.db'), { readonly: true });
-  const spreadPath = join(__dirname, 'symbol_spread_bps.json');
-  const universe: Set<string> = new Set(Object.keys(JSON.parse(readFileSync(spreadPath, 'utf8')).spreadBps));
-
-  const rows = db.prepare(`SELECT symbol, name, industry FROM company_profiles WHERE industry IN (${[...TARGET_INDUSTRIES].map(() => '?').join(',')})`).all(...TARGET_INDUSTRIES) as Array<{ symbol: string; name: string; industry: string }>;
-  const candidates: Candidate[] = rows.filter(r => universe.has(r.symbol)).map(r => ({ symbol: r.symbol, name: r.name, queryName: SPONSOR_NAME_OVERRIDES[r.symbol] ?? cleanName(r.name), industry: r.industry }));
-  db.close();
+  const dbPath = join(ROOT, 'market_cache.db');
+  let candidates: Candidate[];
+  if (existsSync(dbPath)) {
+    const db = new Database(dbPath, { readonly: true });
+    const spreadPath = join(__dirname, 'symbol_spread_bps.json');
+    const universe: Set<string> = new Set(Object.keys(JSON.parse(readFileSync(spreadPath, 'utf8')).spreadBps));
+    const rows = db.prepare(`SELECT symbol, name, industry FROM company_profiles WHERE industry IN (${[...TARGET_INDUSTRIES].map(() => '?').join(',')})`).all(...TARGET_INDUSTRIES) as Array<{ symbol: string; name: string; industry: string }>;
+    candidates = rows.filter(r => universe.has(r.symbol)).map(r => ({ symbol: r.symbol, name: r.name, queryName: SPONSOR_NAME_OVERRIDES[r.symbol] ?? cleanName(r.name), industry: r.industry }));
+    db.close();
+    writeFileSync(ROSTER_PATH, JSON.stringify({
+      _note: 'Candidate roster cached from market_cache.db so this builder can run in CI, '
+           + 'where the 2.7 GB gitignored DB is absent. Refreshed by any local run.',
+      _built: new Date().toISOString().slice(0, 10),
+      candidates,
+    }, null, 2));
+    console.log(`Roster refreshed from market_cache.db -> ${candidates.length} candidates (cached for CI).`);
+  } else {
+    if (!existsSync(ROSTER_PATH)) {
+      // Do NOT continue with an empty roster: that writes a valid-looking file with no
+      // companies in it, which is worse than failing for a point-in-time record.
+      throw new Error(`market_cache.db absent AND no cached roster at ${ROSTER_PATH} — refusing to write an empty snapshot`);
+    }
+    candidates = JSON.parse(readFileSync(ROSTER_PATH, 'utf8')).candidates;
+    console.log(`market_cache.db absent (expected in CI) — using cached roster: ${candidates.length} candidates.`);
+  }
 
   console.log(`Target universe: ${candidates.length} pharma/biotech companies (Drug Manufacturers + Biotechnology industries, in our scan universe).`);
 

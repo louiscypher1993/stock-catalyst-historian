@@ -1,0 +1,300 @@
+{
+  "_note": "Candidate roster cached from market_cache.db so this builder can run in CI, where the 2.7 GB gitignored DB is absent. Refreshed by any local run.",
+  "_built": "2026-08-09",
+  "candidates": [
+    {
+      "symbol": "ABBV",
+      "name": "AbbVie Inc.",
+      "queryName": "AbbVie",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "BMY",
+      "name": "Bristol-Myers Squibb Company",
+      "queryName": "Bristol-Myers Squibb",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "GSK",
+      "name": "GSK plc",
+      "queryName": "GSK",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "JNJ",
+      "name": "Johnson & Johnson",
+      "queryName": "Johnson & Johnson",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "LLY",
+      "name": "Eli Lilly and Company",
+      "queryName": "Eli Lilly",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "MRK",
+      "name": "Merck & Co., Inc.",
+      "queryName": "Merck",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "NVO",
+      "name": "Novo Nordisk A/S",
+      "queryName": "Novo Nordisk",
+      "industry": "Biotechnology"
+    },
+    {
+      "symbol": "NVS",
+      "name": "Novartis AG",
+      "queryName": "Novartis",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "PFE",
+      "name": "Pfizer Inc.",
+      "queryName": "Pfizer",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "REGN",
+      "name": "Regeneron Pharmaceuticals, Inc.",
+      "queryName": "Regeneron Pharmaceuticals",
+      "industry": "Biotechnology"
+    },
+    {
+      "symbol": "SNY",
+      "name": "Sanofi",
+      "queryName": "Sanofi",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "ACB",
+      "name": "Aurora Cannabis Inc.",
+      "queryName": "Aurora Cannabis",
+      "industry": "Drug Manufacturers - Specialty & Generic"
+    },
+    {
+      "symbol": "AMGN",
+      "name": "Amgen Inc.",
+      "queryName": "Amgen",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "AZN",
+      "name": "AstraZeneca PLC",
+      "queryName": "AstraZeneca",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "BNTX",
+      "name": "BioNTech SE",
+      "queryName": "BioNTech",
+      "industry": "Biotechnology"
+    },
+    {
+      "symbol": "CGC",
+      "name": "Canopy Growth Corporation",
+      "queryName": "Canopy Growth",
+      "industry": "Drug Manufacturers - Specialty & Generic"
+    },
+    {
+      "symbol": "GILD",
+      "name": "Gilead Sciences, Inc.",
+      "queryName": "Gilead Sciences",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "MRNA",
+      "name": "Moderna, Inc.",
+      "queryName": "ModernaTX",
+      "industry": "Biotechnology"
+    },
+    {
+      "symbol": "RHHBY",
+      "name": "Roche Holding AG",
+      "queryName": "Roche",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "SNDL",
+      "name": "SNDL Inc.",
+      "queryName": "SNDL",
+      "industry": "Drug Manufacturers - Specialty & Generic"
+    },
+    {
+      "symbol": "TLRY",
+      "name": "Tilray Brands, Inc.",
+      "queryName": "Tilray Brands",
+      "industry": "Drug Manufacturers - Specialty & Generic"
+    },
+    {
+      "symbol": "VRTX",
+      "name": "Vertex Pharmaceuticals Incorporated",
+      "queryName": "Vertex Pharmaceuticals",
+      "industry": "Biotechnology"
+    },
+    {
+      "symbol": "600276.SS",
+      "name": "Jiangsu Hengrui Medicine Co., Ltd.",
+      "queryName": "Jiangsu Hengrui Medicine",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "4502.T",
+      "name": "Takeda Pharmaceutical Company Limited",
+      "queryName": "Takeda Pharmaceutical",
+      "industry": "Drug Manufacturers - Specialty & Generic"
+    },
+    {
+      "symbol": "4503.T",
+      "name": "Astellas Pharma Inc.",
+      "queryName": "Astellas Pharma",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "4519.T",
+      "name": "Chugai Pharmaceutical Co., Ltd.",
+      "queryName": "Chugai Pharmaceutical",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "4568.T",
+      "name": "Daiichi Sankyo Company, Limited",
+      "queryName": "Daiichi Sankyo",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "BAYN.DE",
+      "name": "Bayer AG",
+      "queryName": "Bayer",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "NOVN.SW",
+      "name": "Novartis AG",
+      "queryName": "Novartis",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "SAN.PA",
+      "name": "Sanofi",
+      "queryName": "Sanofi",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "UCB.BR",
+      "name": "UCB S.A.",
+      "queryName": "UCB",
+      "industry": "Biotechnology"
+    },
+    {
+      "symbol": "000538.SZ",
+      "name": "Yunnan Baiyao Group Co.,Ltd",
+      "queryName": "Yunnan Baiyao",
+      "industry": "Drug Manufacturers - Specialty & Generic"
+    },
+    {
+      "symbol": "000963.SZ",
+      "name": "Huadong Medicine Co., Ltd",
+      "queryName": "Huadong Medicine",
+      "industry": "Drug Manufacturers - Specialty & Generic"
+    },
+    {
+      "symbol": "002007.SZ",
+      "name": "Hualan Biological Engineering Inc.",
+      "queryName": "Hualan Biological Engineering",
+      "industry": "Biotechnology"
+    },
+    {
+      "symbol": "1093.HK",
+      "name": "CSPC Pharmaceutical Group Limited",
+      "queryName": "CSPC Pharmaceutical",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "1177.HK",
+      "name": "Sino Biopharmaceutical Limited",
+      "queryName": "Sino Biopharmaceutical",
+      "industry": "Biotechnology"
+    },
+    {
+      "symbol": "CIPLA.NS",
+      "name": "Cipla Limited",
+      "queryName": "Cipla",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "DIVISLAB.NS",
+      "name": "Divi's Laboratories Limited",
+      "queryName": "Divi's Laboratories",
+      "industry": "Drug Manufacturers - Specialty & Generic"
+    },
+    {
+      "symbol": "DRREDDY.NS",
+      "name": "Dr. Reddy's Laboratories Limited",
+      "queryName": "Dr. Reddy's Laboratories",
+      "industry": "Drug Manufacturers - Specialty & Generic"
+    },
+    {
+      "symbol": "SUNPHARMA.NS",
+      "name": "Sun Pharmaceutical Industries Limited",
+      "queryName": "Sun Pharmaceutical Industries",
+      "industry": "Drug Manufacturers - Specialty & Generic"
+    },
+    {
+      "symbol": "AZN.L",
+      "name": "AstraZeneca PLC",
+      "queryName": "AstraZeneca",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "GSK.L",
+      "name": "GSK plc",
+      "queryName": "GSK",
+      "industry": "Drug Manufacturers - General"
+    },
+    {
+      "symbol": "HIK.L",
+      "name": "Hikma Pharmaceuticals PLC",
+      "queryName": "Hikma Pharmaceuticals",
+      "industry": "Drug Manufacturers - Specialty & Generic"
+    },
+    {
+      "symbol": "HLN.L",
+      "name": "Haleon plc",
+      "queryName": "Haleon",
+      "industry": "Drug Manufacturers - Specialty & Generic"
+    },
+    {
+      "symbol": "CSL.AX",
+      "name": "CSL Limited",
+      "queryName": "CSL",
+      "industry": "Biotechnology"
+    },
+    {
+      "symbol": "068270.KS",
+      "name": "Celltrion, Inc.",
+      "queryName": "Celltrion",
+      "industry": "Biotechnology"
+    },
+    {
+      "symbol": "207940.KS",
+      "name": "Samsung Biologics Co.,Ltd.",
+      "queryName": "Samsung Biologics",
+      "industry": "Biotechnology"
+    },
+    {
+      "symbol": "GMAB.CO",
+      "name": "Genmab A/S",
+      "queryName": "Genmab",
+      "industry": "Biotechnology"
+    },
+    {
+      "symbol": "BEAM",
+      "name": "Beam Therapeutics Inc.",
+      "queryName": "Beam Therapeutics",
+      "industry": "Biotechnology"
+    }
+  ]
+}
