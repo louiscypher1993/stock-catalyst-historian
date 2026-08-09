@@ -81,6 +81,27 @@ function computeDigitalExhaustVelocity(snap: Record<string, any> | null): number
   return Math.max(-3, Math.min(3, raw));
 }
 
+// TRAIN/SERVE PARITY SWITCH. Two features are computed differently in the live path than
+// in the training extractor, so the models are served quantities they were never fitted
+// on. Both are corrected here behind one flag, comma-separated so each can be enabled and
+// attributed independently:
+//
+//   atr   atr_shock_score: live uses range/ATR, training used range/PRICE (28x apart at
+//         the median). Closes 100% of B's live output gap, 75% of C's.
+//   ced   competitor_event_density: live reads `event_features`, which ends 2026-06-18,
+//         so it returns 0 on EVERY live scan. Training has it nonzero on 98.7% of rows,
+//         median 30. Closes 41% of B's gap.
+//
+// Default '' = today's behaviour exactly. `all` enables both. Enabling changes live model
+// INPUTS -- and therefore the population the September checkpoint is measuring -- so this
+// is a deliberate decision, not a cleanup. Measure with src/ml/scratch_parity_impact.py
+// before flipping; the Model C flip earlier taught that offline evidence does not
+// necessarily describe live.
+const LIVE_FEATURE_PARITY = (process.env.LIVE_FEATURE_PARITY ?? '').toLowerCase();
+const _parity = new Set(LIVE_FEATURE_PARITY.split(',').map(s => s.trim()).filter(Boolean));
+export const LIVE_FEATURE_PARITY_ATR = _parity.has('atr') || _parity.has('all');
+export const LIVE_FEATURE_PARITY_CED = _parity.has('ced') || _parity.has('all');
+
 const Z_SCORE_THRESHOLD = 2.15;
 const ROLLING_WINDOW = 90;
 const NARRATIVE_CONFIDENCE_THRESHOLD = 0.65;
@@ -406,7 +427,26 @@ export function detectAnomaly(symbol: string, companyName: string, bars: YahooBa
     trList.push(Math.max(cur.high - cur.low, Math.abs(cur.high - p.close), Math.abs(cur.low - p.close)));
   }
   const atr14 = trList.length > 0 ? trList.reduce((sum, v) => sum + v, 0) / trList.length : 1.5;
-  const atrShockScore = calculateATRMoveNormalization(last.high - last.low, atr14);
+  // TRAIN/SERVE MISMATCH. `atr_shock_score` is a DIFFERENT QUANTITY in training than the
+  // ATR normalisation computed here, despite the shared name:
+  //
+  //   training  HistoricalEngine.ts:464+508, reextractDailyEvents.ts:333+348
+  //             ((high - low) / close) * 100, stored /100  =>  range / PRICE   med 0.0579
+  //   live      calculateATRMoveNormalization(high - low, atr14) => range / ATR med 1.6034
+  //
+  // Not a scale factor -- a different denominator, 28x apart at the median. Substituting
+  // the live value into the training fold closes 100% of model B's output gap (driving it
+  // to its +30% clamp), 75% of model C's, and shifts D5 by ~62% (src/ml/
+  // scratch_feature_ablation.py). Every model reads this feature as range/price because
+  // that is what it was fitted on, so parity means matching TRAINING, not keeping the
+  // arguably-nicer ATR normalisation -- whether range/ATR is a better FEATURE is a
+  // retrain question, not a serving one.
+  //
+  // Default is 'off' = today's behaviour byte-for-byte. Enabling changes live model
+  // inputs, so it is gated and must be measured first (src/ml/scratch_parity_impact.py).
+  const atrShockScore = LIVE_FEATURE_PARITY_ATR
+    ? (last.high - last.low) / (last.close > 0 ? last.close : 1)
+    : calculateATRMoveNormalization(last.high - last.low, atr14);
 
   const bodyToRangeRatio = Math.abs(last.close - last.open) / Math.max(0.0001, last.high - last.low);
   const overnightGapPct = ((last.open - prev.close) / prev.close) * 100;
@@ -589,7 +629,69 @@ function calculateRSI14(points: { close: number }[]): number {
   return rsi;
 }
 
-export function buildFeatureVectorForAnomaly(bars: YahooBar[], anomaly: AnomalySignal, enrichment: SymbolEnrichment, epu: number | null = null): Record<string, number> {
+/**
+ * Counts same-sector peer detections in the 14 days before `date`, from the LIVE
+ * detection record, mirroring what getCompetitorEventDensity computes over training's
+ * `event_features`.
+ *
+ * WHY NOT REUSE getCompetitorEventDensity. It reads local SQLite `event_features`, which
+ * is the frozen TRAINING table (ends 2026-06-18) -- and in CI there is no local DB at all,
+ * because market_cache.db is gitignored and db.ts opens it WITHOUT fileMustExist, so
+ * better-sqlite3 silently creates an EMPTY database and every query returns nothing. Both
+ * paths yield 0 on every live scan, against a training median of 30 with 98.7% of rows
+ * nonzero. That single dead feature accounts for 41% of model B's live output gap.
+ *
+ * Built ONCE per scan run, not per symbol -- the same pattern as buildSpyReturnMap.
+ * Counts only rows at the live detection threshold so this matches training's population
+ * (event_features rows are detected events, not every scanned symbol; inference_results
+ * additionally holds watchlist/forced names that never tripped the floor).
+ */
+export async function buildCompetitorDensityMap(runDate: string): Promise<Map<string, Array<{ symbol: string; date: string }>>> {
+  const bySector = new Map<string, Array<{ symbol: string; date: string }>>();
+  try {
+    const { supabase } = await import('./db/supabaseClient');
+    const from = new Date(new Date(runDate).getTime() - 21 * 86400000).toISOString().slice(0, 10);
+    const { data, error } = await supabase
+      .from('inference_results')
+      .select('symbol, run_date, sector, z_score')
+      .gte('run_date', from).lte('run_date', runDate);
+    if (error) throw error;
+    for (const r of (data ?? []) as any[]) {
+      if (!r.sector || Math.abs(Number(r.z_score)) < Z_SCORE_THRESHOLD) continue;
+      const k = String(r.sector);
+      if (!bySector.has(k)) bySector.set(k, []);
+      bySector.get(k)!.push({ symbol: r.symbol, date: String(r.run_date).slice(0, 10) });
+    }
+    console.log(`[LiveInference] competitor-density map: ${bySector.size} sector(s), ` +
+                `${[...bySector.values()].reduce((n, a) => n + a.length, 0)} detections since ${from}`);
+  } catch (e: any) {
+    // Return an EMPTY map, which reproduces today's behaviour (density 0) rather than
+    // failing the run -- but say so loudly, because a silent 0 here is the original bug.
+    console.error(`[LiveInference] competitor-density map FAILED (${e.message}) — ` +
+                  `density falls back to 0, i.e. current behaviour.`);
+  }
+  return bySector;
+}
+
+export function competitorDensityFrom(
+  map: Map<string, Array<{ symbol: string; date: string }>>,
+  symbol: string, sector: string | null, date: string,
+): number {
+  if (!sector) return 0;
+  const rows = map.get(sector);
+  if (!rows) return 0;
+  const end = new Date(date).getTime();
+  const start = end - 14 * 86400000;
+  let n = 0;
+  for (const r of rows) {
+    if (r.symbol.toUpperCase() === symbol.toUpperCase()) continue;
+    const t = new Date(r.date).getTime();
+    if (t < end && t >= start) n++;      // strictly BEFORE the event, matching db.ts:2435
+  }
+  return n;
+}
+
+export function buildFeatureVectorForAnomaly(bars: YahooBar[], anomaly: AnomalySignal, enrichment: SymbolEnrichment, epu: number | null = null, competitorDensityOverride: number | null = null): Record<string, number> {
   const { snap, primaryCategory } = enrichment;
   const temporal = getTemporalFeatures(anomaly.date);
 
@@ -741,7 +843,10 @@ export function buildFeatureVectorForAnomaly(bars: YahooBar[], anomaly: AnomalyS
     // is a pre-existing characteristic of the feature (training has the same
     // kind of within-day ordering dependency during backfill), not a live-vs-
     // train defect this fix introduces.
-    competitor_event_density: getCompetitorEventDensity(anomaly.symbol, anomaly.date),
+    // Local SQLite reads the frozen training table (and is an EMPTY db in CI), so this is
+    // 0 on every live scan; the override supplies the same count from the live detection
+    // record when LIVE_FEATURE_PARITY includes `ced`.
+    competitor_event_density: competitorDensityOverride ?? getCompetitorEventDensity(anomaly.symbol, anomaly.date),
     confidence_tier: 'high',
     ...temporal,
   };
@@ -1188,6 +1293,12 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
   }
   console.log(`[LiveInference] SPY daily-return series: ${spyReturnByDate.size} days`);
 
+  // Built once per run, like the SPY map above. Only when the parity flag asks for it, so
+  // the default path makes no extra Supabase call and behaves exactly as before.
+  const competitorDensityMap = LIVE_FEATURE_PARITY_CED
+    ? await buildCompetitorDensityMap(runDate)
+    : new Map<string, Array<{ symbol: string; date: string }>>();
+
   // Native per-market benchmarks. Only fetched when the mode asks for them, so the
   // default path makes exactly the same API calls it did before.
   const nativeReturnByTicker = new Map<string, Map<string, number>>();
@@ -1377,7 +1488,10 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
         delete freshSnap.atr_shock_score;
         delete freshSnap.volume_ratio;
       }
-      const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, { ...enrichment, snap: freshSnap }, macro?.epu ?? null);
+      const competitorDensity = LIVE_FEATURE_PARITY_CED
+        ? competitorDensityFrom(competitorDensityMap, anomaly.symbol, enrichment.sector, anomaly.date)
+        : null;
+      const featureVector = buildFeatureVectorForAnomaly(bars, anomaly, { ...enrichment, snap: freshSnap }, macro?.epu ?? null, competitorDensity);
       const digitalExhaust = computeDigitalExhaustVelocity(enrichment.snap);
       const scores = runInference(featureVector);
 

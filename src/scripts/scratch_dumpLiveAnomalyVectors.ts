@@ -23,6 +23,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   fetchYahooDailyHistory, buildSpyReturnMap, detectAnomaly, buildFeatureVectorForAnomaly,
+  buildCompetitorDensityMap, competitorDensityFrom, LIVE_FEATURE_PARITY_CED,
 } from '../LiveInferenceService';
 
 const LIMIT = Number(process.argv[2] ?? 30);
@@ -72,6 +73,10 @@ async function main() {
 
   const spyBars = await fetchYahooDailyHistory('SPY', '2y');
   const spyReturnByDate = buildSpyReturnMap(spyBars);
+  // one map covering the whole sampled window, then queried per event date
+  const densityMap = LIVE_FEATURE_PARITY_CED
+    ? await buildCompetitorDensityMap(picks[0]?.run_date ?? new Date().toISOString().slice(0, 10))
+    : new Map<string, Array<{ symbol: string; date: string }>>();
 
   const vectors: Record<string, any> = {};
   const context: Record<string, any> = {};
@@ -117,11 +122,17 @@ async function main() {
         delete freshSnap.atr_shock_score;
         delete freshSnap.volume_ratio;
       }
+      // Mirror the scan loop's density wiring so the `ced` half of LIVE_FEATURE_PARITY is
+      // actually exercised here; without it the dump reports 0 under every setting.
+      const sector = row?.sector ?? p.sector ?? null;
+      const density = LIVE_FEATURE_PARITY_CED
+        ? competitorDensityFrom(densityMap, p.symbol, sector, anomaly.date)
+        : null;
       vectors[key] = buildFeatureVectorForAnomaly(bars, anomaly, {
         snap: freshSnap, primaryCategory: null,
-        companyName: row?.company_name ?? null, sector: row?.sector ?? p.sector ?? null,
+        companyName: row?.company_name ?? null, sector,
         exchange: row?.exchange ?? null,
-      } as any, null);
+      } as any, null, density);
       context[key] = {
         stored_z: Number(p.z_score), rebuilt_z: anomaly.zScore, date: anomaly.date,
         stored_c: Number(p.model_c_max_drawdown), stored_d3: Number(p.model_d3_return_2d),
