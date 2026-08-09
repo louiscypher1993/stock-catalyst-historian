@@ -651,19 +651,30 @@ export async function buildCompetitorDensityMap(runDate: string): Promise<Map<st
   try {
     const { supabase } = await import('./db/supabaseClient');
     const from = new Date(new Date(runDate).getTime() - 21 * 86400000).toISOString().slice(0, 10);
-    const { data, error } = await supabase
-      .from('inference_results')
-      .select('symbol, run_date, sector, z_score')
-      .gte('run_date', from).lte('run_date', runDate);
-    if (error) throw error;
-    for (const r of (data ?? []) as any[]) {
-      if (!r.sector || Math.abs(Number(r.z_score)) < Z_SCORE_THRESHOLD) continue;
-      const k = String(r.sector);
-      if (!bySector.has(k)) bySector.set(k, []);
-      bySector.get(k)!.push({ symbol: r.symbol, date: String(r.run_date).slice(0, 10) });
+    // PAGINATED. A 21-day window holds ~2,000 rows at current scan volume (~95/day),
+    // comfortably over Supabase's default 1,000-row cap -- an unpaginated query here would
+    // silently drop roughly half the detections, undercounting density without an error.
+    let total = 0;
+    for (let from_ = 0; ; from_ += 1000) {
+      const { data, error } = await supabase
+        .from('inference_results')
+        .select('symbol, run_date, sector, z_score')
+        .gte('run_date', from).lte('run_date', runDate)
+        .range(from_, from_ + 999);
+      if (error) throw error;
+      const page = (data ?? []) as any[];
+      for (const r of page) {
+        if (!r.sector || Math.abs(Number(r.z_score)) < Z_SCORE_THRESHOLD) continue;
+        const k = String(r.sector);
+        if (!bySector.has(k)) bySector.set(k, []);
+        bySector.get(k)!.push({ symbol: r.symbol, date: String(r.run_date).slice(0, 10) });
+      }
+      total += page.length;
+      if (page.length < 1000) break;
     }
     console.log(`[LiveInference] competitor-density map: ${bySector.size} sector(s), ` +
-                `${[...bySector.values()].reduce((n, a) => n + a.length, 0)} detections since ${from}`);
+                `${[...bySector.values()].reduce((n, a) => n + a.length, 0)} detections ` +
+                `(${total} rows fetched) since ${from}`);
   } catch (e: any) {
     // Return an EMPTY map, which reproduces today's behaviour (density 0) rather than
     // failing the run -- but say so loudly, because a silent 0 here is the original bug.
