@@ -96,6 +96,11 @@ jobs:
           # differ per version, the recorded riskScore would not be comparable either.
           # Change both files together or neither.
           MODEL_C_VERSION: '9.5'
+          # MUST match live-inference.yml, for the same reason MODEL_C_VERSION does: pulse
+          # runs write to the same inference_results table, so a different feature
+          # definition here would put two incompatible input regimes in one day's rows.
+          # See live-inference.yml for the measurement and the checkpoint implications.
+          LIVE_FEATURE_PARITY: all
         run: npx tsx src/LiveInferenceService.ts ${{ steps.symbols.outputs.list }}
 
       # Only mark symbols as freshly scored after the inference step above
