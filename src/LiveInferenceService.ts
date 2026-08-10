@@ -1,10 +1,11 @@
 import path from 'path';
+import fs from 'fs';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
 import { db, getCachedCompanyProfile, getCompetitorEventDensity } from '../db';
 import { GLOBAL_MARKETS } from './marketsData';
-import { buildLiveFeatureVector, LiveFeatureContext } from './ml/feature_extractor';
+import { buildLiveFeatureVector, LiveFeatureContext, normaliseSector } from './ml/feature_extractor';
 import {
   calculatePriceZScore,
   calculateVolumeRatio,
@@ -541,6 +542,25 @@ interface SymbolEnrichment {
   exchange: string | null;
 }
 
+// Universe-expansion symbols (added 2026-08-10) have no event_features, no profile and no
+// symbol_snapshots row -- without this fallback they'd resolve to sector 'Other', which
+// zeroes competitor_event_density (sector-keyed) and collapses the sector one-hots. The
+// manifest carries the index constituent lists' sector labels, normalised to the canonical
+// vocabulary so density buckets line up with existing rows where the strings coincide.
+let expansionSectorMap: Map<string, string> | null = null;
+function expansionSector(symbol: string): string | null {
+  if (expansionSectorMap === null) {
+    expansionSectorMap = new Map();
+    try {
+      const raw = fs.readFileSync(path.join(process.cwd(), 'src', 'universe_expansion.json'), 'utf8');
+      for (const s of JSON.parse(raw).symbols ?? []) {
+        if (s.symbol && s.sector) expansionSectorMap.set(String(s.symbol).toUpperCase(), normaliseSector(s.sector));
+      }
+    } catch { /* manifest absent: fallback stays empty */ }
+  }
+  return expansionSectorMap.get(symbol.toUpperCase()) ?? null;
+}
+
 // Slowly-changing enrichment signals (FMP fundamentals, GDELT tone, macro regime, etc.) are
 // proxied from the most recent historical event_features/company_profiles rows for this
 // symbol, the same way feature_extractor.ts reads them out of signal_snapshot_json. On a
@@ -565,7 +585,9 @@ export async function getSymbolSnapshot(symbol: string): Promise<SymbolEnrichmen
       snap,
       primaryCategory: efRow?.primaryCategory ?? null,
       companyName: profile?.profile.name ?? null,
-      sector: profile?.profile.sector ?? null,
+      // expansionSector: a local profile row can exist with a null sector (seen on
+      // BGEO.L) -- without the fallback this path would beat the manifest to it.
+      sector: profile?.profile.sector ?? expansionSector(symbol),
       exchange: profile?.profile.exchange ?? null,
     };
   }
@@ -583,7 +605,7 @@ export async function getSymbolSnapshot(symbol: string): Promise<SymbolEnrichmen
         snap: data.latest_signal_snapshot ?? null,
         primaryCategory: null,
         companyName: data.company_name ?? null,
-        sector: data.sector ?? null,
+        sector: data.sector ?? expansionSector(symbol),
         exchange: data.exchange ?? null,
       };
     }
@@ -591,7 +613,7 @@ export async function getSymbolSnapshot(symbol: string): Promise<SymbolEnrichmen
     console.error(`[LiveInference] Supabase snapshot fallback failed for ${symbol}:`, err.message);
   }
 
-  return { snap: null, primaryCategory: null, companyName: null, sector: null, exchange: null };
+  return { snap: null, primaryCategory: null, companyName: null, sector: expansionSector(symbol), exchange: null };
 }
 
 /**
@@ -1616,7 +1638,11 @@ export async function runLiveInference(symbols?: string[]): Promise<void> {
       const shouldNotify = rec.recommendation === 'STRONG_BUY' || rec.recommendation === 'BUY';
       // isForced (watchlist + open positions) supersedes isWatchlisted here so
       // held-only positions also get notified, not just watchlist names.
-      if (shouldNotify && (isActualAnomaly || isForced)) {
+      // unreliableReason gate (added 2026-08-10 with the universe expansion): PotService,
+      // outcomeTracker and topBuysReport all quarantine these rows, but notifications
+      // never did -- with ~1,183 no-snapshot expansion symbols now scanned daily, an
+      // ungated ntfy path would alert on exactly the cohort every other consumer refuses.
+      if (shouldNotify && !unreliableReason && (isActualAnomaly || isForced)) {
         const titlePrefix = isWatchlisted && !isActualAnomaly ? 'WATCHLIST' : rec.recommendation;
         await sendNtfyNotification(symbol, titlePrefix, clampedReturn2w, rec.riskScore, narrative);
         notificationCount++;

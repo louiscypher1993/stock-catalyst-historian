@@ -72,7 +72,7 @@ function encodeTrendRegime(v: unknown): number | null {
   }
 }
 
-function normaliseSector(raw: unknown): string {
+export function normaliseSector(raw: unknown): string {
   if (typeof raw !== 'string' || !raw.trim()) return 'Other';
   const s = raw.toLowerCase();
   if (s.includes('tech')) return 'Technology';
