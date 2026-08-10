@@ -72,6 +72,13 @@ jobs:
       - name: ClinicalTrials.gov
         run: npx tsx src/scripts/buildClinicalTrials.ts || echo "ClinicalTrials" >> pit_failures.txt
 
+      # FINRA archives these daily files publicly to 2009, so unlike the registers
+      # above this is a serving-parity snapshot, not irreplaceable capture — but the
+      # weekly refresh keeps a current 1d/5d/20d off-exchange short ratio per US
+      # universe symbol ready for the retrain that wires it.
+      - name: FINRA daily short-sale volume
+        run: npx tsx src/scripts/buildShortVolume.ts || echo "ShortVolume" >> pit_failures.txt
+
       # Only source here needing a key. Skipped rather than failed when absent, so the
       # workflow still works for anyone without the secret configured.
       - name: Companies House status (UK)
@@ -97,6 +104,19 @@ jobs:
             echo "::notice::SEC_CONTACT not set — skipping delisting capture"
           else
             npx tsx src/scripts/buildDelistings.ts || echo "Delistings" >> pit_failures.txt
+          fi
+
+      # Free primary-source replacement-in-waiting for the stale-frozen FMP
+      # insider_net_shares_30d feature. EDGAR is permanent (backfillable), so the
+      # artifact keeps a rolling 45d ledger + 30d aggregates, not full history.
+      - name: SEC Form 4 insider transactions
+        env:
+          SEC_CONTACT: ${{ secrets.SEC_CONTACT }}
+        run: |
+          if [ -z "$SEC_CONTACT" ]; then
+            echo "::notice::SEC_CONTACT not set — skipping Form 4 capture"
+          else
+            npx tsx src/scripts/buildInsiderForm4.ts || echo "Form4" >> pit_failures.txt
           fi
 
       # Weekly diff of the SEC registered-ticker feed: genuinely NEW NYSE/Nasdaq
@@ -126,7 +146,9 @@ jobs:
                      src/scripts/symbol_delistings.json \
                      src/scripts/cik_ticker_map.json \
                      src/scripts/new_listings_state.json \
-                     src/autoListings.json
+                     src/autoListings.json \
+                     src/scripts/symbol_short_volume.json \
+                     src/scripts/symbol_insider_form4.json
           if git diff --cached --quiet; then
             echo "no changes — sources reported identical state, nothing to snapshot"
             exit 0

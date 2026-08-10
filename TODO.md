@@ -13,8 +13,11 @@ time-gated, not effort-gated. History/evidence lives in the memory files and
    is ≥0.9999 on ~92% of rows so the 30-point confidence term is dead; 64-69 cluster =
    pinned term + binary 30-pt sell term. One change, three parts:
    - refit `MODEL_C_PERCENTILE_BREAKPOINTS` on post-parity live C output (NOT on n=4);
-   - replace or recalibrate the dead confidence term (measure Model A's live raw
-     distribution first — saturation may be clamp/calibration, not the model);
+   - **REPLACE the confidence term — measured 2026-08-10: the isotonic calibrator maps
+     97.1% of fold EVENTS to exactly 1.0 (raw A: 41% ≥0.9999). A separates events from
+     non-events; every row reaching riskScore IS an event, so the term never had
+     discriminating power. Candidate replacements: signal_completeness, |z| percentile,
+     or reweight the drawdown term. Do NOT recalibrate A — wrong tool for this term;**
    - switch riskScore to 1-2dp display THEN (decimals before the refit = false precision).
 2. **Expansion cohort readouts** (`expansionReadout.ts`)
    - 2D: first post-parity maturities ~2026-08-11.
@@ -28,16 +31,15 @@ time-gated, not effort-gated. History/evidence lives in the memory files and
    `LIVE_BENCHMARK_MODE=shadow` has logged divergences since 2026-08-02; 33% of
    detections would change under `native`. Needs its own readout script + decision.
 
-## New capture builds (from the 2026-08-10 external-practice review)
+## New capture builds — DONE 2026-08-10, wiring stays retrain-gated
 
-5. **FINRA daily short-sale volume capture** — free, daily, per-symbol off-exchange
-   short ratio; the only institutional-grade free flow dataset we don't collect.
-   Fits the pit-snapshot capture-now-wire-later pattern; every uncaptured week is
-   unrecoverable. Wire as a feature only at a retrain.
-6. **SEC Form 4 insider-transaction capture** — free EDGAR source to eventually
-   replace the stale-frozen FMP `insider_net_shares_30d` (dead since premium expiry).
-   Capture now so the October retrain has months of history; EDGAR plumbing +
-   `SEC_CONTACT` already exist.
+- ~~FINRA daily short-sale volume~~ **built** (`buildShortVolume.ts`, weekly): 1,421 US
+  symbols, 1d/5d/20d off-exchange short ratios. FINRA archives raw files to 2009 →
+  full training backfill possible at wiring time.
+- ~~SEC Form 4 insider transactions~~ **built** (`buildInsiderForm4.ts`, weekly):
+  daily-index diff → issuer-confirmed XML parse; 45d rolling ledger + 30d aggregates
+  (all-codes net + open-market P−S). First run: 442 filings, 1,006 txns, 210 symbols.
+  Replaces stale-frozen FMP `insider_net_shares_30d` at the retrain.
 
 ## October checkpoint / v-next retrain bundle
 *(gate: the 2W checkpoint verdict, ~October — nothing here ships alone; one retrain
@@ -69,15 +71,12 @@ batches all of it, then the checkpoint clock restarts once)*
 - Fresh liquidity features (Amihud etc. computed live from bars instead of
   snapshot-frozen).
 
-## Dashboard polish (product decisions — Lewis's call, all cheap)
+## Dashboard polish — DONE 2026-08-10
 
-- Expired 2D/3D: show greyed "expired: was +x.x%" instead of `—` (current behaviour is
-  deliberate but reads as data loss; flagged by the external audit).
-- Hide or de-emphasise D4's column while it remains dead-wired (see above).
-- Regime banner: rows with run_date < 2026-08-09 carry pre-parity predictions and are
-  not comparable with newer rows (the +30% 1M wall of old signals is this).
-- Pot-action notifications: pots trade all horizons silently; ntfy only covers 2W
-  recommendations. Alerts and trades run on different bases.
+All four shipped: expired 2D/3D now show the greyed value + "expired" tag; D4 column
+de-emphasised with tooltip; pre-2026-08-09 rows carry a "pre-fix regime" badge; pots
+now send ONE aggregated ntfy per run for opens/closes (`POT_NOTIFICATIONS=off` to
+disable).
 
 ## Deferred / blocked (do not start without new information)
 

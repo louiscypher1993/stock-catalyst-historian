@@ -1,0 +1,9173 @@
+{
+ "generated": "2026-08-10",
+ "ledger_days": 45,
+ "note": "SEC Form 4 non-derivative transactions, universe issuers only. EDGAR is permanent so older history is backfillable; ledger keeps 45d. Aggregates: net_shares_30d = A-D all codes; open_market_net_30d = P minus S only. Not a feature yet.",
+ "aggregates": {
+  "ACAD": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": -20141,
+   "buys_30d": 0,
+   "sells_30d": 3
+  },
+  "AGCO": {
+   "net_shares_30d": -494418,
+   "open_market_net_30d": -494418,
+   "buys_30d": 0,
+   "sells_30d": 3
+  },
+  "AGYS": {
+   "net_shares_30d": -197410,
+   "open_market_net_30d": -197410,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "ALGM": {
+   "net_shares_30d": 17004,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "AFG": {
+   "net_shares_30d": -2813,
+   "open_market_net_30d": -2813,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "AMGN": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": -6860,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "AMKR": {
+   "net_shares_30d": -50000,
+   "open_market_net_30d": -50000,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "APPF": {
+   "net_shares_30d": -22061,
+   "open_market_net_30d": -22061,
+   "buys_30d": 0,
+   "sells_30d": 49
+  },
+  "ARCB": {
+   "net_shares_30d": -14943,
+   "open_market_net_30d": -7943,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "AZN": {
+   "net_shares_30d": 2,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "AN": {
+   "net_shares_30d": -900,
+   "open_market_net_30d": -900,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "AAT": {
+   "net_shares_30d": 35763,
+   "open_market_net_30d": 35763,
+   "buys_30d": 2,
+   "sells_30d": 0
+  },
+  "APP": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "ANET": {
+   "net_shares_30d": -1399495,
+   "open_market_net_30d": -1399495,
+   "buys_30d": 0,
+   "sells_30d": 95
+  },
+  "AJG": {
+   "net_shares_30d": -23800,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "AX": {
+   "net_shares_30d": -500,
+   "open_market_net_30d": -500,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "BJRI": {
+   "net_shares_30d": -24682,
+   "open_market_net_30d": -34899,
+   "buys_30d": 0,
+   "sells_30d": 3
+  },
+  "BLKB": {
+   "net_shares_30d": -22000,
+   "open_market_net_30d": -22000,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "BOX": {
+   "net_shares_30d": -5834,
+   "open_market_net_30d": -5834,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "CVX": {
+   "net_shares_30d": -5547,
+   "open_market_net_30d": -5547,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "KO": {
+   "net_shares_30d": -15595,
+   "open_market_net_30d": -55755,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "CL": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": -326212,
+   "buys_30d": 0,
+   "sells_30d": 3
+  },
+  "CHRD": {
+   "net_shares_30d": -8000,
+   "open_market_net_30d": -8000,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "YOU": {
+   "net_shares_30d": -647808,
+   "open_market_net_30d": -647808,
+   "buys_30d": 0,
+   "sells_30d": 18
+  },
+  "CRBG": {
+   "net_shares_30d": -8500,
+   "open_market_net_30d": -12414,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "LPG": {
+   "net_shares_30d": 100762,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "DDOG": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": -139641,
+   "buys_30d": 0,
+   "sells_30d": 10
+  },
+  "DCOM": {
+   "net_shares_30d": -1800,
+   "open_market_net_30d": -1800,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "DORM": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": -3531,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "EXP": {
+   "net_shares_30d": -1173,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "EBAY": {
+   "net_shares_30d": -22220,
+   "open_market_net_30d": -22220,
+   "buys_30d": 0,
+   "sells_30d": 12
+  },
+  "EMR": {
+   "net_shares_30d": -7329,
+   "open_market_net_30d": -7329,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "EPR": {
+   "net_shares_30d": -3403,
+   "open_market_net_30d": -3403,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "ETN": {
+   "net_shares_30d": 437,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "ENVA": {
+   "net_shares_30d": 772,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "FDX": {
+   "net_shares_30d": -253927,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "FNB": {
+   "net_shares_30d": -4055,
+   "open_market_net_30d": -4055,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "FORM": {
+   "net_shares_30d": 5506,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "FTRE": {
+   "net_shares_30d": 204940,
+   "open_market_net_30d": -211726,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "GATX": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": -18200,
+   "buys_30d": 0,
+   "sells_30d": 3
+  },
+  "GVA": {
+   "net_shares_30d": 1393,
+   "open_market_net_30d": 400,
+   "buys_30d": 1,
+   "sells_30d": 0
+  },
+  "GFF": {
+   "net_shares_30d": -148111,
+   "open_market_net_30d": -148111,
+   "buys_30d": 0,
+   "sells_30d": 19
+  },
+  "GTES": {
+   "net_shares_30d": -6000,
+   "open_market_net_30d": -6000,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "THG": {
+   "net_shares_30d": -1200,
+   "open_market_net_30d": -1200,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "HSY": {
+   "net_shares_30d": -1660,
+   "open_market_net_30d": -1660,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "HMC": {
+   "net_shares_30d": 5000,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "HGV": {
+   "net_shares_30d": -20691,
+   "open_market_net_30d": -20691,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "ILMN": {
+   "net_shares_30d": -736624,
+   "open_market_net_30d": -741127,
+   "buys_30d": 0,
+   "sells_30d": 14
+  },
+  "IR": {
+   "net_shares_30d": 1731,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "IDCC": {
+   "net_shares_30d": -1500,
+   "open_market_net_30d": -1500,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "ICE": {
+   "net_shares_30d": -7300,
+   "open_market_net_30d": -7300,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "JNJ": {
+   "net_shares_30d": -55054,
+   "open_market_net_30d": -64398,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "JAZZ": {
+   "net_shares_30d": 16875,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "JEF": {
+   "net_shares_30d": -81734,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "KBH": {
+   "net_shares_30d": -26015,
+   "open_market_net_30d": -26015,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "KEX": {
+   "net_shares_30d": 112,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "KLAC": {
+   "net_shares_30d": 703595.4620000002,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "KTOS": {
+   "net_shares_30d": -4000,
+   "open_market_net_30d": -4000,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "KNTK": {
+   "net_shares_30d": -264074,
+   "open_market_net_30d": -264074,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "LRCX": {
+   "net_shares_30d": -5790,
+   "open_market_net_30d": -30000,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "LEA": {
+   "net_shares_30d": -1646,
+   "open_market_net_30d": -1646,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "LYV": {
+   "net_shares_30d": -32139,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "LCID": {
+   "net_shares_30d": 501622,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "MKTX": {
+   "net_shares_30d": -606,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "MSEX": {
+   "net_shares_30d": -615,
+   "open_market_net_30d": -615,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "MBIN": {
+   "net_shares_30d": -3700,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "MRK": {
+   "net_shares_30d": -15000,
+   "open_market_net_30d": -86553,
+   "buys_30d": 0,
+   "sells_30d": 7
+  },
+  "MRNA": {
+   "net_shares_30d": 252469,
+   "open_market_net_30d": -499246,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "MORN": {
+   "net_shares_30d": -9522,
+   "open_market_net_30d": -9522,
+   "buys_30d": 0,
+   "sells_30d": 6
+  },
+  "NEM": {
+   "net_shares_30d": -19209,
+   "open_market_net_30d": -19209,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "NKE": {
+   "net_shares_30d": -4698,
+   "open_market_net_30d": -4698,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "NVDA": {
+   "net_shares_30d": -500000,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "NTRA": {
+   "net_shares_30d": -11150,
+   "open_market_net_30d": -11150,
+   "buys_30d": 0,
+   "sells_30d": 11
+  },
+  "NWN": {
+   "net_shares_30d": 1895.359,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "PEP": {
+   "net_shares_30d": -819870.6771,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "PINS": {
+   "net_shares_30d": -59096,
+   "open_market_net_30d": -59096,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "PLTR": {
+   "net_shares_30d": -3032,
+   "open_market_net_30d": -3032,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "PL": {
+   "net_shares_30d": -55000,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "QRVO": {
+   "net_shares_30d": -34695,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "ROKU": {
+   "net_shares_30d": -10719,
+   "open_market_net_30d": -10719,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "RPM": {
+   "net_shares_30d": 52718,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "SCHL": {
+   "net_shares_30d": -3250,
+   "open_market_net_30d": -31287,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "SCHW": {
+   "net_shares_30d": -18561,
+   "open_market_net_30d": -40311,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "SIRI": {
+   "net_shares_30d": -16672,
+   "open_market_net_30d": -16672,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "SO": {
+   "net_shares_30d": -3333,
+   "open_market_net_30d": -3333,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "LUV": {
+   "net_shares_30d": 63304,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "S": {
+   "net_shares_30d": -101660,
+   "open_market_net_30d": -101660,
+   "buys_30d": 0,
+   "sells_30d": 5
+  },
+  "SN": {
+   "net_shares_30d": -387707,
+   "open_market_net_30d": -529667,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "FOUR": {
+   "net_shares_30d": 10781,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "SNAP": {
+   "net_shares_30d": -5223340,
+   "open_market_net_30d": -4000000,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "SHC": {
+   "net_shares_30d": -11316,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "SSB": {
+   "net_shares_30d": -24650,
+   "open_market_net_30d": -24650,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "SARO": {
+   "net_shares_30d": -80000,
+   "open_market_net_30d": -80000,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "SBLK": {
+   "net_shares_30d": -5000,
+   "open_market_net_30d": -5000,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "THC": {
+   "net_shares_30d": -600,
+   "open_market_net_30d": -600,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "TEX": {
+   "net_shares_30d": 56,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "TGTX": {
+   "net_shares_30d": -6050,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "TMO": {
+   "net_shares_30d": -10000,
+   "open_market_net_30d": -35850,
+   "buys_30d": 0,
+   "sells_30d": 41
+  },
+  "TLRY": {
+   "net_shares_30d": 2500,
+   "open_market_net_30d": 2500,
+   "buys_30d": 1,
+   "sells_30d": 0
+  },
+  "TOST": {
+   "net_shares_30d": -155128,
+   "open_market_net_30d": -159828,
+   "buys_30d": 0,
+   "sells_30d": 7
+  },
+  "UFPT": {
+   "net_shares_30d": -1100,
+   "open_market_net_30d": -1100,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "UMBF": {
+   "net_shares_30d": -16584,
+   "open_market_net_30d": -16584,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "UTHR": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": -27300,
+   "buys_30d": 0,
+   "sells_30d": 42
+  },
+  "UNH": {
+   "net_shares_30d": -500,
+   "open_market_net_30d": -500,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "VCTR": {
+   "net_shares_30d": 171918,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "WEN": {
+   "net_shares_30d": 8241,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "XPO": {
+   "net_shares_30d": 178575,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "GTM": {
+   "net_shares_30d": -21400,
+   "open_market_net_30d": -21400,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "ANF": {
+   "net_shares_30d": -10000,
+   "open_market_net_30d": -10000,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "AGNT": {
+   "net_shares_30d": 10767,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "APH": {
+   "net_shares_30d": -54547,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "ADI": {
+   "net_shares_30d": -2832,
+   "open_market_net_30d": -2832,
+   "buys_30d": 0,
+   "sells_30d": 19
+  },
+  "APOG": {
+   "net_shares_30d": 4908,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "ADP": {
+   "net_shares_30d": 126699.09400000003,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "AXON": {
+   "net_shares_30d": 132941,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "ACN": {
+   "net_shares_30d": 1165,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "ALGT": {
+   "net_shares_30d": -935,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "GOOGL": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "AM": {
+   "net_shares_30d": -5000,
+   "open_market_net_30d": -5000,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "BANF": {
+   "net_shares_30d": -5000,
+   "open_market_net_30d": -5000,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "BXMT": {
+   "net_shares_30d": 10000,
+   "open_market_net_30d": 10000,
+   "buys_30d": 1,
+   "sells_30d": 0
+  },
+  "BCC": {
+   "net_shares_30d": -1930,
+   "open_market_net_30d": -1930,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "TBBK": {
+   "net_shares_30d": -3057,
+   "open_market_net_30d": -3057,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "BKNG": {
+   "net_shares_30d": -1000,
+   "open_market_net_30d": -1000,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "BAH": {
+   "net_shares_30d": 35404,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "CAH": {
+   "net_shares_30d": 417960,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "CHKP": {
+   "net_shares_30d": -10272,
+   "open_market_net_30d": -10272,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "CAKE": {
+   "net_shares_30d": -94209,
+   "open_market_net_30d": -94209,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "CHE": {
+   "net_shares_30d": 329,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "CNX": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "COHU": {
+   "net_shares_30d": -18307,
+   "open_market_net_30d": -18307,
+   "buys_30d": 0,
+   "sells_30d": 3
+  },
+  "CMCSA": {
+   "net_shares_30d": -204100,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "CBSH": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": -830,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "CORT": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": -3700,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "WHD": {
+   "net_shares_30d": -17178,
+   "open_market_net_30d": -17178,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "CI": {
+   "net_shares_30d": -4090,
+   "open_market_net_30d": -19436,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "NET": {
+   "net_shares_30d": -5000,
+   "open_market_net_30d": -60000,
+   "buys_30d": 0,
+   "sells_30d": 6
+  },
+  "CEG": {
+   "net_shares_30d": 462,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "CROX": {
+   "net_shares_30d": 94390,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "CRWD": {
+   "net_shares_30d": -40000,
+   "open_market_net_30d": -40000,
+   "buys_30d": 0,
+   "sells_30d": 26
+  },
+  "CURB": {
+   "net_shares_30d": -173057,
+   "open_market_net_30d": -173057,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "DHR": {
+   "net_shares_30d": 1069951,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "DMC": {
+   "net_shares_30d": 12000,
+   "open_market_net_30d": 12000,
+   "buys_30d": 1,
+   "sells_30d": 0
+  },
+  "DAL": {
+   "net_shares_30d": -3100,
+   "open_market_net_30d": -43560,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "DXC": {
+   "net_shares_30d": 183500,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "DLB": {
+   "net_shares_30d": -357,
+   "open_market_net_30d": -357,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "EWBC": {
+   "net_shares_30d": -10000,
+   "open_market_net_30d": -10000,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "EMN": {
+   "net_shares_30d": -3283,
+   "open_market_net_30d": -3283,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "PLUS": {
+   "net_shares_30d": -200,
+   "open_market_net_30d": -200,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "ETSY": {
+   "net_shares_30d": -1564,
+   "open_market_net_30d": -7858,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "EFC": {
+   "net_shares_30d": 6794,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "P": {
+   "net_shares_30d": -89720,
+   "open_market_net_30d": -89720,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "EXLS": {
+   "net_shares_30d": -11000,
+   "open_market_net_30d": -11000,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "FAST": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": -34964,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "FSS": {
+   "net_shares_30d": -13720,
+   "open_market_net_30d": -6070,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "FCF": {
+   "net_shares_30d": -2072,
+   "open_market_net_30d": -2072,
+   "buys_30d": 0,
+   "sells_30d": 12
+  },
+  "FLR": {
+   "net_shares_30d": 2765,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "FULT": {
+   "net_shares_30d": -4100,
+   "open_market_net_30d": -4100,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "FND": {
+   "net_shares_30d": -907,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "GD": {
+   "net_shares_30d": 2997,
+   "open_market_net_30d": -6320,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "GS": {
+   "net_shares_30d": -175,
+   "open_market_net_30d": -175,
+   "buys_30d": 0,
+   "sells_30d": 3
+  },
+  "GLBE": {
+   "net_shares_30d": -26307,
+   "open_market_net_30d": -26307,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "DINO": {
+   "net_shares_30d": -8936,
+   "open_market_net_30d": -8936,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "HLT": {
+   "net_shares_30d": -1854,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "IPGP": {
+   "net_shares_30d": -30313,
+   "open_market_net_30d": -30313,
+   "buys_30d": 0,
+   "sells_30d": 5
+  },
+  "INGR": {
+   "net_shares_30d": -1662,
+   "open_market_net_30d": -1662,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "JXN": {
+   "net_shares_30d": -7500,
+   "open_market_net_30d": -7500,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "KBR": {
+   "net_shares_30d": -58,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "LKFN": {
+   "net_shares_30d": -500,
+   "open_market_net_30d": -500,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "LSCC": {
+   "net_shares_30d": -634,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "LDOS": {
+   "net_shares_30d": -14260,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "LUMN": {
+   "net_shares_30d": 127350,
+   "open_market_net_30d": 100000,
+   "buys_30d": 1,
+   "sells_30d": 0
+  },
+  "MHO": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": -30000,
+   "buys_30d": 0,
+   "sells_30d": 5
+  },
+  "MTG": {
+   "net_shares_30d": -137113,
+   "open_market_net_30d": -137113,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "MSFT": {
+   "net_shares_30d": -10000,
+   "open_market_net_30d": -10000,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "MHK": {
+   "net_shares_30d": -13393,
+   "open_market_net_30d": -13393,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "MPWR": {
+   "net_shares_30d": -105,
+   "open_market_net_30d": -105,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "MA": {
+   "net_shares_30d": -18372,
+   "open_market_net_30d": -18372,
+   "buys_30d": 0,
+   "sells_30d": 8
+  },
+  "META": {
+   "net_shares_30d": -426,
+   "open_market_net_30d": -426,
+   "buys_30d": 0,
+   "sells_30d": 4
+  },
+  "MC": {
+   "net_shares_30d": -4850,
+   "open_market_net_30d": -4850,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "NEOG": {
+   "net_shares_30d": 370,
+   "open_market_net_30d": 370,
+   "buys_30d": 1,
+   "sells_30d": 0
+  },
+  "NEO": {
+   "net_shares_30d": -20000,
+   "open_market_net_30d": -20000,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "NFLX": {
+   "net_shares_30d": -27312,
+   "open_market_net_30d": -29472,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "NXT": {
+   "net_shares_30d": -2289,
+   "open_market_net_30d": -2289,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "NWE": {
+   "net_shares_30d": 524,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "CNXN": {
+   "net_shares_30d": -14284,
+   "open_market_net_30d": -14284,
+   "buys_30d": 0,
+   "sells_30d": 6
+  },
+  "PFE": {
+   "net_shares_30d": -3278,
+   "open_market_net_30d": -3278,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "PAHC": {
+   "net_shares_30d": -5001,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "PBI": {
+   "net_shares_30d": -25000,
+   "open_market_net_30d": -25000,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "PRG": {
+   "net_shares_30d": -4000,
+   "open_market_net_30d": -4000,
+   "buys_30d": 0,
+   "sells_30d": 3
+  },
+  "PTCT": {
+   "net_shares_30d": -10292,
+   "open_market_net_30d": -10292,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "PR": {
+   "net_shares_30d": 28090,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "KWR": {
+   "net_shares_30d": -600,
+   "open_market_net_30d": -600,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "RRC": {
+   "net_shares_30d": -3500,
+   "open_market_net_30d": -3500,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "SEIC": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": -30000,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "SXT": {
+   "net_shares_30d": -1200,
+   "open_market_net_30d": -1200,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "SBUX": {
+   "net_shares_30d": -2229,
+   "open_market_net_30d": -2229,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "SONY": {
+   "net_shares_30d": -545547,
+   "open_market_net_30d": -545547,
+   "buys_30d": 0,
+   "sells_30d": 2
+  },
+  "SNEX": {
+   "net_shares_30d": -1575,
+   "open_market_net_30d": -1575,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "SNX": {
+   "net_shares_30d": -5000,
+   "open_market_net_30d": -5000,
+   "buys_30d": 0,
+   "sells_30d": 7
+  },
+  "TTEK": {
+   "net_shares_30d": 2300,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "TM": {
+   "net_shares_30d": 85000,
+   "open_market_net_30d": 85000,
+   "buys_30d": 1,
+   "sells_30d": 0
+  },
+  "TNL": {
+   "net_shares_30d": -86617,
+   "open_market_net_30d": -90767,
+   "buys_30d": 0,
+   "sells_30d": 3
+  },
+  "UVV": {
+   "net_shares_30d": 23130,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "U": {
+   "net_shares_30d": 38948,
+   "open_market_net_30d": 0,
+   "buys_30d": 0,
+   "sells_30d": 0
+  },
+  "VSAT": {
+   "net_shares_30d": 0,
+   "open_market_net_30d": -2500,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "WEX": {
+   "net_shares_30d": -1075,
+   "open_market_net_30d": -1075,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "ZWS": {
+   "net_shares_30d": -25000,
+   "open_market_net_30d": -25000,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "ELF": {
+   "net_shares_30d": -12173,
+   "open_market_net_30d": -12173,
+   "buys_30d": 0,
+   "sells_30d": 1
+  },
+  "NVT": {
+   "net_shares_30d": -22524.713,
+   "open_market_net_30d": -68785.713,
+   "buys_30d": 0,
+   "sells_30d": 5
+  }
+ },
+ "transactions": [
+  [
+   "0001899977-26-000008",
+   "ACAD",
+   "2026-08-05",
+   "M",
+   "A",
+   5849
+  ],
+  [
+   "0001899977-26-000008",
+   "ACAD",
+   "2026-08-05",
+   "S",
+   "D",
+   5849
+  ],
+  [
+   "0001899977-26-000008",
+   "ACAD",
+   "2026-08-06",
+   "M",
+   "A",
+   14292
+  ],
+  [
+   "0001899977-26-000008",
+   "ACAD",
+   "2026-08-06",
+   "S",
+   "D",
+   5000
+  ],
+  [
+   "0001899977-26-000008",
+   "ACAD",
+   "2026-08-06",
+   "S",
+   "D",
+   9292
+  ],
+  [
+   "0000921895-26-001997",
+   "AGCO",
+   "2026-08-05",
+   "S",
+   "D",
+   360163
+  ],
+  [
+   "0000921895-26-001997",
+   "AGCO",
+   "2026-08-05",
+   "S",
+   "D",
+   132255
+  ],
+  [
+   "0001835885-26-000013",
+   "AGCO",
+   "2026-08-06",
+   "S",
+   "D",
+   2000
+  ],
+  [
+   "0001193125-26-340549",
+   "AGYS",
+   "2026-08-05",
+   "S",
+   "D",
+   66205
+  ],
+  [
+   "0001193125-26-340549",
+   "AGYS",
+   "2026-08-06",
+   "S",
+   "D",
+   66205
+  ],
+  [
+   "0001193125-26-340549",
+   "AGYS",
+   "2026-08-06",
+   "S",
+   "D",
+   40000
+  ],
+  [
+   "0001193125-26-340549",
+   "AGYS",
+   "2026-08-07",
+   "S",
+   "D",
+   25000
+  ],
+  [
+   "0001193125-26-339105",
+   "ALGM",
+   "2026-08-05",
+   "A",
+   "A",
+   4251
+  ],
+  [
+   "0001193125-26-339114",
+   "ALGM",
+   "2026-08-05",
+   "A",
+   "A",
+   4251
+  ],
+  [
+   "0001193125-26-339121",
+   "ALGM",
+   "2026-08-05",
+   "A",
+   "A",
+   4251
+  ],
+  [
+   "0001193125-26-339123",
+   "ALGM",
+   "2026-08-05",
+   "A",
+   "A",
+   4251
+  ],
+  [
+   "0001193125-26-340350",
+   "AFG",
+   "2026-08-06",
+   "S",
+   "D",
+   2813
+  ],
+  [
+   "0000318154-26-000129",
+   "AMGN",
+   "2026-08-06",
+   "M",
+   "A",
+   1970
+  ],
+  [
+   "0000318154-26-000129",
+   "AMGN",
+   "2026-08-06",
+   "S",
+   "D",
+   1970
+  ],
+  [
+   "0000318154-26-000129",
+   "AMGN",
+   "2026-08-06",
+   "M",
+   "A",
+   1000
+  ],
+  [
+   "0000318154-26-000129",
+   "AMGN",
+   "2026-08-06",
+   "S",
+   "D",
+   1000
+  ],
+  [
+   "0000318154-26-000130",
+   "AMGN",
+   "2026-08-06",
+   "M",
+   "A",
+   2069
+  ],
+  [
+   "0000318154-26-000130",
+   "AMGN",
+   "2026-08-06",
+   "S",
+   "D",
+   2069
+  ],
+  [
+   "0000318154-26-000130",
+   "AMGN",
+   "2026-08-06",
+   "M",
+   "A",
+   1821
+  ],
+  [
+   "0000318154-26-000130",
+   "AMGN",
+   "2026-08-06",
+   "S",
+   "D",
+   1821
+  ],
+  [
+   "0001628280-26-054882",
+   "AMKR",
+   "2026-08-05",
+   "S",
+   "D",
+   25000
+  ],
+  [
+   "0001628280-26-054882",
+   "AMKR",
+   "2026-08-06",
+   "S",
+   "D",
+   25000
+  ],
+  [
+   "0002095744-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   661
+  ],
+  [
+   "0001193004-26-000006",
+   "ARCB",
+   "2026-08-05",
+   "G",
+   "D",
+   7000
+  ],
+  [
+   "0001193004-26-000006",
+   "ARCB",
+   "2026-08-06",
+   "S",
+   "D",
+   1443
+  ],
+  [
+   "0001532388-26-000004",
+   "ARCB",
+   "2026-08-06",
+   "S",
+   "D",
+   1400
+  ],
+  [
+   "0001532388-26-000004",
+   "ARCB",
+   "2026-08-06",
+   "S",
+   "D",
+   3600
+  ],
+  [
+   "0002122411-26-000001",
+   "AZN",
+   "2026-08-06",
+   "A",
+   "A",
+   2
+  ],
+  [
+   "0001559391-26-000007",
+   "AN",
+   "2026-08-05",
+   "S",
+   "D",
+   900
+  ],
+  [
+   "0001221359-26-000035",
+   "AAT",
+   "2026-08-05",
+   "P",
+   "A",
+   3000
+  ],
+  [
+   "0001221359-26-000035",
+   "AAT",
+   "2026-08-07",
+   "P",
+   "A",
+   32763
+  ],
+  [
+   "0001848493-26-000008",
+   "APP",
+   "2026-08-07",
+   "G",
+   "D",
+   213675
+  ],
+  [
+   "0001848493-26-000008",
+   "APP",
+   "2026-08-07",
+   "G",
+   "A",
+   213675
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   33027
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   5897
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   11753
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   3701
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   79845
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   524
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   7331
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   6217
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   5773
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   346
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   2298
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   221
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   7635
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   323
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   826
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   33027
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   5897
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   11753
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   3701
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   79845
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   524
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   7331
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   6217
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   5773
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   346
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   2298
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   221
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   7635
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   323
+  ],
+  [
+   "0001596532-26-000183",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   826
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   102
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   18
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   37
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   12
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   248
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   2
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   23
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   19
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   18
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   1
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   7
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   1
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   24
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   1
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   3
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   102
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   18
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   37
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   12
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   248
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   2
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   23
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   19
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   18
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   1
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   7
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   1
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   24
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   1
+  ],
+  [
+   "0001596532-26-000184",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   3
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   152860
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   27292
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   54399
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   17132
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   369569
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   2428
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   33931
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   28776
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   26722
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   1601
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   10640
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   1023
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   35337
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   1495
+  ],
+  [
+   "0001596532-26-000185",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   3824
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   4516
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   3876
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   3524
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   1151
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   3469
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   18320
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   13297
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   11487
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   10909
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   10521
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   27565
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   47587
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   37355
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   24461
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   112
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   1585
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   4636
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   58978
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   8500
+  ],
+  [
+   "0001596532-26-000186",
+   "ANET",
+   "2026-08-05",
+   "S",
+   "D",
+   8151
+  ],
+  [
+   "0000354190-26-000187",
+   "AJG",
+   "2026-08-05",
+   "G",
+   "D",
+   23800
+  ],
+  [
+   "0001316254-26-000005",
+   "AX",
+   "2026-08-05",
+   "S",
+   "D",
+   500
+  ],
+  [
+   "0001193125-26-340347",
+   "BJRI",
+   "2026-08-07",
+   "G",
+   "D",
+   16047
+  ],
+  [
+   "0001193125-26-340347",
+   "BJRI",
+   "2026-08-07",
+   "G",
+   "A",
+   16047
+  ],
+  [
+   "0001193125-26-340349",
+   "BJRI",
+   "2026-08-06",
+   "S",
+   "D",
+   21704
+  ],
+  [
+   "0001193125-26-340569",
+   "BJRI",
+   "2026-08-06",
+   "M",
+   "A",
+   4771
+  ],
+  [
+   "0001193125-26-340569",
+   "BJRI",
+   "2026-08-06",
+   "M",
+   "A",
+   4556
+  ],
+  [
+   "0001193125-26-340569",
+   "BJRI",
+   "2026-08-06",
+   "M",
+   "A",
+   890
+  ],
+  [
+   "0001193125-26-340569",
+   "BJRI",
+   "2026-08-06",
+   "S",
+   "D",
+   10217
+  ],
+  [
+   "0001193125-26-340569",
+   "BJRI",
+   "2026-08-07",
+   "S",
+   "D",
+   2978
+  ],
+  [
+   "0001601818-26-000010",
+   "BLKB",
+   "2026-08-06",
+   "S",
+   "D",
+   16184
+  ],
+  [
+   "0001601818-26-000010",
+   "BLKB",
+   "2026-08-06",
+   "S",
+   "D",
+   5816
+  ],
+  [
+   "0001193125-26-340587",
+   "BOX",
+   "2026-08-07",
+   "S",
+   "D",
+   5834
+  ],
+  [
+   "0000093410-26-000169",
+   "CVX",
+   "2026-08-05",
+   "S",
+   "D",
+   5547
+  ],
+  [
+   "0000021344-26-000161",
+   "KO",
+   "2026-08-06",
+   "S",
+   "D",
+   19772
+  ],
+  [
+   "0000021344-26-000161",
+   "KO",
+   "2026-08-06",
+   "M",
+   "A",
+   7628
+  ],
+  [
+   "0000021344-26-000161",
+   "KO",
+   "2026-08-06",
+   "M",
+   "A",
+   10684
+  ],
+  [
+   "0000021344-26-000161",
+   "KO",
+   "2026-08-06",
+   "M",
+   "A",
+   21848
+  ],
+  [
+   "0000021344-26-000161",
+   "KO",
+   "2026-08-06",
+   "S",
+   "D",
+   35983
+  ],
+  [
+   "0001225208-26-007035",
+   "CL",
+   "2026-08-06",
+   "M",
+   "A",
+   4170
+  ],
+  [
+   "0001225208-26-007035",
+   "CL",
+   "2026-08-06",
+   "S",
+   "D",
+   4170
+  ],
+  [
+   "0001548147-26-000014",
+   "CHRD",
+   "2026-08-07",
+   "S",
+   "D",
+   8000
+  ],
+  [
+   "0001466453-26-000030",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   217272
+  ],
+  [
+   "0001466453-26-000030",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   71487
+  ],
+  [
+   "0001466453-26-000030",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   1200
+  ],
+  [
+   "0001466453-26-000030",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   2430
+  ],
+  [
+   "0001466453-26-000030",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   9803
+  ],
+  [
+   "0001466453-26-000030",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   3096
+  ],
+  [
+   "0001466453-26-000030",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   12110
+  ],
+  [
+   "0001466453-26-000030",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   6006
+  ],
+  [
+   "0001466453-26-000030",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   500
+  ],
+  [
+   "0001466453-26-000030",
+   "YOU",
+   "2026-08-06",
+   "D",
+   "D",
+   323904
+  ],
+  [
+   "0001466453-26-000030",
+   "YOU",
+   "2026-08-06",
+   "A",
+   "A",
+   323904
+  ],
+  [
+   "0001869246-26-000022",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   217272
+  ],
+  [
+   "0001869246-26-000022",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   71487
+  ],
+  [
+   "0001869246-26-000022",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   1200
+  ],
+  [
+   "0001869246-26-000022",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   2430
+  ],
+  [
+   "0001869246-26-000022",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   9803
+  ],
+  [
+   "0001869246-26-000022",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   3096
+  ],
+  [
+   "0001869246-26-000022",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   12110
+  ],
+  [
+   "0001869246-26-000022",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   6006
+  ],
+  [
+   "0001869246-26-000022",
+   "YOU",
+   "2026-08-05",
+   "S",
+   "D",
+   500
+  ],
+  [
+   "0001869246-26-000022",
+   "YOU",
+   "2026-08-06",
+   "D",
+   "D",
+   323904
+  ],
+  [
+   "0001869246-26-000022",
+   "YOU",
+   "2026-08-06",
+   "A",
+   "A",
+   323904
+  ],
+  [
+   "0001923231-26-000007",
+   "CRBG",
+   "2026-08-06",
+   "M",
+   "A",
+   3914
+  ],
+  [
+   "0001923231-26-000007",
+   "CRBG",
+   "2026-08-06",
+   "S",
+   "D",
+   12414
+  ],
+  [
+   "0000919574-26-004879",
+   "LPG",
+   "2026-08-05",
+   "A",
+   "A",
+   26432
+  ],
+  [
+   "0000919574-26-004879",
+   "LPG",
+   "2026-08-05",
+   "F",
+   "D",
+   5098
+  ],
+  [
+   "0000919574-26-004879",
+   "LPG",
+   "2026-08-05",
+   "F",
+   "D",
+   6383
+  ],
+  [
+   "0000919574-26-004879",
+   "LPG",
+   "2026-08-05",
+   "F",
+   "D",
+   4083
+  ],
+  [
+   "0000919574-26-004886",
+   "LPG",
+   "2026-08-05",
+   "A",
+   "A",
+   45429
+  ],
+  [
+   "0000919574-26-004887",
+   "LPG",
+   "2026-08-05",
+   "A",
+   "A",
+   16382
+  ],
+  [
+   "0000919574-26-004887",
+   "LPG",
+   "2026-08-05",
+   "F",
+   "D",
+   2536
+  ],
+  [
+   "0000919574-26-004887",
+   "LPG",
+   "2026-08-05",
+   "F",
+   "D",
+   2165
+  ],
+  [
+   "0000919574-26-004887",
+   "LPG",
+   "2026-08-05",
+   "F",
+   "D",
+   1385
+  ],
+  [
+   "0000919574-26-004888",
+   "LPG",
+   "2026-08-05",
+   "A",
+   "A",
+   24833
+  ],
+  [
+   "0000919574-26-004889",
+   "LPG",
+   "2026-08-05",
+   "A",
+   "A",
+   23128
+  ],
+  [
+   "0000919574-26-004889",
+   "LPG",
+   "2026-08-05",
+   "F",
+   "D",
+   4634
+  ],
+  [
+   "0000919574-26-004889",
+   "LPG",
+   "2026-08-05",
+   "F",
+   "D",
+   5585
+  ],
+  [
+   "0000919574-26-004889",
+   "LPG",
+   "2026-08-05",
+   "F",
+   "D",
+   3573
+  ],
+  [
+   "0001561550-26-000258",
+   "DDOG",
+   "2026-08-05",
+   "C",
+   "A",
+   127141
+  ],
+  [
+   "0001561550-26-000258",
+   "DDOG",
+   "2026-08-05",
+   "S",
+   "D",
+   21390
+  ],
+  [
+   "0001561550-26-000258",
+   "DDOG",
+   "2026-08-05",
+   "S",
+   "D",
+   7431
+  ],
+  [
+   "0001561550-26-000258",
+   "DDOG",
+   "2026-08-05",
+   "S",
+   "D",
+   13474
+  ],
+  [
+   "0001561550-26-000258",
+   "DDOG",
+   "2026-08-05",
+   "S",
+   "D",
+   30602
+  ],
+  [
+   "0001561550-26-000258",
+   "DDOG",
+   "2026-08-05",
+   "S",
+   "D",
+   24798
+  ],
+  [
+   "0001561550-26-000258",
+   "DDOG",
+   "2026-08-05",
+   "S",
+   "D",
+   20346
+  ],
+  [
+   "0001561550-26-000258",
+   "DDOG",
+   "2026-08-05",
+   "S",
+   "D",
+   3500
+  ],
+  [
+   "0001561550-26-000258",
+   "DDOG",
+   "2026-08-05",
+   "S",
+   "D",
+   3000
+  ],
+  [
+   "0001561550-26-000258",
+   "DDOG",
+   "2026-08-05",
+   "S",
+   "D",
+   2600
+  ],
+  [
+   "0001194348-26-000004",
+   "DCOM",
+   "2026-08-06",
+   "S",
+   "D",
+   1800
+  ],
+  [
+   "0001628280-26-054845",
+   "DORM",
+   "2026-08-05",
+   "M",
+   "A",
+   1974
+  ],
+  [
+   "0001628280-26-054845",
+   "DORM",
+   "2026-08-05",
+   "M",
+   "A",
+   1557
+  ],
+  [
+   "0001628280-26-054845",
+   "DORM",
+   "2026-08-05",
+   "S",
+   "D",
+   1974
+  ],
+  [
+   "0001628280-26-054845",
+   "DORM",
+   "2026-08-05",
+   "S",
+   "D",
+   1557
+  ],
+  [
+   "0001193125-26-340220",
+   "EXP",
+   "2026-08-05",
+   "G",
+   "D",
+   1173
+  ],
+  [
+   "0001065088-26-000179",
+   "EBAY",
+   "2026-08-05",
+   "S",
+   "D",
+   2402
+  ],
+  [
+   "0001065088-26-000179",
+   "EBAY",
+   "2026-08-05",
+   "S",
+   "D",
+   3795
+  ],
+  [
+   "0001065088-26-000179",
+   "EBAY",
+   "2026-08-05",
+   "S",
+   "D",
+   2282
+  ],
+  [
+   "0001065088-26-000179",
+   "EBAY",
+   "2026-08-05",
+   "S",
+   "D",
+   1434
+  ],
+  [
+   "0001065088-26-000179",
+   "EBAY",
+   "2026-08-05",
+   "S",
+   "D",
+   1197
+  ],
+  [
+   "0001065088-26-000179",
+   "EBAY",
+   "2026-08-06",
+   "S",
+   "D",
+   1325
+  ],
+  [
+   "0001065088-26-000179",
+   "EBAY",
+   "2026-08-06",
+   "S",
+   "D",
+   1943
+  ],
+  [
+   "0001065088-26-000179",
+   "EBAY",
+   "2026-08-06",
+   "S",
+   "D",
+   3424
+  ],
+  [
+   "0001065088-26-000179",
+   "EBAY",
+   "2026-08-06",
+   "S",
+   "D",
+   2416
+  ],
+  [
+   "0001065088-26-000179",
+   "EBAY",
+   "2026-08-06",
+   "S",
+   "D",
+   1449
+  ],
+  [
+   "0001065088-26-000179",
+   "EBAY",
+   "2026-08-06",
+   "S",
+   "D",
+   278
+  ],
+  [
+   "0001065088-26-000179",
+   "EBAY",
+   "2026-08-06",
+   "S",
+   "D",
+   275
+  ],
+  [
+   "0001686963-26-000004",
+   "EMR",
+   "2026-08-06",
+   "S",
+   "D",
+   7329
+  ],
+  [
+   "0001045450-26-000045",
+   "EPR",
+   "2026-08-06",
+   "S",
+   "D",
+   3403
+  ],
+  [
+   "0001104659-26-092801",
+   "ETN",
+   "2026-08-06",
+   "M",
+   "A",
+   658
+  ],
+  [
+   "0001104659-26-092801",
+   "ETN",
+   "2026-08-06",
+   "F",
+   "D",
+   221
+  ],
+  [
+   "0001752243-26-000006",
+   "ENVA",
+   "2026-08-05",
+   "A",
+   "A",
+   772
+  ],
+  [
+   "0001048911-26-000110",
+   "FDX",
+   "2026-08-07",
+   "J",
+   "D",
+   253927
+  ],
+  [
+   "0001855837-26-000012",
+   "FNB",
+   "2026-08-06",
+   "S",
+   "D",
+   4055
+  ],
+  [
+   "0001628280-26-054948",
+   "FORM",
+   "2026-08-05",
+   "M",
+   "A",
+   521
+  ],
+  [
+   "0001628280-26-054948",
+   "FORM",
+   "2026-08-05",
+   "F",
+   "D",
+   130
+  ],
+  [
+   "0001628280-26-054948",
+   "FORM",
+   "2026-08-06",
+   "M",
+   "A",
+   1099
+  ],
+  [
+   "0001628280-26-054948",
+   "FORM",
+   "2026-08-06",
+   "F",
+   "D",
+   274
+  ],
+  [
+   "0001628280-26-054951",
+   "FORM",
+   "2026-08-05",
+   "M",
+   "A",
+   3644
+  ],
+  [
+   "0001628280-26-054951",
+   "FORM",
+   "2026-08-05",
+   "F",
+   "D",
+   2028
+  ],
+  [
+   "0001628280-26-054951",
+   "FORM",
+   "2026-08-06",
+   "M",
+   "A",
+   6031
+  ],
+  [
+   "0001628280-26-054951",
+   "FORM",
+   "2026-08-06",
+   "F",
+   "D",
+   3357
+  ],
+  [
+   "0001965040-26-000119",
+   "FTRE",
+   "2026-08-06",
+   "S",
+   "D",
+   55882
+  ],
+  [
+   "0001965040-26-000119",
+   "FTRE",
+   "2026-08-06",
+   "S",
+   "D",
+   55975
+  ],
+  [
+   "0001534505-26-000008",
+   "GATX",
+   "2026-08-05",
+   "M",
+   "A",
+   18200
+  ],
+  [
+   "0001534505-26-000008",
+   "GATX",
+   "2026-08-05",
+   "S",
+   "D",
+   9452
+  ],
+  [
+   "0001534505-26-000008",
+   "GATX",
+   "2026-08-05",
+   "S",
+   "D",
+   8641
+  ],
+  [
+   "0001534505-26-000008",
+   "GATX",
+   "2026-08-05",
+   "S",
+   "D",
+   107
+  ],
+  [
+   "0001594019-26-000007",
+   "GVA",
+   "2026-08-06",
+   "A",
+   "A",
+   993
+  ],
+  [
+   "0001628280-26-054911",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   617
+  ],
+  [
+   "0001628280-26-054911",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   2283
+  ],
+  [
+   "0001628280-26-054911",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   3527
+  ],
+  [
+   "0001628280-26-054911",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   2790
+  ],
+  [
+   "0001628280-26-054911",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   5341
+  ],
+  [
+   "0001628280-26-054911",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   5434
+  ],
+  [
+   "0001628280-26-054911",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   2217
+  ],
+  [
+   "0001628280-26-054911",
+   "GFF",
+   "2026-08-06",
+   "S",
+   "D",
+   158
+  ],
+  [
+   "0001628280-26-054911",
+   "GFF",
+   "2026-08-06",
+   "S",
+   "D",
+   211
+  ],
+  [
+   "0001628280-26-054911",
+   "GFF",
+   "2026-08-06",
+   "S",
+   "D",
+   5476
+  ],
+  [
+   "0001628280-26-054911",
+   "GFF",
+   "2026-08-06",
+   "S",
+   "D",
+   6933
+  ],
+  [
+   "0001628280-26-054911",
+   "GFF",
+   "2026-08-06",
+   "S",
+   "D",
+   2074
+  ],
+  [
+   "0001628280-26-054912",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   12916
+  ],
+  [
+   "0001628280-26-054912",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   17322
+  ],
+  [
+   "0001628280-26-054912",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   45240
+  ],
+  [
+   "0001628280-26-054912",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   16402
+  ],
+  [
+   "0001628280-26-054912",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   8120
+  ],
+  [
+   "0001628280-26-054913",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   8817
+  ],
+  [
+   "0001628280-26-054913",
+   "GFF",
+   "2026-08-05",
+   "S",
+   "D",
+   2233
+  ],
+  [
+   "0001628280-26-054896",
+   "GTES",
+   "2026-08-06",
+   "S",
+   "D",
+   6000
+  ],
+  [
+   "0001193125-26-340397",
+   "THG",
+   "2026-08-05",
+   "S",
+   "D",
+   600
+  ],
+  [
+   "0001193125-26-340397",
+   "THG",
+   "2026-08-06",
+   "S",
+   "D",
+   600
+  ],
+  [
+   "0000047111-26-000230",
+   "HSY",
+   "2026-08-06",
+   "S",
+   "D",
+   710
+  ],
+  [
+   "0001193125-26-339046",
+   "HMC",
+   "2026-08-06",
+   "A",
+   "A",
+   5000
+  ],
+  [
+   "0001674168-26-000101",
+   "HGV",
+   "2026-08-06",
+   "S",
+   "D",
+   20691
+  ],
+  [
+   "0001110803-26-000169",
+   "ILMN",
+   "2026-08-05",
+   "A",
+   "A",
+   4503
+  ],
+  [
+   "0001140361-26-031890",
+   "IR",
+   "2026-08-06",
+   "M",
+   "A",
+   130
+  ],
+  [
+   "0001140361-26-031891",
+   "IR",
+   "2026-08-06",
+   "M",
+   "A",
+   1258
+  ],
+  [
+   "0001140361-26-031892",
+   "IR",
+   "2026-08-06",
+   "M",
+   "A",
+   367
+  ],
+  [
+   "0001140361-26-031892",
+   "IR",
+   "2026-08-06",
+   "F",
+   "D",
+   160
+  ],
+  [
+   "0001140361-26-031893",
+   "IR",
+   "2026-08-06",
+   "M",
+   "A",
+   245
+  ],
+  [
+   "0001140361-26-031893",
+   "IR",
+   "2026-08-06",
+   "F",
+   "D",
+   109
+  ],
+  [
+   "0001628280-26-054590",
+   "IDCC",
+   "2026-08-05",
+   "S",
+   "D",
+   1500
+  ],
+  [
+   "0001193125-26-340345",
+   "ICE",
+   "2026-08-05",
+   "S",
+   "D",
+   7300
+  ],
+  [
+   "0000200406-26-000169",
+   "JNJ",
+   "2026-08-06",
+   "M",
+   "A",
+   9344
+  ],
+  [
+   "0000200406-26-000169",
+   "JNJ",
+   "2026-08-06",
+   "S",
+   "D",
+   9344
+  ],
+  [
+   "0000200406-26-000169",
+   "JNJ",
+   "2026-08-06",
+   "S",
+   "D",
+   6574
+  ],
+  [
+   "0000200406-26-000171",
+   "JNJ",
+   "2026-08-05",
+   "S",
+   "D",
+   41957
+  ],
+  [
+   "0000200406-26-000171",
+   "JNJ",
+   "2026-08-05",
+   "S",
+   "D",
+   6523
+  ],
+  [
+   "0001161662-26-000005",
+   "JAZZ",
+   "2026-08-05",
+   "A",
+   "A",
+   1605
+  ],
+  [
+   "0001188919-26-000012",
+   "JAZZ",
+   "2026-08-05",
+   "A",
+   "A",
+   1605
+  ],
+  [
+   "0001193210-26-000020",
+   "JAZZ",
+   "2026-08-05",
+   "A",
+   "A",
+   1605
+  ],
+  [
+   "0001253886-26-000008",
+   "JAZZ",
+   "2026-08-05",
+   "A",
+   "A",
+   1605
+  ],
+  [
+   "0001302443-26-000010",
+   "JAZZ",
+   "2026-08-05",
+   "A",
+   "A",
+   1605
+  ],
+  [
+   "0001536639-26-000004",
+   "JAZZ",
+   "2026-08-05",
+   "A",
+   "A",
+   1605
+  ],
+  [
+   "0001576068-26-000004",
+   "JAZZ",
+   "2026-08-05",
+   "A",
+   "A",
+   1605
+  ],
+  [
+   "0001751804-26-000002",
+   "JAZZ",
+   "2026-08-05",
+   "A",
+   "A",
+   1605
+  ],
+  [
+   "0001754371-26-000004",
+   "JAZZ",
+   "2026-08-05",
+   "A",
+   "A",
+   1605
+  ],
+  [
+   "0001756253-26-000006",
+   "JAZZ",
+   "2026-08-05",
+   "A",
+   "A",
+   1605
+  ],
+  [
+   "0001805688-26-000014",
+   "JAZZ",
+   "2026-08-05",
+   "F",
+   "D",
+   780
+  ],
+  [
+   "0002013944-26-000003",
+   "JAZZ",
+   "2026-08-05",
+   "A",
+   "A",
+   1605
+  ],
+  [
+   "0001214659-26-009794",
+   "JEF",
+   "2026-08-07",
+   "G",
+   "D",
+   81734
+  ],
+  [
+   "0001063463-26-000004",
+   "KBH",
+   "2026-08-05",
+   "S",
+   "D",
+   22015
+  ],
+  [
+   "0001690867-26-000004",
+   "KBH",
+   "2026-08-06",
+   "S",
+   "D",
+   4000
+  ],
+  [
+   "0001193125-26-340034",
+   "KEX",
+   "2026-08-05",
+   "M",
+   "A",
+   186
+  ],
+  [
+   "0001193125-26-340034",
+   "KEX",
+   "2026-08-05",
+   "F",
+   "D",
+   74
+  ],
+  [
+   "0001193125-26-340226",
+   "KLAC",
+   "2026-08-06",
+   "A",
+   "A",
+   352875
+  ],
+  [
+   "0001193125-26-340226",
+   "KLAC",
+   "2026-08-06",
+   "F",
+   "D",
+   87481.432
+  ],
+  [
+   "0001193125-26-340226",
+   "KLAC",
+   "2026-08-06",
+   "A",
+   "A",
+   93721
+  ],
+  [
+   "0001193125-26-340226",
+   "KLAC",
+   "2026-08-06",
+   "F",
+   "D",
+   46466.872
+  ],
+  [
+   "0001193125-26-340226",
+   "KLAC",
+   "2026-08-06",
+   "A",
+   "A",
+   40841.235
+  ],
+  [
+   "0001193125-26-340227",
+   "KLAC",
+   "2026-08-05",
+   "A",
+   "A",
+   5069.946
+  ],
+  [
+   "0001193125-26-340227",
+   "KLAC",
+   "2026-08-06",
+   "A",
+   "A",
+   25440
+  ],
+  [
+   "0001193125-26-340227",
+   "KLAC",
+   "2026-08-06",
+   "F",
+   "D",
+   5355.121
+  ],
+  [
+   "0001193125-26-340227",
+   "KLAC",
+   "2026-08-06",
+   "A",
+   "A",
+   24987.3
+  ],
+  [
+   "0001193125-26-340227",
+   "KLAC",
+   "2026-08-06",
+   "F",
+   "D",
+   10519.654
+  ],
+  [
+   "0001193125-26-340228",
+   "KLAC",
+   "2026-08-05",
+   "A",
+   "A",
+   24410.853
+  ],
+  [
+   "0001193125-26-340228",
+   "KLAC",
+   "2026-08-06",
+   "A",
+   "A",
+   87420
+  ],
+  [
+   "0001193125-26-340228",
+   "KLAC",
+   "2026-08-06",
+   "F",
+   "D",
+   21671.418
+  ],
+  [
+   "0001193125-26-340228",
+   "KLAC",
+   "2026-08-06",
+   "A",
+   "A",
+   62475.7
+  ],
+  [
+   "0001193125-26-340228",
+   "KLAC",
+   "2026-08-06",
+   "F",
+   "D",
+   30975.453
+  ],
+  [
+   "0001193125-26-340232",
+   "KLAC",
+   "2026-08-05",
+   "A",
+   "A",
+   15960.942
+  ],
+  [
+   "0001193125-26-340232",
+   "KLAC",
+   "2026-08-06",
+   "A",
+   "A",
+   39735
+  ],
+  [
+   "0001193125-26-340232",
+   "KLAC",
+   "2026-08-06",
+   "F",
+   "D",
+   9854.025
+  ],
+  [
+   "0001193125-26-340232",
+   "KLAC",
+   "2026-08-06",
+   "A",
+   "A",
+   24987.3
+  ],
+  [
+   "0001193125-26-340232",
+   "KLAC",
+   "2026-08-06",
+   "F",
+   "D",
+   12388.704
+  ],
+  [
+   "0001193125-26-340233",
+   "KLAC",
+   "2026-08-05",
+   "A",
+   "A",
+   1549.15
+  ],
+  [
+   "0001193125-26-340233",
+   "KLAC",
+   "2026-08-06",
+   "A",
+   "A",
+   9540
+  ],
+  [
+   "0001193125-26-340233",
+   "KLAC",
+   "2026-08-06",
+   "F",
+   "D",
+   2364.967
+  ],
+  [
+   "0001193125-26-340234",
+   "KLAC",
+   "2026-08-05",
+   "A",
+   "A",
+   24410.853
+  ],
+  [
+   "0001193125-26-340234",
+   "KLAC",
+   "2026-08-06",
+   "A",
+   "A",
+   87420
+  ],
+  [
+   "0001193125-26-340234",
+   "KLAC",
+   "2026-08-06",
+   "F",
+   "D",
+   21671.418
+  ],
+  [
+   "0001193125-26-340234",
+   "KLAC",
+   "2026-08-06",
+   "A",
+   "A",
+   62475.7
+  ],
+  [
+   "0001193125-26-340234",
+   "KLAC",
+   "2026-08-06",
+   "F",
+   "D",
+   30975.453
+  ],
+  [
+   "0001509412-26-000009",
+   "KTOS",
+   "2026-08-05",
+   "S",
+   "D",
+   2100
+  ],
+  [
+   "0001509412-26-000009",
+   "KTOS",
+   "2026-08-05",
+   "S",
+   "D",
+   1500
+  ],
+  [
+   "0001509412-26-000009",
+   "KTOS",
+   "2026-08-05",
+   "S",
+   "D",
+   300
+  ],
+  [
+   "0001509412-26-000009",
+   "KTOS",
+   "2026-08-05",
+   "S",
+   "D",
+   100
+  ],
+  [
+   "0000905148-26-003534",
+   "KNTK",
+   "2026-08-03",
+   "S",
+   "D",
+   2175
+  ],
+  [
+   "0000905148-26-003534",
+   "KNTK",
+   "2026-08-06",
+   "S",
+   "D",
+   210552
+  ],
+  [
+   "0000905148-26-003534",
+   "KNTK",
+   "2026-08-06",
+   "S",
+   "D",
+   24797
+  ],
+  [
+   "0000905148-26-003534",
+   "KNTK",
+   "2026-08-07",
+   "S",
+   "D",
+   26550
+  ],
+  [
+   "0001343600-26-000011",
+   "LRCX",
+   "2026-08-06",
+   "M",
+   "A",
+   30000
+  ],
+  [
+   "0001343600-26-000011",
+   "LRCX",
+   "2026-08-06",
+   "S",
+   "D",
+   30000
+  ],
+  [
+   "0001193125-26-340765",
+   "LEA",
+   "2026-08-06",
+   "S",
+   "D",
+   1646
+  ],
+  [
+   "0001337041-26-000019",
+   "LYV",
+   "2026-08-06",
+   "F",
+   "D",
+   16251
+  ],
+  [
+   "0001356771-26-000013",
+   "LYV",
+   "2026-08-06",
+   "F",
+   "D",
+   1084
+  ],
+  [
+   "0001552281-26-000012",
+   "LYV",
+   "2026-08-06",
+   "F",
+   "D",
+   10834
+  ],
+  [
+   "0001870543-26-000014",
+   "LYV",
+   "2026-08-06",
+   "F",
+   "D",
+   3970
+  ],
+  [
+   "0001628280-26-054823",
+   "LCID",
+   "2026-08-05",
+   "A",
+   "A",
+   501622
+  ],
+  [
+   "0001193125-26-340272",
+   "MKTX",
+   "2026-08-07",
+   "G",
+   "D",
+   606
+  ],
+  [
+   "0001628280-26-054754",
+   "MSEX",
+   "2026-08-07",
+   "S",
+   "D",
+   615
+  ],
+  [
+   "0001718356-26-000005",
+   "MBIN",
+   "2026-08-05",
+   "G",
+   "D",
+   3700
+  ],
+  [
+   "0000310158-26-000213",
+   "MRK",
+   "2026-08-06",
+   "S",
+   "D",
+   15000
+  ],
+  [
+   "0000310158-26-000214",
+   "MRK",
+   "2026-08-05",
+   "M",
+   "A",
+   4600
+  ],
+  [
+   "0000310158-26-000214",
+   "MRK",
+   "2026-08-05",
+   "S",
+   "D",
+   4600
+  ],
+  [
+   "0000310158-26-000214",
+   "MRK",
+   "2026-08-05",
+   "M",
+   "A",
+   13542
+  ],
+  [
+   "0000310158-26-000214",
+   "MRK",
+   "2026-08-05",
+   "S",
+   "D",
+   13542
+  ],
+  [
+   "0000310158-26-000214",
+   "MRK",
+   "2026-08-05",
+   "M",
+   "A",
+   34705
+  ],
+  [
+   "0000310158-26-000214",
+   "MRK",
+   "2026-08-05",
+   "S",
+   "D",
+   34705
+  ],
+  [
+   "0000310158-26-000215",
+   "MRK",
+   "2026-08-05",
+   "M",
+   "A",
+   6311
+  ],
+  [
+   "0000310158-26-000215",
+   "MRK",
+   "2026-08-05",
+   "S",
+   "D",
+   6311
+  ],
+  [
+   "0000310158-26-000215",
+   "MRK",
+   "2026-08-05",
+   "M",
+   "A",
+   9709
+  ],
+  [
+   "0000310158-26-000215",
+   "MRK",
+   "2026-08-05",
+   "S",
+   "D",
+   9709
+  ],
+  [
+   "0000310158-26-000215",
+   "MRK",
+   "2026-08-05",
+   "M",
+   "A",
+   2686
+  ],
+  [
+   "0000310158-26-000215",
+   "MRK",
+   "2026-08-05",
+   "S",
+   "D",
+   2686
+  ],
+  [
+   "0001682852-26-000153",
+   "MRNA",
+   "2026-08-05",
+   "M",
+   "A",
+   499246
+  ],
+  [
+   "0001682852-26-000153",
+   "MRNA",
+   "2026-08-05",
+   "S",
+   "D",
+   147473
+  ],
+  [
+   "0001682852-26-000153",
+   "MRNA",
+   "2026-08-05",
+   "S",
+   "D",
+   124838
+  ],
+  [
+   "0001682852-26-000153",
+   "MRNA",
+   "2026-08-05",
+   "S",
+   "D",
+   39891
+  ],
+  [
+   "0001682852-26-000153",
+   "MRNA",
+   "2026-08-05",
+   "S",
+   "D",
+   187044
+  ],
+  [
+   "0001682852-26-000153",
+   "MRNA",
+   "2026-08-06",
+   "M",
+   "A",
+   252469
+  ],
+  [
+   "0001324069-26-000035",
+   "MORN",
+   "2026-08-06",
+   "S",
+   "D",
+   2272
+  ],
+  [
+   "0001324069-26-000035",
+   "MORN",
+   "2026-08-07",
+   "S",
+   "D",
+   166
+  ],
+  [
+   "0001324069-26-000035",
+   "MORN",
+   "2026-08-07",
+   "S",
+   "D",
+   1453
+  ],
+  [
+   "0001324069-26-000035",
+   "MORN",
+   "2026-08-07",
+   "S",
+   "D",
+   2559
+  ],
+  [
+   "0001324069-26-000035",
+   "MORN",
+   "2026-08-07",
+   "S",
+   "D",
+   2566
+  ],
+  [
+   "0001324069-26-000035",
+   "MORN",
+   "2026-08-07",
+   "S",
+   "D",
+   506
+  ],
+  [
+   "0001600664-26-000010",
+   "NEM",
+   "2026-08-05",
+   "S",
+   "D",
+   11445
+  ],
+  [
+   "0001994131-26-000008",
+   "NEM",
+   "2026-08-05",
+   "S",
+   "D",
+   7764
+  ],
+  [
+   "0000320187-26-000103",
+   "NKE",
+   "2026-08-05",
+   "S",
+   "D",
+   2463
+  ],
+  [
+   "0000320187-26-000105",
+   "NKE",
+   "2026-08-05",
+   "S",
+   "D",
+   524
+  ],
+  [
+   "0000320187-26-000107",
+   "NKE",
+   "2026-08-05",
+   "S",
+   "D",
+   890
+  ],
+  [
+   "0000320187-26-000109",
+   "NKE",
+   "2026-08-05",
+   "S",
+   "D",
+   821
+  ],
+  [
+   "0001197647-26-000007",
+   "NVDA",
+   "2026-08-05",
+   "G",
+   "D",
+   500000
+  ],
+  [
+   "0001646382-26-000018",
+   "NTRA",
+   "2026-08-07",
+   "S",
+   "D",
+   2000
+  ],
+  [
+   "0001646649-26-000029",
+   "NTRA",
+   "2026-08-07",
+   "S",
+   "D",
+   100
+  ],
+  [
+   "0001646649-26-000029",
+   "NTRA",
+   "2026-08-07",
+   "S",
+   "D",
+   400
+  ],
+  [
+   "0001646649-26-000029",
+   "NTRA",
+   "2026-08-07",
+   "S",
+   "D",
+   400
+  ],
+  [
+   "0001646649-26-000029",
+   "NTRA",
+   "2026-08-07",
+   "S",
+   "D",
+   900
+  ],
+  [
+   "0001646649-26-000029",
+   "NTRA",
+   "2026-08-07",
+   "S",
+   "D",
+   850
+  ],
+  [
+   "0001646649-26-000029",
+   "NTRA",
+   "2026-08-07",
+   "S",
+   "D",
+   600
+  ],
+  [
+   "0001646649-26-000029",
+   "NTRA",
+   "2026-08-07",
+   "S",
+   "D",
+   5111
+  ],
+  [
+   "0001646649-26-000029",
+   "NTRA",
+   "2026-08-07",
+   "S",
+   "D",
+   200
+  ],
+  [
+   "0001646649-26-000029",
+   "NTRA",
+   "2026-08-07",
+   "S",
+   "D",
+   100
+  ],
+  [
+   "0001646649-26-000029",
+   "NTRA",
+   "2026-08-07",
+   "S",
+   "D",
+   489
+  ],
+  [
+   "0001733998-26-000129",
+   "NWN",
+   "2026-08-06",
+   "I",
+   "A",
+   507.021
+  ],
+  [
+   "0001733998-26-000131",
+   "NWN",
+   "2026-08-06",
+   "I",
+   "A",
+   1140.709
+  ],
+  [
+   "0001733998-26-000133",
+   "NWN",
+   "2026-08-06",
+   "I",
+   "A",
+   247.629
+  ],
+  [
+   "0001061272-26-000002",
+   "PEP",
+   "2026-08-05",
+   "A",
+   "A",
+   398.3229
+  ],
+  [
+   "0001061272-26-000002",
+   "PEP",
+   "2026-08-06",
+   "J",
+   "D",
+   900000
+  ],
+  [
+   "0001061272-26-000002",
+   "PEP",
+   "2026-08-06",
+   "J",
+   "A",
+   79731
+  ],
+  [
+   "0001983697-26-000006",
+   "PINS",
+   "2026-08-07",
+   "S",
+   "D",
+   59096
+  ],
+  [
+   "0001840244-26-000015",
+   "PLTR",
+   "2026-08-05",
+   "S",
+   "D",
+   3032
+  ],
+  [
+   "0001193125-26-340201",
+   "PL",
+   "2026-08-05",
+   "G",
+   "D",
+   55000
+  ],
+  [
+   "0001977249-26-000104",
+   "QRVO",
+   "2026-08-05",
+   "F",
+   "D",
+   4628
+  ],
+  [
+   "0001977249-26-000105",
+   "QRVO",
+   "2026-08-05",
+   "F",
+   "D",
+   16379
+  ],
+  [
+   "0001977249-26-000106",
+   "QRVO",
+   "2026-08-05",
+   "F",
+   "D",
+   2999
+  ],
+  [
+   "0001977249-26-000107",
+   "QRVO",
+   "2026-08-05",
+   "F",
+   "D",
+   3949
+  ],
+  [
+   "0001977249-26-000108",
+   "QRVO",
+   "2026-08-05",
+   "F",
+   "D",
+   3944
+  ],
+  [
+   "0001977249-26-000109",
+   "QRVO",
+   "2026-08-05",
+   "F",
+   "D",
+   534
+  ],
+  [
+   "0001977249-26-000110",
+   "QRVO",
+   "2026-08-05",
+   "F",
+   "D",
+   2262
+  ],
+  [
+   "0001937263-26-000008",
+   "ROKU",
+   "2026-08-06",
+   "S",
+   "D",
+   10719
+  ],
+  [
+   "0001193125-26-340385",
+   "RPM",
+   "2026-08-05",
+   "M",
+   "A",
+   200000
+  ],
+  [
+   "0001193125-26-340385",
+   "RPM",
+   "2026-08-05",
+   "D",
+   "D",
+   106529
+  ],
+  [
+   "0001193125-26-340385",
+   "RPM",
+   "2026-08-05",
+   "F",
+   "D",
+   40753
+  ],
+  [
+   "0001799461-26-000003",
+   "SCHL",
+   "2026-08-05",
+   "M",
+   "A",
+   20488
+  ],
+  [
+   "0001799461-26-000003",
+   "SCHL",
+   "2026-08-05",
+   "S",
+   "D",
+   20488
+  ],
+  [
+   "0001799461-26-000003",
+   "SCHL",
+   "2026-08-06",
+   "M",
+   "A",
+   7549
+  ],
+  [
+   "0001799461-26-000003",
+   "SCHL",
+   "2026-08-06",
+   "S",
+   "D",
+   5139
+  ],
+  [
+   "0001799461-26-000003",
+   "SCHL",
+   "2026-08-06",
+   "S",
+   "D",
+   2410
+  ],
+  [
+   "0002017618-26-000002",
+   "SCHL",
+   "2026-08-06",
+   "S",
+   "D",
+   3250
+  ],
+  [
+   "0001733065-26-000011",
+   "SCHW",
+   "2026-08-05",
+   "M",
+   "A",
+   21750
+  ],
+  [
+   "0001733065-26-000011",
+   "SCHW",
+   "2026-08-05",
+   "S",
+   "D",
+   21750
+  ],
+  [
+   "0001950787-26-000014",
+   "SCHW",
+   "2026-08-05",
+   "S",
+   "D",
+   18561
+  ],
+  [
+   "0001225208-26-007032",
+   "SIRI",
+   "2026-08-06",
+   "S",
+   "D",
+   16672
+  ],
+  [
+   "0001193125-26-340057",
+   "SO",
+   "2026-08-06",
+   "S",
+   "D",
+   3333
+  ],
+  [
+   "0000092380-26-000080",
+   "LUV",
+   "2026-08-05",
+   "A",
+   "A",
+   6316
+  ],
+  [
+   "0000092380-26-000082",
+   "LUV",
+   "2026-08-05",
+   "A",
+   "A",
+   28321
+  ],
+  [
+   "0000092380-26-000084",
+   "LUV",
+   "2026-08-05",
+   "A",
+   "A",
+   2995
+  ],
+  [
+   "0000092380-26-000086",
+   "LUV",
+   "2026-08-05",
+   "A",
+   "A",
+   7598
+  ],
+  [
+   "0000092380-26-000088",
+   "LUV",
+   "2026-08-05",
+   "A",
+   "A",
+   9506
+  ],
+  [
+   "0000092380-26-000090",
+   "LUV",
+   "2026-08-05",
+   "A",
+   "A",
+   8568
+  ],
+  [
+   "0001333280-26-000016",
+   "S",
+   "2026-08-06",
+   "S",
+   "D",
+   26374
+  ],
+  [
+   "0001511194-26-000012",
+   "S",
+   "2026-08-06",
+   "S",
+   "D",
+   9778
+  ],
+  [
+   "0001608511-26-000015",
+   "S",
+   "2026-08-06",
+   "S",
+   "D",
+   5467
+  ],
+  [
+   "0001689411-26-000015",
+   "S",
+   "2026-08-06",
+   "S",
+   "D",
+   6230
+  ],
+  [
+   "0001866222-26-000037",
+   "S",
+   "2026-08-06",
+   "S",
+   "D",
+   53811
+  ],
+  [
+   "0000908834-26-000386",
+   "SN",
+   "2026-08-05",
+   "S",
+   "D",
+   250000
+  ],
+  [
+   "0000908834-26-000386",
+   "SN",
+   "2026-08-06",
+   "S",
+   "D",
+   250000
+  ],
+  [
+   "0000908834-26-000386",
+   "SN",
+   "2026-08-07",
+   "M",
+   "A",
+   200000
+  ],
+  [
+   "0000908834-26-000386",
+   "SN",
+   "2026-08-07",
+   "F",
+   "D",
+   78700
+  ],
+  [
+   "0000908834-26-000388",
+   "SN",
+   "2026-08-07",
+   "M",
+   "A",
+   40000
+  ],
+  [
+   "0000908834-26-000388",
+   "SN",
+   "2026-08-07",
+   "F",
+   "D",
+   19340
+  ],
+  [
+   "0000908834-26-000388",
+   "SN",
+   "2026-08-07",
+   "S",
+   "D",
+   22723
+  ],
+  [
+   "0000908834-26-000388",
+   "SN",
+   "2026-08-07",
+   "S",
+   "D",
+   6944
+  ],
+  [
+   "0001193125-26-340231",
+   "FOUR",
+   "2026-08-05",
+   "F",
+   "D",
+   14073
+  ],
+  [
+   "0001193125-26-340231",
+   "FOUR",
+   "2026-08-07",
+   "A",
+   "A",
+   24854
+  ],
+  [
+   "0001699322-26-000013",
+   "SNAP",
+   "2026-08-05",
+   "S",
+   "D",
+   2000000
+  ],
+  [
+   "0001699322-26-000013",
+   "SNAP",
+   "2026-08-06",
+   "S",
+   "D",
+   2000000
+  ],
+  [
+   "0001699322-26-000013",
+   "SNAP",
+   "2026-08-06",
+   "G",
+   "D",
+   1223340
+  ],
+  [
+   "0001193125-26-340288",
+   "SHC",
+   "2026-08-05",
+   "F",
+   "D",
+   11316
+  ],
+  [
+   "0001573461-26-000005",
+   "SSB",
+   "2026-08-05",
+   "S",
+   "D",
+   18000
+  ],
+  [
+   "0001573461-26-000005",
+   "SSB",
+   "2026-08-05",
+   "S",
+   "D",
+   1800
+  ],
+  [
+   "0001573461-26-000005",
+   "SSB",
+   "2026-08-05",
+   "S",
+   "D",
+   1100
+  ],
+  [
+   "0001573461-26-000005",
+   "SSB",
+   "2026-08-05",
+   "S",
+   "D",
+   3750
+  ],
+  [
+   "0001193125-26-340372",
+   "SARO",
+   "2026-08-05",
+   "S",
+   "D",
+   40000
+  ],
+  [
+   "0001193125-26-340372",
+   "SARO",
+   "2026-08-06",
+   "S",
+   "D",
+   40000
+  ],
+  [
+   "0001969292-26-000009",
+   "SBLK",
+   "2026-08-06",
+   "S",
+   "D",
+   5000
+  ],
+  [
+   "0001193125-26-340735",
+   "THC",
+   "2026-08-05",
+   "S",
+   "D",
+   600
+  ],
+  [
+   "0002051619-26-000018",
+   "TEX",
+   "2026-08-05",
+   "A",
+   "A",
+   36
+  ],
+  [
+   "0002053424-26-000018",
+   "TEX",
+   "2026-08-05",
+   "A",
+   "A",
+   20
+  ],
+  [
+   "0001437749-26-026608",
+   "TGTX",
+   "2026-08-06",
+   "G",
+   "D",
+   5100
+  ],
+  [
+   "0001437749-26-026608",
+   "TGTX",
+   "2026-08-07",
+   "G",
+   "D",
+   500
+  ],
+  [
+   "0001437749-26-026608",
+   "TGTX",
+   "2026-08-07",
+   "G",
+   "D",
+   450
+  ],
+  [
+   "0000097745-26-000146",
+   "TMO",
+   "2026-08-06",
+   "M",
+   "A",
+   5850
+  ],
+  [
+   "0000097745-26-000146",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   5850
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "M",
+   "A",
+   10000
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   157
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   130
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   105
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   53
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   135
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   431
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   1186
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   2223
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   2930
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   2575
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   75
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   79
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   66
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   38
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   40
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   68
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   216
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   590
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   1113
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   1464
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   1289
+  ],
+  [
+   "0001216055-26-000006",
+   "TMO",
+   "2026-08-05",
+   "S",
+   "D",
+   37
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "M",
+   "A",
+   10000
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   480
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   1631
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   2545
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   1617
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   2164
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   480
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   451
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   321
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   311
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   240
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   660
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   1200
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   1008
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   1060
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   225
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   361
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   119
+  ],
+  [
+   "0001216055-26-000007",
+   "TMO",
+   "2026-08-06",
+   "S",
+   "D",
+   127
+  ],
+  [
+   "0001171843-26-005348",
+   "TLRY",
+   "2026-08-06",
+   "P",
+   "A",
+   2500
+  ],
+  [
+   "0001650164-26-000172",
+   "TOST",
+   "2026-08-05",
+   "S",
+   "D",
+   15976
+  ],
+  [
+   "0001650164-26-000172",
+   "TOST",
+   "2026-08-05",
+   "S",
+   "D",
+   200
+  ],
+  [
+   "0001650164-26-000172",
+   "TOST",
+   "2026-08-06",
+   "S",
+   "D",
+   900
+  ],
+  [
+   "0001650164-26-000173",
+   "TOST",
+   "2026-08-05",
+   "M",
+   "A",
+   2000
+  ],
+  [
+   "0001650164-26-000173",
+   "TOST",
+   "2026-08-05",
+   "M",
+   "A",
+   2700
+  ],
+  [
+   "0001650164-26-000173",
+   "TOST",
+   "2026-08-05",
+   "S",
+   "D",
+   4700
+  ],
+  [
+   "0001650164-26-000174",
+   "TOST",
+   "2026-08-05",
+   "S",
+   "D",
+   124458
+  ],
+  [
+   "0001650164-26-000174",
+   "TOST",
+   "2026-08-05",
+   "S",
+   "D",
+   84
+  ],
+  [
+   "0001650164-26-000174",
+   "TOST",
+   "2026-08-06",
+   "S",
+   "D",
+   13510
+  ],
+  [
+   "0002084956-26-000052",
+   "UFPT",
+   "2026-08-06",
+   "S",
+   "D",
+   1100
+  ],
+  [
+   "0000101382-26-000176",
+   "UMBF",
+   "2026-08-06",
+   "S",
+   "D",
+   475
+  ],
+  [
+   "0000101382-26-000176",
+   "UMBF",
+   "2026-08-06",
+   "S",
+   "D",
+   902
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "M",
+   "A",
+   9500
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   80
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   625
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   263
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   120
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   80
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   80
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   633
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   719
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   120
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   182
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   824
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   1357
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   1283
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   875
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   759
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   680
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   400
+  ],
+  [
+   "0001106578-26-000115",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   420
+  ],
+  [
+   "0000731766-26-000196",
+   "UNH",
+   "2026-08-05",
+   "S",
+   "D",
+   500
+  ],
+  [
+   "0001292814-26-004146",
+   "VALE",
+   "2026-07-03",
+   "P",
+   "A",
+   406
+  ],
+  [
+   "0001193125-26-340609",
+   "VCTR",
+   "2026-08-05",
+   "M",
+   "A",
+   147529
+  ],
+  [
+   "0001193125-26-340609",
+   "VCTR",
+   "2026-08-05",
+   "F",
+   "D",
+   58056
+  ],
+  [
+   "0001193125-26-340613",
+   "VCTR",
+   "2026-08-05",
+   "M",
+   "A",
+   73763
+  ],
+  [
+   "0001193125-26-340613",
+   "VCTR",
+   "2026-08-05",
+   "F",
+   "D",
+   33453
+  ],
+  [
+   "0001193125-26-340630",
+   "VCTR",
+   "2026-08-05",
+   "M",
+   "A",
+   19124
+  ],
+  [
+   "0001193125-26-340630",
+   "VCTR",
+   "2026-08-05",
+   "F",
+   "D",
+   9732
+  ],
+  [
+   "0001193125-26-340638",
+   "VCTR",
+   "2026-08-05",
+   "M",
+   "A",
+   40982
+  ],
+  [
+   "0001193125-26-340638",
+   "VCTR",
+   "2026-08-05",
+   "F",
+   "D",
+   18177
+  ],
+  [
+   "0001193125-26-340644",
+   "VCTR",
+   "2026-08-05",
+   "M",
+   "A",
+   16390
+  ],
+  [
+   "0001193125-26-340644",
+   "VCTR",
+   "2026-08-05",
+   "F",
+   "D",
+   6452
+  ],
+  [
+   "0000030697-26-000117",
+   "WEN",
+   "2026-08-05",
+   "M",
+   "A",
+   5529
+  ],
+  [
+   "0000030697-26-000117",
+   "WEN",
+   "2026-08-05",
+   "F",
+   "D",
+   1568
+  ],
+  [
+   "0000030697-26-000118",
+   "WEN",
+   "2026-08-05",
+   "M",
+   "A",
+   1191
+  ],
+  [
+   "0000030697-26-000118",
+   "WEN",
+   "2026-08-05",
+   "F",
+   "D",
+   344
+  ],
+  [
+   "0000030697-26-000119",
+   "WEN",
+   "2026-08-05",
+   "M",
+   "A",
+   1104
+  ],
+  [
+   "0000030697-26-000119",
+   "WEN",
+   "2026-08-05",
+   "F",
+   "D",
+   322
+  ],
+  [
+   "0000030697-26-000120",
+   "WEN",
+   "2026-08-05",
+   "M",
+   "A",
+   1415
+  ],
+  [
+   "0000030697-26-000120",
+   "WEN",
+   "2026-08-05",
+   "F",
+   "D",
+   404
+  ],
+  [
+   "0000030697-26-000121",
+   "WEN",
+   "2026-08-05",
+   "M",
+   "A",
+   2294
+  ],
+  [
+   "0000030697-26-000121",
+   "WEN",
+   "2026-08-05",
+   "F",
+   "D",
+   654
+  ],
+  [
+   "0001534839-26-000003",
+   "XPO",
+   "2026-08-07",
+   "M",
+   "A",
+   345742
+  ],
+  [
+   "0001534839-26-000003",
+   "XPO",
+   "2026-08-07",
+   "F",
+   "D",
+   167167
+  ],
+  [
+   "0002034804-26-000020",
+   "GTM",
+   "2026-08-06",
+   "S",
+   "D",
+   5000
+  ],
+  [
+   "0002057389-26-000022",
+   "GTM",
+   "2026-08-07",
+   "S",
+   "D",
+   16400
+  ],
+  [
+   "0001225208-26-007021",
+   "ANF",
+   "2026-08-04",
+   "S",
+   "D",
+   10000
+  ],
+  [
+   "0001954190-26-000005",
+   "AGNT",
+   "2026-08-06",
+   "M",
+   "A",
+   12462
+  ],
+  [
+   "0001954190-26-000005",
+   "AGNT",
+   "2026-08-06",
+   "F",
+   "D",
+   3035
+  ],
+  [
+   "0002062367-26-000009",
+   "AGNT",
+   "2026-08-05",
+   "M",
+   "A",
+   1877
+  ],
+  [
+   "0002062367-26-000009",
+   "AGNT",
+   "2026-08-05",
+   "F",
+   "D",
+   537
+  ],
+  [
+   "0001104659-26-092146",
+   "APH",
+   "2026-08-06",
+   "G",
+   "D",
+   54547
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-04",
+   "S",
+   "D",
+   23
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-04",
+   "S",
+   "D",
+   37
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-04",
+   "S",
+   "D",
+   76
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-04",
+   "S",
+   "D",
+   178
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-04",
+   "S",
+   "D",
+   84
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-04",
+   "S",
+   "D",
+   240
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-04",
+   "S",
+   "D",
+   244
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-04",
+   "S",
+   "D",
+   134
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-04",
+   "S",
+   "D",
+   52
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-04",
+   "S",
+   "D",
+   248
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-04",
+   "S",
+   "D",
+   100
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-05",
+   "S",
+   "D",
+   76
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-05",
+   "S",
+   "D",
+   237
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-05",
+   "S",
+   "D",
+   271
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-05",
+   "S",
+   "D",
+   373
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-05",
+   "S",
+   "D",
+   229
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-05",
+   "S",
+   "D",
+   116
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-05",
+   "S",
+   "D",
+   86
+  ],
+  [
+   "0000900729-26-000014",
+   "ADI",
+   "2026-08-05",
+   "S",
+   "D",
+   28
+  ],
+  [
+   "0001429897-26-000004",
+   "APOG",
+   "2026-08-05",
+   "A",
+   "A",
+   2454
+  ],
+  [
+   "0001488151-26-000004",
+   "APOG",
+   "2026-08-05",
+   "A",
+   "A",
+   2454
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   66
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   689
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   396
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   229
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   676
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   722
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   296
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   196
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   230
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   30
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   316
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   178
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   105
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   311
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   329
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   135
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   91
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   105
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   104
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   1095
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   626
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   366
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   1113
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   1149
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   469
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   313
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-04",
+   "S",
+   "D",
+   365
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   1278
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   944
+  ],
+  [
+   "0000938333-26-000009",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   144
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   368
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   506
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   227
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   33
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   583
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   433
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   66
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   168
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   230
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   105
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   15
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   2035
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   1528
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   232
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   587
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   802
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   364
+  ],
+  [
+   "0000938333-26-000010",
+   "APPF",
+   "2026-08-05",
+   "S",
+   "D",
+   52
+  ],
+  [
+   "0001193004-26-000004",
+   "ARCB",
+   "2026-08-04",
+   "S",
+   "D",
+   1500
+  ],
+  [
+   "0001225208-26-007005",
+   "ADP",
+   "2026-08-05",
+   "A",
+   "A",
+   44859.292
+  ],
+  [
+   "0001225208-26-007006",
+   "ADP",
+   "2026-08-05",
+   "A",
+   "A",
+   4671.865
+  ],
+  [
+   "0001225208-26-007007",
+   "ADP",
+   "2026-08-05",
+   "A",
+   "A",
+   11572.843
+  ],
+  [
+   "0001225208-26-007008",
+   "ADP",
+   "2026-08-05",
+   "A",
+   "A",
+   2601.218
+  ],
+  [
+   "0001225208-26-007009",
+   "ADP",
+   "2026-08-05",
+   "A",
+   "A",
+   10902.584
+  ],
+  [
+   "0001225208-26-007010",
+   "ADP",
+   "2026-08-05",
+   "A",
+   "A",
+   2646.999
+  ],
+  [
+   "0001225208-26-007011",
+   "ADP",
+   "2026-08-05",
+   "A",
+   "A",
+   1479.032
+  ],
+  [
+   "0001225208-26-007012",
+   "ADP",
+   "2026-08-05",
+   "A",
+   "A",
+   11083.354
+  ],
+  [
+   "0001225208-26-007013",
+   "ADP",
+   "2026-08-05",
+   "A",
+   "A",
+   3114.186
+  ],
+  [
+   "0001225208-26-007014",
+   "ADP",
+   "2026-08-05",
+   "A",
+   "A",
+   746.558
+  ],
+  [
+   "0001225208-26-007015",
+   "ADP",
+   "2026-08-05",
+   "A",
+   "A",
+   4049.733
+  ],
+  [
+   "0001225208-26-007016",
+   "ADP",
+   "2026-08-05",
+   "A",
+   "A",
+   4049.733
+  ],
+  [
+   "0001225208-26-007018",
+   "ADP",
+   "2026-08-05",
+   "A",
+   "A",
+   24921.697
+  ],
+  [
+   "0001628280-26-053928",
+   "AXON",
+   "2026-08-05",
+   "A",
+   "A",
+   2461
+  ],
+  [
+   "0001628280-26-053931",
+   "AXON",
+   "2026-08-05",
+   "A",
+   "A",
+   29531
+  ],
+  [
+   "0001628280-26-053937",
+   "AXON",
+   "2026-08-05",
+   "A",
+   "A",
+   22749
+  ],
+  [
+   "0001628280-26-053943",
+   "AXON",
+   "2026-08-05",
+   "A",
+   "A",
+   78200
+  ],
+  [
+   "0001455134-26-000017",
+   "ACN",
+   "2026-08-05",
+   "A",
+   "A",
+   117
+  ],
+  [
+   "0001487630-26-000016",
+   "ACN",
+   "2026-08-05",
+   "A",
+   "A",
+   227
+  ],
+  [
+   "0001783059-26-000015",
+   "ACN",
+   "2026-08-05",
+   "A",
+   "A",
+   162
+  ],
+  [
+   "0001792845-26-000015",
+   "ACN",
+   "2026-08-05",
+   "A",
+   "A",
+   161
+  ],
+  [
+   "0001911109-26-000015",
+   "ACN",
+   "2026-08-05",
+   "A",
+   "A",
+   107
+  ],
+  [
+   "0002028611-26-000013",
+   "ACN",
+   "2026-08-05",
+   "A",
+   "A",
+   162
+  ],
+  [
+   "0002080406-26-000013",
+   "ACN",
+   "2026-08-05",
+   "A",
+   "A",
+   126
+  ],
+  [
+   "0002080407-26-000016",
+   "ACN",
+   "2026-08-05",
+   "A",
+   "A",
+   103
+  ],
+  [
+   "0001845661-26-000002",
+   "ALGT",
+   "2026-08-04",
+   "F",
+   "D",
+   220
+  ],
+  [
+   "0001964741-26-000004",
+   "ALGT",
+   "2026-08-04",
+   "F",
+   "D",
+   260
+  ],
+  [
+   "0001975499-26-000004",
+   "ALGT",
+   "2026-08-04",
+   "F",
+   "D",
+   260
+  ],
+  [
+   "0002066736-26-000004",
+   "ALGT",
+   "2026-08-04",
+   "F",
+   "D",
+   195
+  ],
+  [
+   "0001193125-26-338824",
+   "GOOGL",
+   "2026-08-05",
+   "G",
+   "D",
+   1738
+  ],
+  [
+   "0001193125-26-338824",
+   "GOOGL",
+   "2026-08-05",
+   "G",
+   "A",
+   1738
+  ],
+  [
+   "0001104659-26-092194",
+   "AM",
+   "2026-08-06",
+   "S",
+   "D",
+   5000
+  ],
+  [
+   "0000760498-26-000052",
+   "BANF",
+   "2026-08-05",
+   "S",
+   "D",
+   2000
+  ],
+  [
+   "0000760498-26-000053",
+   "BANF",
+   "2026-08-06",
+   "S",
+   "D",
+   3000
+  ],
+  [
+   "0001061630-26-000073",
+   "BXMT",
+   "2026-08-04",
+   "P",
+   "A",
+   10000
+  ],
+  [
+   "0001219629-26-000008",
+   "BCC",
+   "2026-08-05",
+   "S",
+   "D",
+   1930
+  ],
+  [
+   "0002039852-26-000117",
+   "TBBK",
+   "2026-08-06",
+   "S",
+   "D",
+   2057
+  ],
+  [
+   "0002039852-26-000117",
+   "TBBK",
+   "2026-08-06",
+   "S",
+   "D",
+   1000
+  ],
+  [
+   "0001214607-26-000014",
+   "BKNG",
+   "2026-08-05",
+   "S",
+   "D",
+   1000
+  ],
+  [
+   "0001443646-26-000047",
+   "BAH",
+   "2026-08-04",
+   "A",
+   "A",
+   3330
+  ],
+  [
+   "0001443646-26-000048",
+   "BAH",
+   "2026-08-04",
+   "A",
+   "A",
+   4689
+  ],
+  [
+   "0001443646-26-000049",
+   "BAH",
+   "2026-08-04",
+   "A",
+   "A",
+   3058
+  ],
+  [
+   "0001443646-26-000050",
+   "BAH",
+   "2026-08-04",
+   "A",
+   "A",
+   5028
+  ],
+  [
+   "0001443646-26-000051",
+   "BAH",
+   "2026-08-04",
+   "A",
+   "A",
+   4689
+  ],
+  [
+   "0001443646-26-000052",
+   "BAH",
+   "2026-08-04",
+   "A",
+   "A",
+   3805
+  ],
+  [
+   "0001443646-26-000053",
+   "BAH",
+   "2026-08-04",
+   "A",
+   "A",
+   3058
+  ],
+  [
+   "0001443646-26-000054",
+   "BAH",
+   "2026-08-04",
+   "A",
+   "A",
+   3058
+  ],
+  [
+   "0001443646-26-000055",
+   "BAH",
+   "2026-08-04",
+   "A",
+   "A",
+   4689
+  ],
+  [
+   "0000721371-26-000027",
+   "CAH",
+   "2026-08-04",
+   "A",
+   "A",
+   187965
+  ],
+  [
+   "0000721371-26-000028",
+   "CAH",
+   "2026-08-04",
+   "A",
+   "A",
+   17230
+  ],
+  [
+   "0000721371-26-000029",
+   "CAH",
+   "2026-08-04",
+   "A",
+   "A",
+   58738
+  ],
+  [
+   "0000721371-26-000030",
+   "CAH",
+   "2026-08-04",
+   "A",
+   "A",
+   54823
+  ],
+  [
+   "0000721371-26-000031",
+   "CAH",
+   "2026-08-04",
+   "A",
+   "A",
+   46992
+  ],
+  [
+   "0000721371-26-000032",
+   "CAH",
+   "2026-08-04",
+   "A",
+   "A",
+   46992
+  ],
+  [
+   "0000721371-26-000033",
+   "CAH",
+   "2026-08-04",
+   "A",
+   "A",
+   2610
+  ],
+  [
+   "0000721371-26-000034",
+   "CAH",
+   "2026-08-04",
+   "A",
+   "A",
+   2610
+  ],
+  [
+   "0001178913-26-003885",
+   "CHKP",
+   "2026-08-04",
+   "S",
+   "D",
+   10272
+  ],
+  [
+   "0000902162-26-000012",
+   "CAKE",
+   "2026-08-05",
+   "S",
+   "D",
+   94145
+  ],
+  [
+   "0001193532-26-000010",
+   "CAKE",
+   "2026-08-04",
+   "S",
+   "D",
+   64
+  ],
+  [
+   "0001193125-26-337649",
+   "CHE",
+   "2026-08-05",
+   "M",
+   "A",
+   2599
+  ],
+  [
+   "0001193125-26-337649",
+   "CHE",
+   "2026-08-05",
+   "F",
+   "D",
+   2270
+  ],
+  [
+   "0001297913-26-000005",
+   "CNX",
+   "2026-08-04",
+   "G",
+   "D",
+   86614
+  ],
+  [
+   "0001297913-26-000005",
+   "CNX",
+   "2026-08-04",
+   "G",
+   "A",
+   43307
+  ],
+  [
+   "0001297913-26-000005",
+   "CNX",
+   "2026-08-04",
+   "G",
+   "A",
+   43307
+  ],
+  [
+   "0001437749-26-026401",
+   "COHU",
+   "2026-08-05",
+   "S",
+   "D",
+   10000
+  ],
+  [
+   "0001437749-26-026401",
+   "COHU",
+   "2026-08-05",
+   "S",
+   "D",
+   5252
+  ],
+  [
+   "0001437749-26-026403",
+   "COHU",
+   "2026-08-05",
+   "S",
+   "D",
+   3055
+  ],
+  [
+   "0001225208-26-007020",
+   "CL",
+   "2026-08-04",
+   "M",
+   "A",
+   161021
+  ],
+  [
+   "0001225208-26-007020",
+   "CL",
+   "2026-08-04",
+   "S",
+   "D",
+   161021
+  ],
+  [
+   "0001225208-26-007020",
+   "CL",
+   "2026-08-05",
+   "M",
+   "A",
+   161021
+  ],
+  [
+   "0001225208-26-007020",
+   "CL",
+   "2026-08-05",
+   "S",
+   "D",
+   161021
+  ],
+  [
+   "0001225208-26-007023",
+   "CMCSA",
+   "2026-08-05",
+   "G",
+   "D",
+   204100
+  ],
+  [
+   "0000022356-26-000192",
+   "CBSH",
+   "2026-08-04",
+   "M",
+   "A",
+   3507
+  ],
+  [
+   "0000022356-26-000192",
+   "CBSH",
+   "2026-08-04",
+   "F",
+   "D",
+   357
+  ],
+  [
+   "0000022356-26-000192",
+   "CBSH",
+   "2026-08-04",
+   "D",
+   "D",
+   2320
+  ],
+  [
+   "0000022356-26-000192",
+   "CBSH",
+   "2026-08-04",
+   "S",
+   "D",
+   830
+  ],
+  [
+   "0001193125-26-338637",
+   "CORT",
+   "2026-08-04",
+   "M",
+   "A",
+   3700
+  ],
+  [
+   "0001193125-26-338637",
+   "CORT",
+   "2026-08-04",
+   "S",
+   "D",
+   3700
+  ],
+  [
+   "0001628280-26-054222",
+   "WHD",
+   "2026-08-05",
+   "S",
+   "D",
+   7178
+  ],
+  [
+   "0001628280-26-054226",
+   "WHD",
+   "2026-08-05",
+   "S",
+   "D",
+   10000
+  ],
+  [
+   "0001739940-26-000067",
+   "CI",
+   "2026-08-04",
+   "M",
+   "A",
+   14045
+  ],
+  [
+   "0001739940-26-000067",
+   "CI",
+   "2026-08-04",
+   "S",
+   "D",
+   19436
+  ],
+  [
+   "0001739940-26-000067",
+   "CI",
+   "2026-08-05",
+   "M",
+   "A",
+   1301
+  ],
+  [
+   "0001366574-26-000020",
+   "NET",
+   "2026-08-06",
+   "S",
+   "D",
+   300
+  ],
+  [
+   "0001366574-26-000020",
+   "NET",
+   "2026-08-06",
+   "S",
+   "D",
+   3064
+  ],
+  [
+   "0001366574-26-000020",
+   "NET",
+   "2026-08-06",
+   "S",
+   "D",
+   636
+  ],
+  [
+   "0001366574-26-000020",
+   "NET",
+   "2026-08-06",
+   "S",
+   "D",
+   1000
+  ],
+  [
+   "0001473289-26-000021",
+   "NET",
+   "2026-08-04",
+   "M",
+   "A",
+   55000
+  ],
+  [
+   "0001473289-26-000021",
+   "NET",
+   "2026-08-04",
+   "S",
+   "D",
+   53861
+  ],
+  [
+   "0001473289-26-000021",
+   "NET",
+   "2026-08-04",
+   "S",
+   "D",
+   1139
+  ],
+  [
+   "0000905148-26-003498",
+   "CEG",
+   "2026-08-04",
+   "A",
+   "A",
+   462
+  ],
+  [
+   "0001609901-26-000011",
+   "CROX",
+   "2026-08-04",
+   "M",
+   "A",
+   200000
+  ],
+  [
+   "0001609901-26-000011",
+   "CROX",
+   "2026-08-04",
+   "F",
+   "D",
+   105610
+  ],
+  [
+   "0001201326-26-000019",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   203
+  ],
+  [
+   "0001201326-26-000019",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   96
+  ],
+  [
+   "0001201326-26-000019",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   365
+  ],
+  [
+   "0001201326-26-000019",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   334
+  ],
+  [
+   "0001201326-26-000019",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   3536
+  ],
+  [
+   "0001201326-26-000019",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   8992
+  ],
+  [
+   "0001201326-26-000019",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   5435
+  ],
+  [
+   "0001201326-26-000019",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   1038
+  ],
+  [
+   "0001201326-26-000019",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   1
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   160
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   80
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   200
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   280
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   4570
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   2750
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   1908
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-04",
+   "S",
+   "D",
+   52
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-05",
+   "S",
+   "D",
+   716
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-05",
+   "S",
+   "D",
+   864
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-05",
+   "S",
+   "D",
+   2401
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-05",
+   "S",
+   "D",
+   4204
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-05",
+   "S",
+   "D",
+   1086
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-05",
+   "S",
+   "D",
+   327
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-05",
+   "S",
+   "D",
+   88
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-05",
+   "S",
+   "D",
+   215
+  ],
+  [
+   "0001778564-26-000135",
+   "CRWD",
+   "2026-08-05",
+   "S",
+   "D",
+   99
+  ],
+  [
+   "0001193125-26-338618",
+   "CURB",
+   "2026-08-04",
+   "S",
+   "D",
+   38788
+  ],
+  [
+   "0001193125-26-338618",
+   "CURB",
+   "2026-08-05",
+   "S",
+   "D",
+   134269
+  ],
+  [
+   "0000313616-26-000182",
+   "DHR",
+   "2026-08-04",
+   "A",
+   "A",
+   15402
+  ],
+  [
+   "0000313616-26-000183",
+   "DHR",
+   "2026-08-04",
+   "A",
+   "A",
+   13477
+  ],
+  [
+   "0000313616-26-000185",
+   "DHR",
+   "2026-08-04",
+   "A",
+   "A",
+   41072
+  ],
+  [
+   "0001193125-26-338379",
+   "DHR",
+   "2026-08-04",
+   "A",
+   "A",
+   500000
+  ],
+  [
+   "0001193125-26-338380",
+   "DHR",
+   "2026-08-04",
+   "A",
+   "A",
+   500000
+  ],
+  [
+   "0001663529-26-000011",
+   "DMC",
+   "2026-08-04",
+   "P",
+   "A",
+   12000
+  ],
+  [
+   "0001683168-26-006058",
+   "DAL",
+   "2026-08-05",
+   "M",
+   "A",
+   40460
+  ],
+  [
+   "0001683168-26-006058",
+   "DAL",
+   "2026-08-05",
+   "S",
+   "D",
+   40460
+  ],
+  [
+   "0001683168-26-006060",
+   "DAL",
+   "2026-08-05",
+   "S",
+   "D",
+   3100
+  ],
+  [
+   "0001688568-26-000071",
+   "DXC",
+   "2026-08-04",
+   "A",
+   "A",
+   21800
+  ],
+  [
+   "0001688568-26-000072",
+   "DXC",
+   "2026-08-04",
+   "A",
+   "A",
+   21800
+  ],
+  [
+   "0001688568-26-000073",
+   "DXC",
+   "2026-08-04",
+   "A",
+   "A",
+   21800
+  ],
+  [
+   "0001688568-26-000074",
+   "DXC",
+   "2026-08-04",
+   "A",
+   "A",
+   21800
+  ],
+  [
+   "0001688568-26-000075",
+   "DXC",
+   "2026-08-04",
+   "A",
+   "A",
+   21800
+  ],
+  [
+   "0001688568-26-000076",
+   "DXC",
+   "2026-08-04",
+   "A",
+   "A",
+   21800
+  ],
+  [
+   "0001688568-26-000077",
+   "DXC",
+   "2026-08-04",
+   "A",
+   "A",
+   21800
+  ],
+  [
+   "0001688568-26-000078",
+   "DXC",
+   "2026-08-04",
+   "A",
+   "A",
+   30900
+  ],
+  [
+   "0001561550-26-000256",
+   "DDOG",
+   "2026-08-04",
+   "C",
+   "A",
+   12500
+  ],
+  [
+   "0001561550-26-000256",
+   "DDOG",
+   "2026-08-04",
+   "S",
+   "D",
+   12500
+  ],
+  [
+   "0001193125-26-338476",
+   "DLB",
+   "2026-08-04",
+   "S",
+   "D",
+   357
+  ],
+  [
+   "0001235499-26-000008",
+   "EWBC",
+   "2026-08-06",
+   "S",
+   "D",
+   10000
+  ],
+  [
+   "0000915389-26-000142",
+   "EMN",
+   "2026-08-04",
+   "S",
+   "D",
+   3283
+  ],
+  [
+   "0001022408-26-000076",
+   "PLUS",
+   "2026-08-04",
+   "S",
+   "D",
+   200
+  ],
+  [
+   "0001321154-26-000010",
+   "ETSY",
+   "2026-08-04",
+   "S",
+   "D",
+   159
+  ],
+  [
+   "0001321154-26-000010",
+   "ETSY",
+   "2026-08-04",
+   "S",
+   "D",
+   1053
+  ],
+  [
+   "0001321154-26-000010",
+   "ETSY",
+   "2026-08-04",
+   "S",
+   "D",
+   352
+  ],
+  [
+   "0001525358-26-000025",
+   "ETSY",
+   "2026-08-04",
+   "M",
+   "A",
+   6294
+  ],
+  [
+   "0001525358-26-000025",
+   "ETSY",
+   "2026-08-04",
+   "S",
+   "D",
+   6294
+  ],
+  [
+   "0001628280-26-054542",
+   "EFC",
+   "2026-08-05",
+   "J",
+   "A",
+   6794
+  ],
+  [
+   "0001651902-26-000020",
+   "P",
+   "2026-08-04",
+   "G",
+   "D",
+   89720
+  ],
+  [
+   "0001651902-26-000020",
+   "P",
+   "2026-08-04",
+   "G",
+   "A",
+   89720
+  ],
+  [
+   "0001651902-26-000020",
+   "P",
+   "2026-08-04",
+   "S",
+   "D",
+   82498
+  ],
+  [
+   "0001651902-26-000020",
+   "P",
+   "2026-08-04",
+   "S",
+   "D",
+   7222
+  ],
+  [
+   "0001628280-26-053914",
+   "EXLS",
+   "2026-08-03",
+   "S",
+   "D",
+   11000
+  ],
+  [
+   "0001554387-26-000005",
+   "FAST",
+   "2026-08-05",
+   "M",
+   "A",
+   10000
+  ],
+  [
+   "0001554387-26-000005",
+   "FAST",
+   "2026-08-05",
+   "S",
+   "D",
+   10000
+  ],
+  [
+   "0001554387-26-000005",
+   "FAST",
+   "2026-08-05",
+   "M",
+   "A",
+   24964
+  ],
+  [
+   "0001554387-26-000005",
+   "FAST",
+   "2026-08-05",
+   "S",
+   "D",
+   24964
+  ],
+  [
+   "0001628280-26-054191",
+   "FSS",
+   "2026-08-04",
+   "G",
+   "D",
+   7650
+  ],
+  [
+   "0001628280-26-054191",
+   "FSS",
+   "2026-08-04",
+   "S",
+   "D",
+   6070
+  ],
+  [
+   "0001435648-26-000029",
+   "FCF",
+   "2026-08-05",
+   "S",
+   "D",
+   90
+  ],
+  [
+   "0001435648-26-000029",
+   "FCF",
+   "2026-08-05",
+   "S",
+   "D",
+   200
+  ],
+  [
+   "0001435648-26-000029",
+   "FCF",
+   "2026-08-05",
+   "S",
+   "D",
+   100
+  ],
+  [
+   "0001435648-26-000029",
+   "FCF",
+   "2026-08-05",
+   "S",
+   "D",
+   90
+  ],
+  [
+   "0001435648-26-000029",
+   "FCF",
+   "2026-08-05",
+   "S",
+   "D",
+   200
+  ],
+  [
+   "0001435648-26-000029",
+   "FCF",
+   "2026-08-05",
+   "S",
+   "D",
+   500
+  ],
+  [
+   "0001435648-26-000029",
+   "FCF",
+   "2026-08-05",
+   "S",
+   "D",
+   312
+  ],
+  [
+   "0001435648-26-000029",
+   "FCF",
+   "2026-08-05",
+   "S",
+   "D",
+   112
+  ],
+  [
+   "0001435648-26-000029",
+   "FCF",
+   "2026-08-05",
+   "S",
+   "D",
+   69
+  ],
+  [
+   "0001435648-26-000029",
+   "FCF",
+   "2026-08-05",
+   "S",
+   "D",
+   109
+  ],
+  [
+   "0001435648-26-000029",
+   "FCF",
+   "2026-08-05",
+   "S",
+   "D",
+   200
+  ],
+  [
+   "0001435648-26-000029",
+   "FCF",
+   "2026-08-05",
+   "S",
+   "D",
+   90
+  ],
+  [
+   "0002093570-26-000006",
+   "FLR",
+   "2026-08-04",
+   "A",
+   "A",
+   2765
+  ],
+  [
+   "0001564675-26-000004",
+   "FULT",
+   "2026-08-05",
+   "S",
+   "D",
+   4100
+  ],
+  [
+   "0001628280-26-053939",
+   "FND",
+   "2026-08-05",
+   "F",
+   "D",
+   907
+  ],
+  [
+   "0001965040-26-000116",
+   "FTRE",
+   "2026-08-04",
+   "M",
+   "A",
+   416666
+  ],
+  [
+   "0001965040-26-000116",
+   "FTRE",
+   "2026-08-05",
+   "S",
+   "D",
+   49452
+  ],
+  [
+   "0001965040-26-000116",
+   "FTRE",
+   "2026-08-05",
+   "S",
+   "D",
+   50417
+  ],
+  [
+   "0001193125-26-337875",
+   "GD",
+   "2026-08-04",
+   "M",
+   "A",
+   6090
+  ],
+  [
+   "0001193125-26-337875",
+   "GD",
+   "2026-08-04",
+   "F",
+   "D",
+   4428
+  ],
+  [
+   "0001193125-26-337875",
+   "GD",
+   "2026-08-04",
+   "M",
+   "A",
+   5900
+  ],
+  [
+   "0001193125-26-337875",
+   "GD",
+   "2026-08-04",
+   "F",
+   "D",
+   4565
+  ],
+  [
+   "0001193125-26-337881",
+   "GD",
+   "2026-08-05",
+   "M",
+   "A",
+   6320
+  ],
+  [
+   "0001193125-26-337881",
+   "GD",
+   "2026-08-05",
+   "S",
+   "D",
+   6320
+  ],
+  [
+   "0001910388-26-000007",
+   "GS",
+   "2026-08-04",
+   "S",
+   "D",
+   37
+  ],
+  [
+   "0001910388-26-000007",
+   "GS",
+   "2026-08-04",
+   "S",
+   "D",
+   129
+  ],
+  [
+   "0001910388-26-000007",
+   "GS",
+   "2026-08-04",
+   "S",
+   "D",
+   9
+  ],
+  [
+   "0001179386-26-000006",
+   "GVA",
+   "2026-08-06",
+   "P",
+   "A",
+   400
+  ],
+  [
+   "0001193125-26-337264",
+   "GLBE",
+   "2026-08-05",
+   "S",
+   "D",
+   1308
+  ],
+  [
+   "0001193125-26-337284",
+   "GLBE",
+   "2026-08-05",
+   "S",
+   "D",
+   24999
+  ],
+  [
+   "0000047111-26-000228",
+   "HSY",
+   "2026-08-05",
+   "S",
+   "D",
+   950
+  ],
+  [
+   "0001193125-26-338713",
+   "DINO",
+   "2026-08-05",
+   "S",
+   "D",
+   8936
+  ],
+  [
+   "0002076715-26-000005",
+   "HLT",
+   "2026-08-05",
+   "F",
+   "D",
+   1854
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-04",
+   "S",
+   "D",
+   7202
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-04",
+   "S",
+   "D",
+   27854
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-04",
+   "S",
+   "D",
+   166501
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-04",
+   "S",
+   "D",
+   35160
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-04",
+   "S",
+   "D",
+   37242
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-04",
+   "S",
+   "D",
+   67725
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-04",
+   "S",
+   "D",
+   48186
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-04",
+   "S",
+   "D",
+   67988
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-05",
+   "S",
+   "D",
+   52249
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-05",
+   "S",
+   "D",
+   68047
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-05",
+   "S",
+   "D",
+   118753
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-05",
+   "S",
+   "D",
+   30398
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-05",
+   "S",
+   "D",
+   11372
+  ],
+  [
+   "0001193125-26-338361",
+   "ILMN",
+   "2026-08-05",
+   "S",
+   "D",
+   2450
+  ],
+  [
+   "0001111928-26-000159",
+   "IPGP",
+   "2026-08-04",
+   "S",
+   "D",
+   12202
+  ],
+  [
+   "0001111928-26-000159",
+   "IPGP",
+   "2026-08-05",
+   "S",
+   "D",
+   11912
+  ],
+  [
+   "0001111928-26-000159",
+   "IPGP",
+   "2026-08-05",
+   "S",
+   "D",
+   1325
+  ],
+  [
+   "0001111928-26-000159",
+   "IPGP",
+   "2026-08-05",
+   "S",
+   "D",
+   4324
+  ],
+  [
+   "0001111928-26-000159",
+   "IPGP",
+   "2026-08-05",
+   "S",
+   "D",
+   550
+  ],
+  [
+   "0001046257-26-000238",
+   "INGR",
+   "2026-08-05",
+   "S",
+   "D",
+   1662
+  ],
+  [
+   "0001822993-26-000126",
+   "JXN",
+   "2026-08-05",
+   "S",
+   "D",
+   7500
+  ],
+  [
+   "0001357615-26-000174",
+   "KBR",
+   "2026-08-04",
+   "F",
+   "D",
+   58
+  ],
+  [
+   "0001959402-26-000004",
+   "LKFN",
+   "2026-08-05",
+   "S",
+   "D",
+   500
+  ],
+  [
+   "0001642415-26-000010",
+   "LRCX",
+   "2026-08-05",
+   "F",
+   "D",
+   5790
+  ],
+  [
+   "0001437749-26-026108",
+   "LSCC",
+   "2026-08-04",
+   "F",
+   "D",
+   296
+  ],
+  [
+   "0001437749-26-026108",
+   "LSCC",
+   "2026-08-05",
+   "F",
+   "D",
+   338
+  ],
+  [
+   "0001336920-26-000250",
+   "LDOS",
+   "2026-08-04",
+   "F",
+   "D",
+   4584
+  ],
+  [
+   "0001336920-26-000251",
+   "LDOS",
+   "2026-08-04",
+   "F",
+   "D",
+   4584
+  ],
+  [
+   "0001336920-26-000252",
+   "LDOS",
+   "2026-08-04",
+   "F",
+   "D",
+   5092
+  ],
+  [
+   "0001534787-26-000011",
+   "LUMN",
+   "2026-08-05",
+   "A",
+   "A",
+   27350
+  ],
+  [
+   "0001831269-26-000002",
+   "LUMN",
+   "2026-08-06",
+   "P",
+   "A",
+   100000
+  ],
+  [
+   "0001204733-26-000015",
+   "MHO",
+   "2026-08-04",
+   "M",
+   "A",
+   12000
+  ],
+  [
+   "0001204733-26-000015",
+   "MHO",
+   "2026-08-04",
+   "M",
+   "A",
+   8000
+  ],
+  [
+   "0001204733-26-000015",
+   "MHO",
+   "2026-08-04",
+   "S",
+   "D",
+   10000
+  ],
+  [
+   "0001204733-26-000015",
+   "MHO",
+   "2026-08-04",
+   "S",
+   "D",
+   10000
+  ],
+  [
+   "0001204733-26-000015",
+   "MHO",
+   "2026-08-05",
+   "M",
+   "A",
+   10000
+  ],
+  [
+   "0001204733-26-000015",
+   "MHO",
+   "2026-08-05",
+   "S",
+   "D",
+   2868
+  ],
+  [
+   "0001204733-26-000015",
+   "MHO",
+   "2026-08-05",
+   "S",
+   "D",
+   6588
+  ],
+  [
+   "0001204733-26-000015",
+   "MHO",
+   "2026-08-05",
+   "S",
+   "D",
+   544
+  ],
+  [
+   "0001465105-26-000010",
+   "MTG",
+   "2026-08-05",
+   "S",
+   "D",
+   137113
+  ],
+  [
+   "0000789019-26-000143",
+   "MSFT",
+   "2026-08-05",
+   "S",
+   "D",
+   10000
+  ],
+  [
+   "0001452859-26-000005",
+   "MHK",
+   "2026-08-05",
+   "S",
+   "D",
+   13393
+  ],
+  [
+   "0001214659-26-009739",
+   "MPWR",
+   "2026-08-05",
+   "S",
+   "D",
+   105
+  ],
+  [
+   "0001214659-26-009744",
+   "MPWR",
+   "2026-08-04",
+   "G",
+   "D",
+   25000
+  ],
+  [
+   "0001214659-26-009744",
+   "MPWR",
+   "2026-08-04",
+   "G",
+   "A",
+   25000
+  ],
+  [
+   "0001141391-26-000097",
+   "MA",
+   "2026-08-05",
+   "S",
+   "D",
+   15372
+  ],
+  [
+   "0001141391-26-000099",
+   "MA",
+   "2026-08-05",
+   "S",
+   "D",
+   240
+  ],
+  [
+   "0001141391-26-000099",
+   "MA",
+   "2026-08-05",
+   "S",
+   "D",
+   880
+  ],
+  [
+   "0001141391-26-000099",
+   "MA",
+   "2026-08-05",
+   "S",
+   "D",
+   880
+  ],
+  [
+   "0001141391-26-000099",
+   "MA",
+   "2026-08-05",
+   "S",
+   "D",
+   280
+  ],
+  [
+   "0001141391-26-000099",
+   "MA",
+   "2026-08-05",
+   "S",
+   "D",
+   440
+  ],
+  [
+   "0001141391-26-000099",
+   "MA",
+   "2026-08-05",
+   "S",
+   "D",
+   200
+  ],
+  [
+   "0001141391-26-000099",
+   "MA",
+   "2026-08-05",
+   "S",
+   "D",
+   80
+  ],
+  [
+   "0001160077-26-000008",
+   "META",
+   "2026-08-04",
+   "S",
+   "D",
+   250
+  ],
+  [
+   "0001160077-26-000008",
+   "META",
+   "2026-08-04",
+   "S",
+   "D",
+   87
+  ],
+  [
+   "0001160077-26-000008",
+   "META",
+   "2026-08-04",
+   "S",
+   "D",
+   44
+  ],
+  [
+   "0001160077-26-000008",
+   "META",
+   "2026-08-04",
+   "S",
+   "D",
+   45
+  ],
+  [
+   "0001193125-26-338385",
+   "MC",
+   "2026-08-04",
+   "S",
+   "D",
+   4850
+  ],
+  [
+   "0000711377-26-000013",
+   "NEOG",
+   "2026-08-04",
+   "P",
+   "A",
+   370
+  ],
+  [
+   "0001646370-26-000002",
+   "NEO",
+   "2026-08-04",
+   "S",
+   "D",
+   20000
+  ],
+  [
+   "0001065280-26-000246",
+   "NFLX",
+   "2026-08-05",
+   "M",
+   "A",
+   2160
+  ],
+  [
+   "0001065280-26-000246",
+   "NFLX",
+   "2026-08-05",
+   "S",
+   "D",
+   2160
+  ],
+  [
+   "0001065280-26-000247",
+   "NFLX",
+   "2026-08-06",
+   "S",
+   "D",
+   27312
+  ],
+  [
+   "0000950103-26-012046",
+   "NXT",
+   "2026-08-05",
+   "S",
+   "D",
+   2289
+  ],
+  [
+   "0001244563-26-000006",
+   "NWE",
+   "2026-08-06",
+   "A",
+   "A",
+   524
+  ],
+  [
+   "0001050377-26-000008",
+   "CNXN",
+   "2026-08-04",
+   "S",
+   "D",
+   3968
+  ],
+  [
+   "0001050377-26-000008",
+   "CNXN",
+   "2026-08-04",
+   "S",
+   "D",
+   3041
+  ],
+  [
+   "0001050377-26-000008",
+   "CNXN",
+   "2026-08-04",
+   "S",
+   "D",
+   133
+  ],
+  [
+   "0001050377-26-000008",
+   "CNXN",
+   "2026-08-05",
+   "S",
+   "D",
+   3383
+  ],
+  [
+   "0001050377-26-000008",
+   "CNXN",
+   "2026-08-05",
+   "S",
+   "D",
+   3559
+  ],
+  [
+   "0001050377-26-000008",
+   "CNXN",
+   "2026-08-05",
+   "S",
+   "D",
+   200
+  ],
+  [
+   "0001225208-26-007004",
+   "PFE",
+   "2026-08-05",
+   "S",
+   "D",
+   3278
+  ],
+  [
+   "0001104659-26-092227",
+   "PAHC",
+   "2026-08-04",
+   "J",
+   "D",
+   486
+  ],
+  [
+   "0001104659-26-092228",
+   "PAHC",
+   "2026-08-04",
+   "J",
+   "D",
+   840
+  ],
+  [
+   "0001104659-26-092229",
+   "PAHC",
+   "2026-08-04",
+   "J",
+   "D",
+   472
+  ],
+  [
+   "0001104659-26-092230",
+   "PAHC",
+   "2026-08-04",
+   "J",
+   "D",
+   635
+  ],
+  [
+   "0001104659-26-092232",
+   "PAHC",
+   "2026-08-04",
+   "J",
+   "D",
+   265
+  ],
+  [
+   "0001104659-26-092233",
+   "PAHC",
+   "2026-08-04",
+   "J",
+   "D",
+   2303
+  ],
+  [
+   "0001512662-26-000003",
+   "PBI",
+   "2026-08-05",
+   "S",
+   "D",
+   25000
+  ],
+  [
+   "0001808834-26-000120",
+   "PRG",
+   "2026-08-04",
+   "S",
+   "D",
+   930
+  ],
+  [
+   "0001808834-26-000120",
+   "PRG",
+   "2026-08-05",
+   "S",
+   "D",
+   1070
+  ],
+  [
+   "0001808834-26-000122",
+   "PRG",
+   "2026-08-05",
+   "S",
+   "D",
+   2000
+  ],
+  [
+   "0001808968-26-000017",
+   "PTCT",
+   "2026-08-04",
+   "S",
+   "D",
+   10292
+  ],
+  [
+   "0001658566-26-000102",
+   "PR",
+   "2026-08-04",
+   "A",
+   "A",
+   14045
+  ],
+  [
+   "0001658566-26-000103",
+   "PR",
+   "2026-08-04",
+   "A",
+   "A",
+   14045
+  ],
+  [
+   "0001445187-26-000005",
+   "KWR",
+   "2026-08-04",
+   "S",
+   "D",
+   600
+  ],
+  [
+   "0001885843-26-000006",
+   "RRC",
+   "2026-08-05",
+   "S",
+   "D",
+   3500
+  ],
+  [
+   "0000929638-26-002909",
+   "SEIC",
+   "2026-08-04",
+   "M",
+   "A",
+   9957
+  ],
+  [
+   "0000929638-26-002909",
+   "SEIC",
+   "2026-08-04",
+   "M",
+   "A",
+   15000
+  ],
+  [
+   "0000929638-26-002909",
+   "SEIC",
+   "2026-08-04",
+   "S",
+   "D",
+   24957
+  ],
+  [
+   "0000929638-26-002909",
+   "SEIC",
+   "2026-08-05",
+   "M",
+   "A",
+   5043
+  ],
+  [
+   "0000929638-26-002909",
+   "SEIC",
+   "2026-08-05",
+   "S",
+   "D",
+   5043
+  ],
+  [
+   "0000310142-26-000050",
+   "SXT",
+   "2026-08-05",
+   "S",
+   "D",
+   1200
+  ],
+  [
+   "0000829224-26-000133",
+   "SBUX",
+   "2026-08-05",
+   "S",
+   "D",
+   2229
+  ],
+  [
+   "0001193125-26-337792",
+   "SONY",
+   "2026-08-05",
+   "S",
+   "D",
+   445000
+  ],
+  [
+   "0001193125-26-337792",
+   "SONY",
+   "2026-08-05",
+   "S",
+   "D",
+   100547
+  ],
+  [
+   "0001318349-26-000019",
+   "SNEX",
+   "2026-08-05",
+   "S",
+   "D",
+   1575
+  ],
+  [
+   "0001177394-26-000086",
+   "SNX",
+   "2026-08-05",
+   "S",
+   "D",
+   173
+  ],
+  [
+   "0001177394-26-000086",
+   "SNX",
+   "2026-08-05",
+   "S",
+   "D",
+   587
+  ],
+  [
+   "0001177394-26-000086",
+   "SNX",
+   "2026-08-05",
+   "S",
+   "D",
+   668
+  ],
+  [
+   "0001177394-26-000086",
+   "SNX",
+   "2026-08-05",
+   "S",
+   "D",
+   818
+  ],
+  [
+   "0001177394-26-000086",
+   "SNX",
+   "2026-08-05",
+   "S",
+   "D",
+   635
+  ],
+  [
+   "0001177394-26-000086",
+   "SNX",
+   "2026-08-05",
+   "S",
+   "D",
+   907
+  ],
+  [
+   "0001177394-26-000086",
+   "SNX",
+   "2026-08-05",
+   "S",
+   "D",
+   1212
+  ],
+  [
+   "0001582882-26-000004",
+   "TTEK",
+   "2026-08-04",
+   "M",
+   "A",
+   2300
+  ],
+  [
+   "0000947871-26-000750",
+   "TM",
+   "2026-08-05",
+   "P",
+   "A",
+   85000
+  ],
+  [
+   "0001691300-26-000013",
+   "TNL",
+   "2026-08-05",
+   "M",
+   "A",
+   4150
+  ],
+  [
+   "0001691300-26-000013",
+   "TNL",
+   "2026-08-05",
+   "S",
+   "D",
+   4150
+  ],
+  [
+   "0001741758-26-000008",
+   "TNL",
+   "2026-08-04",
+   "S",
+   "D",
+   34000
+  ],
+  [
+   "0001893845-26-000008",
+   "TNL",
+   "2026-08-04",
+   "S",
+   "D",
+   52617
+  ],
+  [
+   "0000101382-26-000172",
+   "UMBF",
+   "2026-08-05",
+   "S",
+   "D",
+   145
+  ],
+  [
+   "0000101382-26-000173",
+   "UMBF",
+   "2026-08-04",
+   "S",
+   "D",
+   15062
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "M",
+   "A",
+   9500
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   200
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   80
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   160
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   160
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   80
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   529
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   205
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   386
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   557
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   1891
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   1496
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   1011
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   1385
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   939
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   261
+  ],
+  [
+   "0001106578-26-000114",
+   "UTHR",
+   "2026-08-05",
+   "S",
+   "D",
+   160
+  ],
+  [
+   "0001231589-26-000017",
+   "UTHR",
+   "2026-08-06",
+   "M",
+   "A",
+   8300
+  ],
+  [
+   "0001231589-26-000017",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   760
+  ],
+  [
+   "0001231589-26-000017",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   1795
+  ],
+  [
+   "0001231589-26-000017",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   1360
+  ],
+  [
+   "0001231589-26-000017",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   1617
+  ],
+  [
+   "0001231589-26-000017",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   780
+  ],
+  [
+   "0001231589-26-000017",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   360
+  ],
+  [
+   "0001231589-26-000017",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   1308
+  ],
+  [
+   "0001231589-26-000017",
+   "UTHR",
+   "2026-08-06",
+   "S",
+   "D",
+   320
+  ],
+  [
+   "0001192482-26-000430",
+   "UVV",
+   "2026-08-04",
+   "A",
+   "A",
+   2650
+  ],
+  [
+   "0001192482-26-000431",
+   "UVV",
+   "2026-08-04",
+   "A",
+   "A",
+   4580
+  ],
+  [
+   "0001192482-26-000432",
+   "UVV",
+   "2026-08-04",
+   "A",
+   "A",
+   2650
+  ],
+  [
+   "0001192482-26-000433",
+   "UVV",
+   "2026-08-04",
+   "A",
+   "A",
+   2650
+  ],
+  [
+   "0001192482-26-000434",
+   "UVV",
+   "2026-08-04",
+   "A",
+   "A",
+   2650
+  ],
+  [
+   "0001192482-26-000436",
+   "UVV",
+   "2026-08-04",
+   "A",
+   "A",
+   2650
+  ],
+  [
+   "0001192482-26-000438",
+   "UVV",
+   "2026-08-04",
+   "A",
+   "A",
+   2650
+  ],
+  [
+   "0001192482-26-000440",
+   "UVV",
+   "2026-08-04",
+   "A",
+   "A",
+   2650
+  ],
+  [
+   "0002144418-26-000006",
+   "U",
+   "2026-08-04",
+   "A",
+   "A",
+   38948
+  ],
+  [
+   "0001193125-26-338271",
+   "VSAT",
+   "2026-08-04",
+   "M",
+   "A",
+   2500
+  ],
+  [
+   "0001193125-26-338271",
+   "VSAT",
+   "2026-08-04",
+   "S",
+   "D",
+   2500
+  ],
+  [
+   "0001904058-26-000013",
+   "WEX",
+   "2026-08-04",
+   "S",
+   "D",
+   1075
+  ],
+  [
+   "0001439288-26-000127",
+   "ZWS",
+   "2026-08-04",
+   "S",
+   "D",
+   25000
+  ],
+  [
+   "0001610717-26-000353",
+   "ELF",
+   "2026-08-04",
+   "S",
+   "D",
+   12173
+  ],
+  [
+   "0000897069-26-001590",
+   "NVT",
+   "2026-08-05",
+   "S",
+   "D",
+   22524.713
+  ],
+  [
+   "0000897069-26-001592",
+   "NVT",
+   "2026-08-05",
+   "M",
+   "A",
+   46261
+  ],
+  [
+   "0000897069-26-001592",
+   "NVT",
+   "2026-08-05",
+   "S",
+   "D",
+   4856
+  ],
+  [
+   "0000897069-26-001592",
+   "NVT",
+   "2026-08-05",
+   "S",
+   "D",
+   5885
+  ],
+  [
+   "0000897069-26-001592",
+   "NVT",
+   "2026-08-05",
+   "S",
+   "D",
+   32280
+  ],
+  [
+   "0000897069-26-001592",
+   "NVT",
+   "2026-08-05",
+   "S",
+   "D",
+   3240
+  ]
+ ]
+}

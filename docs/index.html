@@ -512,6 +512,25 @@
     white-space: nowrap;
   }
 
+  .date-badge.regime-old {
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    border-radius: 4px;
+    padding: 1px 5px;
+    cursor: help;
+  }
+
+  .value.expired { opacity: 0.45; }
+
+  .expired-tag {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+
+  .stat.d4-info { opacity: 0.55; cursor: help; }
+
   .price-block {
     text-align: right;
     font-variant-numeric: tabular-nums;
@@ -1174,6 +1193,24 @@
     return (x > 0 ? '+' : '') + v + '%';
   }
 
+  // Short-horizon predictions whose window has already closed: show the original
+  // value greyed with an "expired" tag instead of a bare dash — a dash reads as
+  // data loss (flagged by the 2026-08-10 external audit) when the value is in fact
+  // retained and used by outcome tracking.
+  function pctShortHorizon(x, runDate) {
+    if (!is2dStale(runDate)) return pct(x);
+    return x === null || x === undefined ? '—' : `${pct(x)} <span class="expired-tag">expired</span>`;
+  }
+
+  // Pre-2026-08-09 rows were scored under the pre-parity feature regime (wrong
+  // atr_shock_score quantity, zero competitor density) and are NOT comparable with
+  // newer signals — the wall of +30.00% 1M values is this, not a live behaviour.
+  const PARITY_DATE = '2026-08-09';
+  function regimeBadge(runDate) {
+    if (!runDate || String(runDate).slice(0, 10) >= PARITY_DATE) return '';
+    return `<div class="date-badge regime-old" title="Scored before the 2026-08-09 feature-parity fix — predictions from that period are not comparable with newer signals (1M values often pinned at +30%).">pre-fix regime</div>`;
+  }
+
   function returnClass(v) {
     return v > 0 ? 'positive' : (v < 0 ? 'negative' : '');
   }
@@ -1289,6 +1326,7 @@ function is2dStale(runDate) {
           <div class="header-right">
             <div class="badge ${colorClass}">${r.recommendation.replace('_', ' ')}</div>
             ${unreliableBadge(r.unreliable_reason)}
+            ${regimeBadge(r.run_date)}
             <div class="date-badge">${formatDateBadge(r.run_date)}</div>
             <div class="date-badge" style="opacity: 0.7">${formatDetected(r)}</div>
           </div>
@@ -1296,13 +1334,13 @@ function is2dStale(runDate) {
         <div class="stats">
           <div class="stat">
             <div class="label">Expected Return (2D)</div>
-            <div class="value ${is2dStale(r.run_date) ? '' : returnClass(r.model_d3_return_2d)}">
-             ${is2dStale(r.run_date) ? '—' : pct(r.model_d3_return_2d)}</div>
+            <div class="value ${is2dStale(r.run_date) ? 'expired' : returnClass(r.model_d3_return_2d)}">
+             ${pctShortHorizon(r.model_d3_return_2d, r.run_date)}</div>
           </div>
-          <div class="stat">
-            <div class="label">Expected Return (3D)</div>
-            <div class="value ${is2dStale(r.run_date) ? '' : returnClass(r.model_d4_return_3d)}">
-              ${is2dStale(r.run_date) ? '—' : pct(r.model_d4_return_3d)}</div>
+          <div class="stat d4-info" title="Informational only — this head is low-resolution (many symbols share identical values) and feeds no decision. Slated for retire-or-retrain.">
+            <div class="label">Expected Return (3D) ⓘ</div>
+            <div class="value ${is2dStale(r.run_date) ? 'expired' : returnClass(r.model_d4_return_3d)}">
+              ${pctShortHorizon(r.model_d4_return_3d, r.run_date)}</div>
           </div>
           <div class="stat">
             <div class="label">Expected Return (2W)</div>
@@ -1381,13 +1419,13 @@ function is2dStale(runDate) {
         <div class="stats">
           <div class="stat">
             <div class="label">2D</div>
-            <div class="value ${is2dStale(result.run_date) ? '' : returnClass(result.model_d3_return_2d)}">
-              ${is2dStale(result.run_date) ? '—' : pct(result.model_d3_return_2d)}</div>
+            <div class="value ${is2dStale(result.run_date) ? 'expired' : returnClass(result.model_d3_return_2d)}">
+              ${pctShortHorizon(result.model_d3_return_2d, result.run_date)}</div>
           </div>
-          <div class="stat">
-            <div class="label">3D</div>
-            <div class="value ${is2dStale(result.run_date) ? '' : returnClass(result.model_d4_return_3d)}">
-             ${is2dStale(result.run_date) ? '—' : pct(result.model_d4_return_3d)}</div>
+          <div class="stat d4-info" title="Informational only — low-resolution head, feeds no decision.">
+            <div class="label">3D ⓘ</div>
+            <div class="value ${is2dStale(result.run_date) ? 'expired' : returnClass(result.model_d4_return_3d)}">
+             ${pctShortHorizon(result.model_d4_return_3d, result.run_date)}</div>
           </div>
           <div class="stat">
             <div class="label">2W</div>

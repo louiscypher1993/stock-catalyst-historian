@@ -1145,6 +1145,43 @@ export async function applyPotActions(actions: PotAction[], persistence: PotPers
       case 'positionUpdate':   await persistence.updatePosition(action); break;
     }
   }
+  await notifyPotActions(actions);
+}
+
+// ONE aggregated ntfy message per run covering every pot open/close -- pots trade all
+// five horizons but never notified at all, while the 2W recommendation path did
+// (alerts and trades ran on different bases; flagged 2026-08-06, built 2026-08-10).
+// Aggregation keeps it to at most one message per run regardless of pot count.
+// Same NTFY_TOPIC gate as the recommendation notifier; POT_NOTIFICATIONS=off disables.
+async function notifyPotActions(actions: PotAction[]): Promise<void> {
+  const topic = process.env.NTFY_TOPIC;
+  if (!topic || (process.env.POT_NOTIFICATIONS ?? '').toLowerCase() === 'off') return;
+  const opens  = actions.filter((a): a is OpenAction  => a.kind === 'open');
+  const closes = actions.filter((a): a is CloseAction => a.kind === 'close');
+  if (!opens.length && !closes.length) return;
+  const lines: string[] = [];
+  for (const o of opens) {
+    lines.push(`${o.tradeAction} ${o.symbol} £${o.positionSizeGbp.toFixed(0)} @ ${o.entryPrice} ` +
+               `(${o.patienceHorizonLabel}, exp ${(o.expectedReturnAtEntry * 100).toFixed(1)}%)`);
+  }
+  for (const c of closes) {
+    lines.push(`${c.tradeAction} ${c.symbol} @ ${c.exitPrice} ` +
+               `(${c.realisedReturnPct >= 0 ? '+' : ''}${(c.realisedReturnPct * 100).toFixed(1)}%, ${c.reason})`);
+  }
+  try {
+    await fetch(`https://ntfy.sh/${topic}`, {
+      method: 'POST',
+      headers: {
+        'Title': `Pots: ${opens.length} open, ${closes.length} close`,
+        'Priority': 'default',
+        'Tags': 'moneybag',
+        'Content-Type': 'text/plain',
+      },
+      body: lines.slice(0, 20).join('\n') + (lines.length > 20 ? `\n… +${lines.length - 20} more` : ''),
+    });
+  } catch (err: any) {
+    console.warn('[PotService] pot-action notification failed:', err.message);
+  }
 }
 
 // ── Main export ────────────────────────────────────────────────────────────────

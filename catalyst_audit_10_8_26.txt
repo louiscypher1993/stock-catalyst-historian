@@ -1,0 +1,51 @@
+---
+name: catalyst_audit_10_8_26
+description: Audit instructions for debugging Catalyst Historian signal calculation bugs
+---
+
+# Catalyst Historian: AI Signal Generation Audit Report
+
+**Context:** 
+Analysis of the recent Catalyst Historian production output (114 trading signals) reveals several systemic calculation failures, hardcoded bounds, and data-dropping errors. 
+
+**Objective:** 
+Please audit the signal generation models, API normalization scripts, and frontend rendering logic to identify the root cause of the following anomalies. Use the specific numeric examples provided to `grep` the codebase.
+
+## 1. The 30% Time-Decay Bug (Hardcoded Cap)
+*   **Actual Behavior:** The system applies a blanket `+30.00%` Expected Return for the 1-Month timeframe on almost every signal older than "Today" (labeled "3d ago" or "Yesterday").
+*   **Affected Data:** TEAM, WSP.TO, GMAB.CO, BARC.L, NTDOY, etc. (Assets with vastly different volatility profiles).
+*   **Audit Directive:** Search the model output logic for a `0.30` or `30.00` maximum cap. Specifically, look at how the `days_since_detected` variable interacts with the 1-Month return calculation. Look for clamping logic like `min(val, 0.30)` or `clip(0.30)`.
+
+## 2. Broken 3-Day Expected Return Calculations (Static Bucketing)
+*   **Actual Behavior:** Short-term idiosyncratic volatility calculations are failing. Instead of generating unique 3D expected returns based on asset data, the pipeline is dumping dozens of unrelated "Today" signals into fixed percentage buckets.
+*   **Affected Data / Buckets:**
+    *   **+8.03% bucket:** TRV, CB, SHEL, TTE, KER.PA, SUN.AX
+    *   **+8.05% bucket:** AAPL, LCID, ZAL.DE, AVB, PLD, TSLA, TGT
+    *   **+8.63% bucket:** UBER, LYFT, WPM, SEK.AX
+    *   **+9.88% bucket:** MCHP, NCBDY, BLNK, CART, TXG
+*   **Audit Directive:** Inspect the short-term (3D) yield generation functions. It appears a fallback switch, decision tree, or K-means clustering algorithm is overriding individual asset metrics with static constants. Grep the codebase for the exact floats `8.03`, `8.05`, `8.63`, and `9.88`.
+
+## 3. Cloned Baseline Outputs for Emerging Markets
+*   **Actual Behavior:** Equities flagged as `⚠ Unreliable` (primarily Southeast Asian and Emerging Market stocks) are receiving cloned, identical outputs across the board, completely ignoring underlying price action.
+*   **Affected Data:** DELTA.BK, TCB.VN, VPB.VN, GAS.VN, 3182.KL, BS6.SI, LOTB.BR, 4715.KL, and SAB.VN all share an identical **+15.58% 6M Return** and a **+18.05%** (or +15.62%) **1M Return**.
+*   **Audit Directive:** Locate the handling logic for emerging market data pipelines or the `Unreliable` flag. The code is likely catching an exception (e.g., missing historical data from certain foreign exchanges) and silently returning a hardcoded macro template instead of throwing a proper data-omission error.
+
+## 4. High-Volatility Hard Ceilings
+*   **Actual Behavior:** High-volatility forecasts are hitting perfect, round-number ceilings, indicating artificial clamping rather than organic model outputs.
+*   **Affected Data:**
+    *   **+35.00% Max (2W):** ABNB, BTO.TO, WPP.L
+    *   **+40.00% Max (6M):** LREN3.SA, WPP.L
+    *   **+50.00% Max (3M):** LREN3.SA, BTO.TO
+*   **Audit Directive:** Search for maximum bounds enforcement on timeframe outputs. Look for exact limiters (e.g., `return_2w = min(x, 0.35)`, `return_6m <= 0.40`, `return_3m = min(..., 0.50)`).
+
+## 5. Data Dropping on Aged Signals
+*   **Actual Behavior:** Signals generated "3d ago" completely drop their 2-Day and 3-Day Expected Returns, outputting a null dash (`—`) instead of historical predictions.
+*   **Audit Directive:** Check the rendering or data-fetching logic for signals older than the immediate short-term window. Ensure the system isn't nulling out historical predictions simply because the current date has passed the 2D/3D prediction window.
+
+## 6. Anomalous Risk Score Distribution
+*   **Actual Behavior:** Risk scores are artificially clustered. Out of 114 signals, 41 are assigned a risk score of exactly 37 or 38.
+*   **Audit Directive:** Review the normalization or scaling logic for the `Risk Score` metric. The current weighting is severely compressing the distribution, causing a massive bottleneck in the high 30s.
+
+---
+**Claude Code Execution Prompt:**
+Please review this audit report. Using the specific numeric examples provided (like `8.03`, `30.00`, `35.00`, `15.58`), search the repository to find where these calculations are bounded, failing, or falling back to defaults. Start by checking the model output formatters and the API data fetching scripts for emerging markets. Let me know what files are responsible for these outputs.
