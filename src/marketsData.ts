@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as path from 'path';
+
 export interface Stock {
   symbol: string;
   companyName: string;
@@ -11854,3 +11857,20 @@ export const GLOBAL_MARKETS: Market[] = [
     ]
   }
 ];
+
+// Auto-detected new listings (buildNewListings.ts, weekly via pit-snapshot.yml).
+// The data lives in src/autoListings.json so CI only ever commits JSON, never a .ts
+// file. Absent or malformed file = clean no-op. These symbols have no enrichment, so
+// every row they produce is unreliable_reason='null_enrichment' -> quarantined from
+// pots/notifications/rankings until expansionReadout.ts clears the cohort.
+try {
+  const autoPath = path.join(process.cwd(), 'src', 'autoListings.json');
+  if (fs.existsSync(autoPath)) {
+    const auto = JSON.parse(fs.readFileSync(autoPath, 'utf8')) as Market;
+    if (auto?.name && Array.isArray(auto.stocks) && auto.stocks.length) {
+      GLOBAL_MARKETS.push({ name: auto.name, stocks: auto.stocks });
+    }
+  }
+} catch (err) {
+  console.warn('[marketsData] autoListings.json unreadable, continuing without it:', (err as Error).message);
+}

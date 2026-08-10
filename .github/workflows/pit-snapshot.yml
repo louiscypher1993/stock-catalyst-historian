@@ -99,6 +99,21 @@ jobs:
             npx tsx src/scripts/buildDelistings.ts || echo "Delistings" >> pit_failures.txt
           fi
 
+      # Weekly diff of the SEC registered-ticker feed: genuinely NEW NYSE/Nasdaq
+      # listings that pass liquidity gates are auto-admitted to the scan universe via
+      # src/autoListings.json (merged into GLOBAL_MARKETS at load — CI commits JSON
+      # only). New admissions carry no enrichment, so they are quarantined by
+      # unreliable_reason='null_enrichment' like the rest of the expansion cohort.
+      - name: New-listings watcher
+        env:
+          SEC_CONTACT: ${{ secrets.SEC_CONTACT }}
+        run: |
+          if [ -z "$SEC_CONTACT" ]; then
+            echo "::notice::SEC_CONTACT not set — skipping new-listings watcher"
+          else
+            npx tsx src/scripts/buildNewListings.ts || echo "NewListings" >> pit_failures.txt
+          fi
+
       - name: Commit the snapshot
         run: |
           git config user.name  "github-actions[bot]"
@@ -109,7 +124,9 @@ jobs:
                      src/scripts/symbol_clinical_trials.json \
                      src/scripts/symbol_uk_company_status.json \
                      src/scripts/symbol_delistings.json \
-                     src/scripts/cik_ticker_map.json
+                     src/scripts/cik_ticker_map.json \
+                     src/scripts/new_listings_state.json \
+                     src/autoListings.json
           if git diff --cached --quiet; then
             echo "no changes — sources reported identical state, nothing to snapshot"
             exit 0
