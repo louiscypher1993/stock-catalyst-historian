@@ -54,20 +54,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Each builder runs independently and a failure is tolerated: one dead endpoint
-      # should not cost the week's snapshot for the other four. A source that fails
-      # simply keeps last week's file and shows up as "unchanged" below.
+      # Each builder runs independently and one failure does not stop the others: one
+      # dead endpoint should not cost the week's snapshot for the other four. But a
+      # failure is NO LONGER swallowed into a warning nobody reads -- ClinicalTrials
+      # failed silently for 3+ straight weeks that way (fixed 03a0aaa). Every failure
+      # is recorded and the JOB goes red at the end, after the successful sources have
+      # still been committed.
       - name: FCA short positions (UK)
-        run: npx tsx src/scripts/buildFcaShortPositions.ts || echo "::warning::FCA snapshot failed"
+        run: npx tsx src/scripts/buildFcaShortPositions.ts || echo "FCA" >> pit_failures.txt
 
       - name: AMF short positions (France)
-        run: npx tsx src/scripts/buildAmfShortPositions.ts || echo "::warning::AMF snapshot failed"
+        run: npx tsx src/scripts/buildAmfShortPositions.ts || echo "AMF" >> pit_failures.txt
 
       - name: FINRA short interest (US)
-        run: npx tsx src/scripts/buildShortInterest.ts || echo "::warning::FINRA snapshot failed"
+        run: npx tsx src/scripts/buildShortInterest.ts || echo "FINRA" >> pit_failures.txt
 
       - name: ClinicalTrials.gov
-        run: npx tsx src/scripts/buildClinicalTrials.ts || echo "::warning::ClinicalTrials snapshot failed"
+        run: npx tsx src/scripts/buildClinicalTrials.ts || echo "ClinicalTrials" >> pit_failures.txt
 
       # Only source here needing a key. Skipped rather than failed when absent, so the
       # workflow still works for anyone without the secret configured.
@@ -78,7 +81,7 @@ jobs:
           if [ -z "$COMPANIES_HOUSE_API_KEY" ]; then
             echo "::notice::COMPANIES_HOUSE_API_KEY not set — skipping UK company status"
           else
-            npx tsx src/scripts/buildUkCompanyStatus.ts || echo "::warning::Companies House snapshot failed"
+            npx tsx src/scripts/buildUkCompanyStatus.ts || echo "CompaniesHouse" >> pit_failures.txt
           fi
 
       # APPEND-ONLY, unlike the five above. These are dated events merged on accession,
@@ -93,7 +96,7 @@ jobs:
           if [ -z "$SEC_CONTACT" ]; then
             echo "::notice::SEC_CONTACT not set — skipping delisting capture"
           else
-            npx tsx src/scripts/buildDelistings.ts || echo "::warning::delisting capture failed"
+            npx tsx src/scripts/buildDelistings.ts || echo "Delistings" >> pit_failures.txt
           fi
 
       - name: Commit the snapshot
@@ -120,3 +123,15 @@ jobs:
           attributable to a date because of when it was committed. Not wired as features
           (that needs a retrain, deferred past the September checkpoint)."
           git push
+
+      # Runs AFTER the commit so the successful sources' snapshots are never lost to a
+      # sibling's failure — but the run itself goes red, which is the only signal that
+      # actually gets looked at. Every week a source silently fails is a week of
+      # unrecoverable point-in-time history.
+      - name: Fail if any source failed
+        run: |
+          if [ -f pit_failures.txt ]; then
+            echo "::error::sources that failed this run: $(paste -sd ', ' pit_failures.txt)"
+            exit 1
+          fi
+          echo "all sources succeeded"

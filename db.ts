@@ -6,6 +6,18 @@ import { StockAnalysis, EventFeatureVector, ExecutiveEvent, ExecutiveIntelligenc
 const dbPath = path.join(process.cwd(), 'market_cache.db');
 export let db: Database.Database;
 
+// market_cache.db is gitignored (2.7GB) and does NOT exist in CI. better-sqlite3
+// silently CREATES an empty db, CREATE TABLE IF NOT EXISTS gives it empty tables, and
+// every query returns nothing with no error -- which is by design for the live scan
+// (it falls back to Supabase) but has twice produced silent multi-week failures in
+// scripts that assumed local data (ClinicalTrials 03a0aaa, competitor density 4a033c8).
+// This banner exists so a CI log always SHOWS which mode a run was in.
+if (process.env.GITHUB_ACTIONS && !fs.existsSync(dbPath)) {
+  console.warn('[DB] market_cache.db absent (CI checkout): opening EMPTY database. ' +
+    'Every local-db read returns nothing; anything needing training-era data must use ' +
+    'Supabase or a committed artifact.');
+}
+
 try {
   db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
