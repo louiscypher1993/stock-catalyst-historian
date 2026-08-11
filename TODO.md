@@ -63,11 +63,13 @@ ClinicalTrials). Hardened `21d861c`-style at the builder instead: a zero-row que
 longer overwrites the cache, and a zero-length roster is now fatal (existence was never
 the real guard). Verified both ways in a worktree replica of `actions/checkout`.
 
-**Still open — is `SEC_CONTACT` configured as a repo secret?** Unresolved: the three
-steps gated on it print a `::notice::` and skip, reporting `success` either way, and run
-#2 committed nothing so the file list could not settle it. The next successful run does:
-there are ~1,242 pending Form 4 filings against this HEAD, so `symbol_insider_form4.json`
-MUST appear in the diff if that step really ran. If it does not, set the secret.
+**`SEC_CONTACT` is configured** — confirmed from run #1's commit (`8f5e6aa`), which
+contains `cik_ticker_map.json` + `symbol_delistings.json` stamped
+`_built 2026-08-09T07:08:2xZ` against a 07:08:29 commit. Both are produced only by
+`buildDelistings.ts`, which is gated behind that secret, so the Form 4 and new-listings
+steps (same gate) will run. `COMPANIES_HOUSE_API_KEY` likewise. Note the gated steps
+report `success` whether they run or skip, so artifact `_built` stamps — not step
+conclusions — are the way to tell.
 
 **Minor, open:** `buildDelistings` reads the local DB only to set `inUniverse`, so every
 delisting captured in CI is flagged `inUniverse: false` ([buildDelistings.ts:159](src/scripts/buildDelistings.ts#L159)).
