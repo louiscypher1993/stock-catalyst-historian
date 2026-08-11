@@ -53,6 +53,20 @@ batches all of it, then the checkpoint clock restarts once)*
 - primaryCategory fix: every CI row serves `market_structure`. Measured ~free
   (B/C never split on it; D1/D2/D5 ≤0.005). Needs the category mirrored into
   Supabase snapshots or a live classifier port.
+- **Immature forward labels are stored as 0.0 and ARE trained on** (found 2026-08-11,
+  `0a683f2`). `feature_extractor.ts:426` serialises targets with `v === null ? 0 : v` —
+  the zero-fill convention used for features, which on a LABEL turns "outcome not yet
+  known" into "the outcome was exactly 0%". `train_all_models_v9.py:308`'s
+  `dropna(subset=[label_col])` cannot catch `0.0`, so the rows are kept. Scope: 6M 12.2%
+  (5,528 rows), 2D 9.1%, 3M 7.5%, 1M 4.5%, **2W only 1.6%** (rec basis, least affected).
+  Fix = write empty rather than 0 for null targets, then re-extract. Test at the same
+  time whether the 12% fake-zero mass in D2/6M contributes to Phenomenon-2 leaf
+  convergence — D2 is both the worst-affected head and the most convergent one.
+- **Horizon conventions are inconsistent across the codebase** (surfaced by the same
+  work): `calculate_forward_returns.ts` uses CALENDAR-day offsets (2D=+2, 2W=+10,
+  3M=+91, 6M=+182) while `reextractDailyEvents.ts` uses 21 TRADING BARS for 1M. Not
+  wrong per se, but any new code touching horizons must match per-horizon rather than
+  assume a uniform rule (2W is 10 days, not 14).
 - **D4 (3d head): retire or retrain.** v9.2, dead-wired for decisions, and its live
   output collapses to ~82 distinct values over 261 rows (30-symbol identical buckets —
   the "static bucketing" a 2026-08-10 external audit flagged; `scratch_dupeCheck.ts`).
