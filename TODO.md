@@ -31,6 +31,17 @@ time-gated, not effort-gated. History/evidence lives in the memory files and
    `LIVE_BENCHMARK_MODE=shadow` has logged divergences since 2026-08-02; 33% of
    detections would change under `native`. Needs its own readout script + decision.
 
+## ⚠ UNVERIFIED IN CI (do before the Sunday cron)
+
+`pit-snapshot.yml` has run **once ever** (2026-08-09), which predates the FINRA
+short-volume capture, the Form 4 capture, the new-listings watcher, and the
+fail-the-job change. None have executed in CI. Next natural run is the Sunday 06:00
+cron. This is the exact shape of the ClinicalTrials failure (worked locally, failed in
+CI on the absent `market_cache.db`, swallowed into a warning) — and every silent week
+is unrecoverable point-in-time history. **Hand-trigger it via workflow_dispatch once**
+to confirm. Safe ad-hoc: all captures are idempotent and the listings watcher was
+baselined 2026-08-10 against all 10,398 current tickers, so it finds zero candidates.
+
 ## New capture builds — DONE 2026-08-10, wiring stays retrain-gated
 
 - ~~FINRA daily short-sale volume~~ **built** (`buildShortVolume.ts`, weekly): 1,421 US
@@ -67,6 +78,21 @@ batches all of it, then the checkpoint clock restarts once)*
   3M=+91, 6M=+182) while `reextractDailyEvents.ts` uses 21 TRADING BARS for 1M. Not
   wrong per se, but any new code touching horizons must match per-horizon rather than
   assume a uniform rule (2W is 10 days, not 14).
+- **HORIZON EVIDENCE from the historic-pots study (2026-08-11) — inputs, not actions.**
+  Three independent methods agree 2W carries the signal, which independently validates
+  `getRecommendation`'s hardcoded D5/2W basis: benchmark-neutral alpha (2W +0.630% vs
+  1M +0.195%, 2D −0.092%), P&L per trade (2W £894 vs 1M £127, 2D £89), and the fact that
+  the best trait configurations are the ones routing capital into 2W. Long horizons are
+  mostly BETA — at 3M, 5.65 of 5.78 points is market drift. **1M is actively harmful as a
+  home horizon (−0.145%).** If the October verdict prompts any basis change, this is the
+  evidence base; do NOT widen to multi-horizon selection (see next item).
+- **Do NOT build dynamic horizon selection.** The `opportunistic` trait (chase the
+  best-predicted horizon vs stay at the patience-native one) was tested four independent
+  ways — per-event covariance, bootstrap CIs over events, net-of-cost, and a permutation
+  null inside a capital-constrained backtest — and chasing destroys the edge every time.
+  At full resolution it is a CLIFF: w_chase 0.0/0.1/0.2 are bit-identical (+0.242%), decay
+  starts at 0.4, negative by 0.6. Mechanism: chasing dumps ~87% of trades into 1M, the
+  worst horizon. An automated broker should trade ONE committed horizon.
 - **D4 (3d head): retire or retrain.** v9.2, dead-wired for decisions, and its live
   output collapses to ~82 distinct values over 261 rows (30-symbol identical buckets —
   the "static bucketing" a 2026-08-10 external audit flagged; `scratch_dupeCheck.ts`).
