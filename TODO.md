@@ -31,16 +31,50 @@ time-gated, not effort-gated. History/evidence lives in the memory files and
    `LIVE_BENCHMARK_MODE=shadow` has logged divergences since 2026-08-02; 33% of
    detections would change under `native`. Needs its own readout script + decision.
 
-## ⚠ UNVERIFIED IN CI (do before the Sunday cron)
+## CI verification 2026-08-11 — done, and it found two live bugs
 
-`pit-snapshot.yml` has run **once ever** (2026-08-09), which predates the FINRA
-short-volume capture, the Form 4 capture, the new-listings watcher, and the
-fail-the-job change. None have executed in CI. Next natural run is the Sunday 06:00
-cron. This is the exact shape of the ClinicalTrials failure (worked locally, failed in
-CI on the absent `market_cache.db`, swallowed into a warning) — and every silent week
-is unrecoverable point-in-time history. **Hand-trigger it via workflow_dispatch once**
-to confirm. Safe ad-hoc: all captures are idempotent and the listings watcher was
-baselined 2026-08-10 against all 10,398 current tickers, so it finds zero candidates.
+Hand-triggered `pit-snapshot.yml` (run #2, first dispatch ever; run #1 was the
+2026-08-09 cron and predated all three new capture scripts). Result: **all nine capture
+steps passed** — FINRA short volume, Form 4 and the new-listings watcher all work in CI.
+Two defects in the plumbing around them did not:
+
+1. **The commit step failed and discarded everything the run captured** (fixed).
+   `git add -- <11 paths>` exits 128 when ANY pathspec matches nothing, before staging
+   anything — so one absent file threw away the other ten. `src/autoListings.json` is
+   only written when the watcher ADMITS a listing, and admitting nothing is its normal
+   post-baseline state, so this would have failed every Sunday until some future
+   admission happened to create the file. Introduced in `defe2ad`; run #1 passed because
+   that path was not in the list yet. Now stages only paths that exist, via
+   `if [ -e "$f" ]; then …; fi` — **not** `[ -e "$f" ] && …`, which under Actions'
+   `bash -e` fails the step whenever the last iteration's test is false.
+2. **The fail-loudly step was itself skipped** (fixed). Actions skips remaining steps
+   after a failure, so the step added this week to name the broken source never ran —
+   precisely when something had broken. Now `if: always()`.
+
+**Rule this establishes: a CI-reachable script must open `market_cache.db` READONLY, or
+not at all.** Sharper than the old "no CI script may touch that DB". `new Database(p)`
+read-write CREATES an empty file (this is what `db.ts` does on import), whereas
+`{ readonly: true }` throws on a missing file. `buildClinicalTrials` branched on
+`existsSync(dbPath)`, so a sibling that imported `db.ts` first left it an empty-but-valid
+DB, it queried zero rows, and it overwrote the TRACKED roster with 0 candidates —
+after which every later run reads the empty roster and writes an empty snapshot, exit 0,
+green, forever. Only step ordering prevents this today (the watcher runs five steps after
+ClinicalTrials). Hardened `21d861c`-style at the builder instead: a zero-row query no
+longer overwrites the cache, and a zero-length roster is now fatal (existence was never
+the real guard). Verified both ways in a worktree replica of `actions/checkout`.
+
+**Still open — is `SEC_CONTACT` configured as a repo secret?** Unresolved: the three
+steps gated on it print a `::notice::` and skip, reporting `success` either way, and run
+#2 committed nothing so the file list could not settle it. The next successful run does:
+there are ~1,242 pending Form 4 filings against this HEAD, so `symbol_insider_form4.json`
+MUST appear in the diff if that step really ran. If it does not, set the secret.
+
+**Minor, open:** `buildDelistings` reads the local DB only to set `inUniverse`, so every
+delisting captured in CI is flagged `inUniverse: false` ([buildDelistings.ts:159](src/scripts/buildDelistings.ts#L159)).
+It degrades loudly and non-destructively — the delisting records themselves are captured,
+which is the irreplaceable part — but the artifact is append-only merged on accession, so
+CI-written records likely keep the wrong flag even after a later local run. Recomputable
+from the symbol at wiring time.
 
 ## New capture builds — DONE 2026-08-10, wiring stays retrain-gated
 

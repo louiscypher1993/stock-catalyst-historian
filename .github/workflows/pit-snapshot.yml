@@ -138,17 +138,30 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- src/scripts/symbol_fca_short_positions.json \
-                     src/scripts/symbol_amf_short_positions.json \
-                     src/scripts/symbol_short_interest.json \
-                     src/scripts/symbol_clinical_trials.json \
-                     src/scripts/symbol_uk_company_status.json \
-                     src/scripts/symbol_delistings.json \
-                     src/scripts/cik_ticker_map.json \
-                     src/scripts/new_listings_state.json \
-                     src/autoListings.json \
-                     src/scripts/symbol_short_volume.json \
-                     src/scripts/symbol_insider_form4.json
+          # Stage only paths that EXIST. git exits 128 if any pathspec matches nothing,
+          # and it does so before staging anything -- so one absent file discards all the
+          # others. Run 2 (2026-08-11) died exactly this way on src/autoListings.json,
+          # which the new-listings watcher only writes when it ADMITS a listing; admitting
+          # nothing is its normal state, so every run would have captured everything and
+          # committed nothing until some future admission happened to create the file.
+          # Must be `if; then; fi` and NOT `[ -e "$f" ] && git add`: steps run under
+          # `bash -e`, so a false test on the LAST iteration returns non-zero and fails the
+          # step -- the same bug wearing a different hat. This does not hide a broken
+          # source: a failing builder is still recorded to pit_failures.txt and reported
+          # by the final step.
+          for f in src/scripts/symbol_fca_short_positions.json \
+                   src/scripts/symbol_amf_short_positions.json \
+                   src/scripts/symbol_short_interest.json \
+                   src/scripts/symbol_clinical_trials.json \
+                   src/scripts/symbol_uk_company_status.json \
+                   src/scripts/symbol_delistings.json \
+                   src/scripts/cik_ticker_map.json \
+                   src/scripts/new_listings_state.json \
+                   src/autoListings.json \
+                   src/scripts/symbol_short_volume.json \
+                   src/scripts/symbol_insider_form4.json; do
+            if [ -e "$f" ]; then git add -- "$f"; fi
+          done
           if git diff --cached --quiet; then
             echo "no changes — sources reported identical state, nothing to snapshot"
             exit 0
@@ -167,7 +180,13 @@ jobs:
       # sibling's failure — but the run itself goes red, which is the only signal that
       # actually gets looked at. Every week a source silently fails is a week of
       # unrecoverable point-in-time history.
+      #
+      # `if: always()` because Actions skips remaining steps once one fails -- so without
+      # it this step is skipped exactly when something broke. Run 2 showed the failure
+      # mode: the commit step failed and this one never ran, leaving a red job with no
+      # indication of whether the nine capture steps were fine (they were).
       - name: Fail if any source failed
+        if: always()
         run: |
           if [ -f pit_failures.txt ]; then
             echo "::error::sources that failed this run: $(paste -sd ', ' pit_failures.txt)"

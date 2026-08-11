@@ -122,7 +122,17 @@ async function queryCompany(name: string): Promise<CtResult | null> {
 
 async function main() {
   const dbPath = join(ROOT, 'market_cache.db');
-  let candidates: Candidate[];
+  let candidates: Candidate[] = [];
+  // existsSync(dbPath) is NOT the same question as "is there a usable DB here". better-
+  // sqlite3 CREATES an empty database when opened read-write, and db.ts does exactly that
+  // on import -- so any sibling CI script that imports db.ts leaves a valid, empty
+  // market_cache.db in the workspace. This builder then took the local branch, queried
+  // zero rows, and overwrote the tracked roster with 0 candidates. Since the roster is
+  // COMMITTED, that poisons every subsequent run: empty roster -> empty snapshot -> exit
+  // 0, green, forever. Today only the new-listings watcher creates the DB and it runs
+  // five steps later, so ordering alone is what prevents this -- hence the guards below
+  // rather than a comment asking future steps to stay in order.
+  let refreshedFromDb = false;
   if (existsSync(dbPath)) {
     const db = new Database(dbPath, { readonly: true });
     const spreadPath = join(__dirname, 'symbol_spread_bps.json');
@@ -130,21 +140,34 @@ async function main() {
     const rows = db.prepare(`SELECT symbol, name, industry FROM company_profiles WHERE industry IN (${[...TARGET_INDUSTRIES].map(() => '?').join(',')})`).all(...TARGET_INDUSTRIES) as Array<{ symbol: string; name: string; industry: string }>;
     candidates = rows.filter(r => universe.has(r.symbol)).map(r => ({ symbol: r.symbol, name: r.name, queryName: SPONSOR_NAME_OVERRIDES[r.symbol] ?? cleanName(r.name), industry: r.industry }));
     db.close();
-    writeFileSync(ROSTER_PATH, JSON.stringify({
-      _note: 'Candidate roster cached from market_cache.db so this builder can run in CI, '
-           + 'where the 2.7 GB gitignored DB is absent. Refreshed by any local run.',
-      _built: new Date().toISOString().slice(0, 10),
-      candidates,
-    }, null, 2));
-    console.log(`Roster refreshed from market_cache.db -> ${candidates.length} candidates (cached for CI).`);
-  } else {
+    if (candidates.length > 0) {
+      writeFileSync(ROSTER_PATH, JSON.stringify({
+        _note: 'Candidate roster cached from market_cache.db so this builder can run in CI, '
+             + 'where the 2.7 GB gitignored DB is absent. Refreshed by any local run.',
+        _built: new Date().toISOString().slice(0, 10),
+        candidates,
+      }, null, 2));
+      refreshedFromDb = true;
+      console.log(`Roster refreshed from market_cache.db -> ${candidates.length} candidates (cached for CI).`);
+    } else {
+      console.warn('market_cache.db present but yielded 0 candidates (empty DB — likely created by a sibling script) — keeping the cached roster.');
+    }
+  }
+
+  if (!refreshedFromDb) {
     if (!existsSync(ROSTER_PATH)) {
       // Do NOT continue with an empty roster: that writes a valid-looking file with no
       // companies in it, which is worse than failing for a point-in-time record.
       throw new Error(`market_cache.db absent AND no cached roster at ${ROSTER_PATH} — refusing to write an empty snapshot`);
     }
-    candidates = JSON.parse(readFileSync(ROSTER_PATH, 'utf8')).candidates;
-    console.log(`market_cache.db absent (expected in CI) — using cached roster: ${candidates.length} candidates.`);
+    candidates = JSON.parse(readFileSync(ROSTER_PATH, 'utf8')).candidates ?? [];
+    console.log(`using cached roster: ${candidates.length} candidates.`);
+  }
+
+  // Existence was never the real guard. A roster that EXISTS but is empty walked straight
+  // past the check above and produced a valid-looking snapshot containing no companies.
+  if (candidates.length === 0) {
+    throw new Error('resolved 0 candidate companies — refusing to write an empty point-in-time snapshot');
   }
 
   console.log(`Target universe: ${candidates.length} pharma/biotech companies (Drug Manufacturers + Biotechnology industries, in our scan universe).`);
