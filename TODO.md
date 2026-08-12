@@ -179,10 +179,15 @@ batches all of it, then the checkpoint clock restarts once)*
   output collapses to ~82 distinct values over 261 rows (30-symbol identical buckets —
   the "static bucketing" a 2026-08-10 external audit flagged; `scratch_dupeCheck.ts`).
   Either upgrade it in the bundle or stop displaying it.
-- **POT ROSTER RE-SPEC (analysis done 2026-08-12; `historic_pots_ranges*.py`,
-  `historic_pots_shrinkage.py`). Config change only — no model, no retrain — but gated to
-  the bundle because live pots now run a post-parity regime + 40% larger universe than the
-  study's events, and the v9.4 checkpoint that would justify trading any of it is open.**
+- **POT ROSTER RE-SPEC (analysis 2026-08-12; `historic_pots_ranges*.py`,
+  `historic_pots_shrinkage.py`). ⚠ GATE CORRECTED SAME DAY — deploy NOW, not in October.**
+  Originally filed here because the checkpoint is open. That was wrong: pots are
+  paper-traded and touch no model, so adding them cannot reset the checkpoint or affect
+  inference. The October gate belongs to retrain-COUPLED items only. Waiting is actively
+  costly — a 2W pot needs ~2 weeks per outcome and a 3M pot a quarter, so an October
+  deployment reads out with ~zero closed trades, whereas deploying now gives October ~10
+  weeks of 2W data. Roster built and dry-run clean in `scratch_potRosterDeploy.ts`
+  (24 pots, no trait collisions with the existing 20); `--apply` needs a human to run it.
 
   *Out-of-sample first, because picking the best of 770,000 configs is selection on noise.*
   Selecting on the first half of events and measuring on the second retained **~75%**
