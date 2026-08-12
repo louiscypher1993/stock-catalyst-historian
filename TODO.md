@@ -88,6 +88,52 @@ from the symbol at wiring time.
   (all-codes net + open-market P−S). First run: 442 filings, 1,006 txns, 210 symbols.
   Replaces stale-frozen FMP `insider_net_shares_30d` at the retrain.
 
+## Pot ledger: FX residue repair — PREVIEWED, NOT APPLIED (2026-08-12)
+
+**~96% of live pot P&L is an artefact.** Four pre-F8 `.NS`/`.BO` positions closed
+2026-07-15/16 with a native-INR exit price against a GBP-converted entry, giving
+~12,000-14,000% phantom returns worth **£10,844 of the £11,995 total**. Cleaned, the real
+result is **£446 over 73 trades, pooled mean +0.008%/trade, 42% win** — indistinguishable
+from zero and consistent with the trial log's negative live Sharpe.
+
+**The CODE IS CORRECT** — `potResults` are converted at `LiveInferenceService.ts:1612`
+and the fetch path converts at `PotService.ts:1256`. F8 (`934a36e`, 2026-07-14) repaired
+open positions and the 10 that closed on 07-14; it missed these 4. No position entered
+post-F8 is broken and no open position is affected — but note there have been NO INR
+closes since 07-16, so that is absence of evidence, not proof the exit path is exercised.
+
+Repair is data-only: `scratch_potFxRepairPreview.ts` (dry run by default, `--apply` to
+write). Verified against siblings — `500510.BO` repairs to exit 30.8463, byte-identical to
+the same stock's 07-14 closes; all three pots return to ~£10,000 starting balance.
+**BLOCKED: the write needs a human to run it (permission classifier denies live-DB writes).**
+
+**Second half, not yet previewed:** `pot_snapshots.realised_pnl_cumulative` and
+`portfolio_value` are carried forward run to run, so they do NOT self-heal. Pots 3/10/13
+will keep displaying £13,683 / £14,833 / £12,356 until ~180 snapshot rows from 07-15
+onward are adjusted by the per-pot delta (−£3,677 / −£4,834 / −£2,333).
+
+**Also found:** `Glass Hands` and `The Stoic` post identical returns and t-stats over 3
+trades despite different traits (patience 7 vs 8.5, conviction 1 vs 7, focus 10 vs 8) —
+the P1 clone symptom on live pots. Investigate separately.
+
+### Which live pots to keep as the comparison arm
+Selected on **evidence value, not measured success** — after cleaning, 9 of 20 pots have
+never closed a trade, only 3 have n>=8, and no pot's t-stat is meaningful. Ranking on this
+is the same selection-on-noise trap as the 770k sweep with a far worse sample.
+
+| keep | n | horizon | boldness | why |
+|---|---|---|---|---|
+| The Scattergun | 20 | 2W | 8.5 | most data |
+| The Scanner | 14 | 2W | 8.5 | most data |
+| The Reckless Flipper | 13 | 2W | 8.5 | most data |
+| The Monk | 7 | 2D | 1.5 | only 2D pot with data; low-boldness end |
+| The Hedgehog | 6 | 1M | 3.5 | 1M = the horizon the sim calls harmful — negative control |
+| Glass Hands | 3 | 3M | 5 | 3M coverage (drop `The Stoic`, its clone) |
+
+All three data-rich pots are boldness 8.5 with ratio <1, so they cannot test boldness or
+the ambition/reactivity ratio — which is exactly what the new roster's one-factor-at-a-time
+design is for.
+
 ## October checkpoint / v-next retrain bundle
 *(gate: the 2W checkpoint verdict, ~October — nothing here ships alone; one retrain
 batches all of it, then the checkpoint clock restarts once)*
