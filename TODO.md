@@ -107,10 +107,32 @@ write). Verified against siblings — `500510.BO` repairs to exit 30.8463, byte-
 the same stock's 07-14 closes; all three pots return to ~£10,000 starting balance.
 **BLOCKED: the write needs a human to run it (permission classifier denies live-DB writes).**
 
-**Second half, not yet previewed:** `pot_snapshots.realised_pnl_cumulative` and
-`portfolio_value` are carried forward run to run, so they do NOT self-heal. Pots 3/10/13
-will keep displaying £13,683 / £14,833 / £12,356 until ~180 snapshot rows from 07-15
-onward are adjusted by the per-pot delta (−£3,677 / −£4,834 / −£2,333).
+**Second half — snapshots. NOT cosmetic:** `realised_pnl_cumulative` is a running
+accumulator (`PotService.ts:819` = prev + thisRun) that never recomputes, and
+`portfolioValue = starting_balance + totalRealisedPnl` (`:822`) feeds
+`positionGBP = portfolioValue / focus` (`:850`) — so until corrected, pots 3/10/13 size
+every new position off phantom profit (~37% / 48% / 23% too large). Fix = 140 rows via
+`scratch_potSnapshotFxOnly.ts --apply` (deltas −£3,677 / −£4,834 / −£2,333 from 07-15/16).
+**Still pending as of 2026-08-12.**
+
+**⚠ DO NOT "repair" snapshots by recomputing cumulative from positions.** That was the
+first approach and it was wrong in the dangerous direction — it flagged 691 rows across 11
+pots and would have silently undone a deliberate reset while looking authoritative.
+Investigated (`scratch_potDriftInvestigation.ts`, `scratch_potDeletionCheck.ts`,
+`scratch_potDrift0707.ts`): only **14 days** ever disagree, in three mechanisms:
+  1. the FX bug itself (4 days, pots 3/10/13) — what the targeted fix addresses;
+  2. the F8 backfill repairing positions out-of-band without touching the accumulator
+     (pots 15/5/17 `manual_correction` days + pot 2's 06-17 close, ~£30 net) — below the
+     noise floor;
+  3. **2026-07-07: the accumulator was REBASED TO 0.00** for every pot (pot 2 £380.95→0,
+     pot 3 −£350.88→0, pot 4 −£189.73→0, pot 19 £267.33→0). That is the v9.2 retrain date
+     (`14a3417`, D3/D4/D5 relabelled) and pots trade those signals, so resetting the P&L
+     clock on a model change is defensible. `pot_positions` keeps full history, so the two
+     measure different windows BY DESIGN.
+After the targeted FX fix everything reconciles — pot 3's £351 residual is exactly its
+pre-rebase 3968.HK stop-loss, pots 10/13's are rounding. **There is no accumulator defect.**
+Consequence to remember: pot cumulative = "since the 2026-07-07 rebase", position-sum =
+all-time. Do not compare them without saying which.
 
 **Also found:** `Glass Hands` and `The Stoic` post identical returns and t-stats over 3
 trades despite different traits (patience 7 vs 8.5, conviction 1 vs 7, focus 10 vs 8) —
