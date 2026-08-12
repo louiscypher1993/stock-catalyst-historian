@@ -133,6 +133,68 @@ batches all of it, then the checkpoint clock restarts once)*
   output collapses to ~82 distinct values over 261 rows (30-symbol identical buckets —
   the "static bucketing" a 2026-08-10 external audit flagged; `scratch_dupeCheck.ts`).
   Either upgrade it in the bundle or stop displaying it.
+- **POT ROSTER RE-SPEC (analysis done 2026-08-12; `historic_pots_ranges*.py`,
+  `historic_pots_shrinkage.py`). Config change only — no model, no retrain — but gated to
+  the bundle because live pots now run a post-parity regime + 40% larger universe than the
+  study's events, and the v9.4 checkpoint that would justify trading any of it is open.**
+
+  *Out-of-sample first, because picking the best of 770,000 configs is selection on noise.*
+  Selecting on the first half of events and measuring on the second retained **~75%**
+  (+0.0196 → +0.0146; 91% in reverse). Real effect — but only **4 of 7 traits survived**:
+
+  | trait | keep | survives h1→h2? |
+  |---|---|---|
+  | boldness | **7** (4–7 workable; 1–3 firmly negative) | ✅ |
+  | opportunistic | **low — i.e. do not add it at all** | ✅ strongest effect |
+  | focus | 6–10 | ✅ weak |
+  | reactivity | via the RATIO below | ✅ weak |
+  | ambition | no independent effect | ❌ |
+  | conviction | no independent effect | ❌ |
+  | patience | **fails at 10/6M** — that corner was the overfit | ❌ at 10 |
+
+  **`ambition` and `reactivity` are ONE knob, not two:** the engine uses only the ratio
+  (`threshold = H_BASE × ambition/reactivity`). Ratio <1.0 is negative; **1.2–3.5 is the
+  good band**. This is why the marginal said reactivity 2 and the conditional said 7 —
+  both artefacts of holding the other fixed.
+
+  **The published horizon ranking is a units artefact.** `cov_alpha` carries the units of
+  the return, and σ runs 0.046 (2D) → 0.277 (6M), so long horizons score high for betting
+  on a noisier variable. Normalised, the order reverses: **2W is best on skill-per-unit-risk
+  (cov/σ 0.129)**, then 3M 0.109, 2D 0.081, 6M 0.075, 1M 0.024 (worst). 2D's high
+  annualised figure is unreachable — negative net of costs at the turnover it needs.
+  This independently re-confirms the hardcoded D5/2W basis.
+
+  *Audit of the live 20-pot roster against that:* only **3 pots (#5, #9, #19) sit in the 2W
+  band**, **5 sit at 1M** (the harmful one), **6 have boldness < 4** (negative range), and
+  all three 2W pots carry ratio < 1.0 (0.79 / 0.82 / 0.67 — the negative band). The roster
+  is close to uncorrelated with the findings.
+
+  *Proposed replacement roster — one core at the measured optimum, then ONE-FACTOR-AT-A-TIME
+  variants pushed 1–2 outside each range so coverage stays attributable rather than a grid.*
+  `patience` → horizon: ≤2.5=2D, ≤4.5=2W, ≤6.5=1M, ≤8.5=3M, >8.5=6M.
+
+  | # | name | bold | amb | pat | conv | focus | react | ratio | home | probes |
+  |---|---|---|---|---|---|---|---|---|---|---|
+  | C | Core | 7 | 6 | 3.5 | 5 | 8 | 3 | 2.00 | 2W | the optimum |
+  | 1 | Core−bold | 5 | 6 | 3.5 | 5 | 8 | 3 | 2.00 | 2W | low edge of good |
+  | 2 | Core+bold | 9 | 6 | 3.5 | 5 | 8 | 3 | 2.00 | 2W | beyond (8–10 ≠ 7 live) |
+  | 3 | Fast | 7 | 6 | 2.0 | 5 | 8 | 3 | 2.00 | 2D | 1 band out |
+  | 4 | Slow | 7 | 6 | 5.5 | 5 | 8 | 3 | 2.00 | 1M | the harmful band |
+  | 5 | Slowest | 7 | 6 | 7.5 | 5 | 8 | 3 | 2.00 | 3M | 2 bands out |
+  | 6 | Loose | 7 | 6 | 3.5 | 5 | 5 | 3 | 2.00 | 2W | below focus range |
+  | 7 | Tight | 7 | 6 | 3.5 | 5 | 10 | 3 | 2.00 | 2W | top of range |
+  | 8 | Ratio-low | 7 | 6 | 3.5 | 5 | 8 | 6 | 1.00 | 2W | just under band |
+  | 9 | Ratio-high | 7 | 6 | 3.5 | 5 | 8 | 1.5 | 4.00 | 2W | just over band |
+  | 10 | Conv-low | 7 | 6 | 3.5 | 2 | 8 | 3 | 2.00 | 2W | no-effect trait |
+  | 11 | Conv-high | 7 | 6 | 3.5 | 8 | 8 | 3 | 2.00 | 2W | no-effect trait |
+
+  **Explicit non-goal: do NOT add an `opportunistic` characteristic.** Its optimum is the
+  low end = "do not chase the best-predicted horizon", which is exactly what fixed-horizon
+  pots already do. The knob only buys the ability to be worse. See the standing note below.
+
+  **Caveat to carry into the decision:** the MEDIAN configuration loses at every horizon
+  (2W −0.003%, 1M −0.187%). The edge lives in a minority of settings, so this re-spec is
+  worth doing *and* is a reminder that most pots are dead weight.
 - D5 ensemble (top-of-book memory: ensemble beats every member at k=3; the cheap win).
 - Meta-labeling / conformal gate on D5 (recheck against checkpoint verdict first).
 - VIX regime encoder vocabulary fix + dead regional vol tickers (retrain-gated set).
