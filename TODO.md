@@ -294,6 +294,51 @@ All three data-rich pots are boldness 8.5 with ratio <1, so they cannot test bol
 the ambition/reactivity ratio — which is exactly what the new roster's one-factor-at-a-time
 design is for.
 
+## Re-extraction source — RESOLVED 2026-08-13: keep `event_features`, do not change line 301
+
+Framed for weeks as "which table should `feature_extractor.ts:301` SELECT FROM". Measured,
+and **the framing was wrong — it was never a FROM-clause swap.**
+
+| table | rows | what it holds |
+|---|---|---|
+| `event_features` | 66,883 (66,834 usable) | **the only table with `features_json` + `signal_snapshot_json`**, i.e. every enrichment feature |
+| `event_features_daily` | 303,159 | price/technical columns only — no enrichment, no `cache_key`, no `primaryCategory` |
+| `training_events_v11` | 338,099 | same, plus provenance (`price_source`, `reproduced`, `legacy_only`, `has_premium`) |
+
+1. **The alternatives are not drop-in.** Both lack `features_json`, `signal_snapshot_json`,
+   `primaryCategory`, `cache_key` and the pre-event lookback columns. Pointing line 301 at
+   either does not compile, and if forced through it would turn the model **purely
+   technical** — dropping news, insider, price-target, short-interest, GDELT, options and
+   every other enrichment feature at once.
+2. **The join that would combine both does not work, for a structural reason.** Enrichment
+   is already stored and needs no re-fetching (FMP premium expired 2026-07-06 and must
+   never be re-run), so joining `event_features` enrichment onto clean `training_events_v11`
+   prices on (symbol, date) looks like the obvious fix. It retains **633 of 16,435 enriched
+   pre-2021 rows — 3.9%** — despite 235,227 pre-2021 `daily_reextract` rows existing. The
+   keys do not meet: an event detected from a MONTHLY bar sits on a different date than
+   events detected from daily bars, so **the corrupt rows are corrupt in their identity,
+   not just their values.** Better prices cannot be joined onto a date that should not
+   exist. (Post-2021 retention is 62%, but post-2021 was never the corrupt era.)
+3. **The two remaining options were already measured against an honest baseline** (v13,
+   `ae6c919`): dropping pre-2021 rows costs **−0.0060**; the union costs **−0.0111**. Status
+   quo wins both. Note the union arm is a *confounded* test of clean bars — its own comment
+   says pre-2021 rows carried "premium NaN", so it changed bar granularity AND deleted all
+   enrichment on those rows simultaneously. That confound no longer matters, because (2)
+   shows the unconfounded version is not constructible.
+
+**Decision: line 301 stays.** The committed null-label fix (`02c0929`) is inert but correct
+and applies whenever extraction next runs. What the retrain bundle should actually carry is
+the leakage-free `EXCLUDE_COLS`, not a source change. Scripts: `scratch_sourceCompare.ts`,
+`scratch_joinViability.ts`.
+
+**⚠ OPEN, found while measuring this — `event_features` is stale.** Last row 2026-06-18;
+monthly counts decay 903 (Jan) → 1,032 (Feb) → 778 → 605 → 528 → 171 (Jun) → nothing.
+`training_events_v11` runs to 2026-07-31. So a retrain today trains on data ending ~8 weeks
+ago. Two candidate causes, not yet separated: event detection stopped feeding the table, or
+rows are gated on forward-label maturity and the taper is that gate filling in. The decay
+shape looks more like a gate than a cliff, but that is an impression, not a measurement.
+**Resolve before any retrain** — it decides whether the bundle needs a detection re-run first.
+
 ## October checkpoint / v-next retrain bundle
 *(gate: the 2W checkpoint verdict, ~October — nothing here ships alone; one retrain
 batches all of it, then the checkpoint clock restarts once)*
