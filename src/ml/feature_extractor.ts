@@ -421,9 +421,24 @@ export function extractFeatures(): FeatureExtractionResult {
     }
     values.push(rec.confidenceTier.high, rec.confidenceTier.medium, rec.confidenceTier.low);
     values.push(rec.isNullSample);
+    // TARGETS, NOT FEATURES. The zero-fill above is right for a feature (missing input,
+    // paired with an indicator) and WRONG for a label: it turns "this outcome has not
+    // happened yet" into "the outcome was exactly 0%", and
+    // train_all_models_v9.py:308's dropna(subset=[label_col]) only sees NaN, never 0.0,
+    // so the row is kept and trained on.
+    //
+    // Measured on the production features.csv 2026-08-13: inside each horizon's maturity
+    // window the exact-zero rate is 100% (1M 12/12, 3M 1189/1189, 6M 3830/3830,
+    // 12M 7115/7115) — impossible for a continuous return series. Cross-checked against
+    // the existing indicator: 6,782 of 6,863 zero-valued 6M labels carry
+    // forward_return_6m_is_null = 1, and NO flagged row has a non-zero value.
+    //
+    // Empty serialises to NaN via pandas, so dropna now works for EVERY head — including
+    // 1M/3M/2W, which never got an indicator because their null rate sits under
+    // NULL_INDICATOR_THRESHOLD and so had no way to be identified at all.
     for (const name of TARGET_NAMES) {
       const v = rec.targets[name];
-      values.push(v === null ? 0 : v);
+      values.push(v === null ? '' : v);
       if (needsIndicator[name]) values.push(v === null ? 1 : 0);
     }
     lines.push(values.map(csvEscape).join(','));

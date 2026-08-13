@@ -168,8 +168,39 @@ batches all of it, then the checkpoint clock restarts once)*
 - primaryCategory fix: every CI row serves `market_structure`. Measured ~free
   (B/C never split on it; D1/D2/D5 ≤0.005). Needs the category mirrored into
   Supabase snapshots or a live classifier port.
-- **Immature forward labels are stored as 0.0 and ARE trained on** (found 2026-08-11,
-  `0a683f2`). `feature_extractor.ts:426` serialises targets with `v === null ? 0 : v` —
+- **⚠ THE 2026-08-01 RE-EXTRACTION WAS NEVER WIRED INTO TRAINING** (found 2026-08-13).
+  `reextractDailyEvents.ts` (`1e4071a`) rebuilt every event from true daily bars into
+  `event_features_daily` (303,159 rows, 1,429 symbols, to 2026-07-31) and
+  `buildUnifiedTrainingSet.ts` merged it into `training_events_v11` (338,099 rows). But
+  **`feature_extractor.ts:301` still reads `FROM event_features`** — the original table.
+  Proof: `features.csv` was last written 2026-07-07, ends 2026-06-18 (= `event_features`'s
+  max date, NOT `event_features_daily`'s 2026-07-31), and is still **24.6% pre-2021**
+  (16,435 of 66,834 rows) — the corrupt monthly/quarterly-bar era. So v9.4/v9.5 train on
+  the corruption the re-extraction exists to remove. Same shape as the FINRA/ClinicalTrials
+  failures: the work was done and never connected.
+  **NOT a one-line change — it is a decision.** `event_features` (28 cols) carries the
+  irreplaceable FMP premium fields; `event_features_daily` (32 cols) has none;
+  `training_events_v11` (36 cols) is the union with `legacy_cache_key` to reach premium by
+  join. And the v11 evaluation REJECTED adopting the union wholesale (no scheme won a
+  majority; union helps B, hurts D1/D3) — but "use clean bars" is a different question from
+  "add the extra rows", and the surviving v11 result was that **B is rescued by removing
+  the corrupt rows.** Decide the source explicitly at the retrain; do not silently swap.
+- ~~**Immature forward labels are stored as 0.0**~~ **FIXED 2026-08-13** in
+  `feature_extractor.ts` — null targets now serialise as EMPTY, not 0, so pandas reads NaN
+  and `train_all_models_v9.py:308`'s `dropna(subset=[label_col])` drops them for EVERY
+  head. Takes effect when `features.csv` is regenerated (see the wiring item above).
+  Evidence that made it conclusive: inside each horizon's maturity window the exact-zero
+  rate was **100%** (1M 12/12, 3M 1189/1189, 6M 3830/3830, 12M 7115/7115) — impossible for
+  a continuous series — and 6,782 of 6,863 zero-valued 6M labels already carried
+  `forward_return_6m_is_null = 1` with no flagged row holding a non-zero value.
+  Short horizons were RE-SCOPED: 2D/2W/1d/3d/1w have **zero rows inside their maturity
+  windows**, so their exact-zeros (2D 8.1%, 2W 1.6%) are genuine flat closes on illiquid
+  names, not the defect. The earlier "12.2% of 6M, 1.6% of 2W" framing overstated the
+  short horizons. `*_is_null` columns are already excluded from the feature set
+  (`train_all_models_v9.py:383` drops them), so there is no leakage and no downstream
+  feature-set change.
+  *(superseded detail below, kept for provenance)*
+  `feature_extractor.ts:426` serialised targets with `v === null ? 0 : v` —
   the zero-fill convention used for features, which on a LABEL turns "outcome not yet
   known" into "the outcome was exactly 0%". `train_all_models_v9.py:308`'s
   `dropna(subset=[label_col])` cannot catch `0.0`, so the rows are kept. Scope: 6M 12.2%
