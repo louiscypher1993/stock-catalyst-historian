@@ -253,6 +253,18 @@ batches all of it, then the checkpoint clock restarts once)*
   | `v11-cand-ne` (both + non-events) | −0.0091 | 9/20 | +0.0166 | +0.0653 | +0.0810 |
   | `v11-union` (replace pre-2021) | −0.0063 | 7/20 | +0.0114 | +0.0738 | +0.0985 |
 
+  **⚠ THAT `v94-nostamp` NUMBER IS CONFOUNDED — superseded by the v13 run.** The harness's
+  `STAMPED` list was `['stocktwits_virality_z', 'price_target_consensus']`, so the arm
+  removed **one genuine leak plus one feature that is not stamped at all** (measured 1.5%
+  constant) while leaving **five genuine leaks in place**. And `gdelt_tone_z`, though
+  stamped at 97.2%, never reaches the model (already in `ZERO_FILL_COLS`), so the true
+  leakage set that the model actually receives is **six**: `price_target_upside_pct`,
+  `insider_net_shares_30d`, `price_target_consensus`, `eps_surprise_pct`,
+  `revenue_surprise_pct`, `vix_close`. The −0.0060 therefore does not measure "the cost of
+  removing leakage". Re-run properly as `scratch_v13_leakagefree.py`, which also carries a
+  `honest-nodead` arm as a harness validity check (dropping 7 provably-inert columns must
+  change nothing — confirmed byte-identical to `honest-control`).
+
   **Interpretation — the cost is the POINT, not a reason to keep them.** A stamped feature
   is constant per symbol, so the model memorises "symbol X returns Y". That still
   generalises across a TEMPORAL split because the test fold holds the same symbols, so it
