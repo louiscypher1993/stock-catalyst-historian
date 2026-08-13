@@ -240,6 +240,40 @@ batches all of it, then the checkpoint clock restarts once)*
   At full resolution it is a CLIFF: w_chase 0.0/0.1/0.2 are bit-identical (+0.242%), decay
   starts at 0.4, negative by 0.6. Mechanism: chasing dumps ~87% of trades into 1M, the
   worst horizon. An automated broker should trade ONE committed horizon.
+- **⚠ RESULT 2026-08-13: removing the stamped features COSTS IC. Do not ship it alone.**
+  Six-arm, 4-fold, production protocol, anchor-reproducing control (120 models,
+  `scratch_v11_candidate.py --folds`, results in `scratch/v11_candidate_folds.csv`):
+
+  | arm | mean delta | head-folds won | B | D1 | D5 (live) |
+  |---|---|---|---|---|---|
+  | `v94-control` | — | — | +0.0064 | +0.0787 | **+0.0962** |
+  | `v94-nostamp` (leakage removed) | **−0.0060** | 7/20 | −0.0112 | +0.0785 | +0.0936 |
+  | `v11-rowsonly` (drop corrupt pre-2021) | **+0.0005** | **9/20** | **+0.0238** | **+0.0870** | +0.0834 |
+  | `v11-cand` (both) | −0.0101 | 4/20 | +0.0115 | +0.0768 | +0.0764 |
+  | `v11-cand-ne` (both + non-events) | −0.0091 | 9/20 | +0.0166 | +0.0653 | +0.0810 |
+  | `v11-union` (replace pre-2021) | −0.0063 | 7/20 | +0.0114 | +0.0738 | +0.0985 |
+
+  **Interpretation — the cost is the POINT, not a reason to keep them.** A stamped feature
+  is constant per symbol, so the model memorises "symbol X returns Y". That still
+  generalises across a TEMPORAL split because the test fold holds the same symbols, so it
+  raises measured IC while being worthless forward. **Purging/embargo (López de Prado) —
+  which this project already does with a 21-day embargo — defends against TEMPORAL leakage
+  only and is blind to cross-sectional symbol-identity leakage.** That is exactly why these
+  survived every existing control. The −0.0060 is therefore an estimate of **how much of
+  the measured edge is memorisation**, and it is large relative to the whole edge: B is
+  +0.0064 and goes NEGATIVE (−0.0112) once the leakage is removed, i.e. Model B's entire
+  1M signal on this protocol is attributable to it.
+  **Consequence for trading real money: the honest edge is smaller than the anchors say.**
+  Before any capital decision, the anchors should be re-derived on a leakage-free feature
+  set, and any go-live case built on that number, not the current one.
+
+  **`v11-rowsonly` is the only arm that beats control** (+0.0005 mean, 9/20 head-folds,
+  B +0.0238 and D1 +0.0870 both best-in-table). It is small and it costs D5 (0.0962 →
+  0.0834), which is the live basis — so it is not a clean win either. Consistent with the
+  standing v11 verdict: nothing here justifies deployment on its own.
+  **Next test (not yet run): rows-only PLUS the stamped removal measured against a
+  leakage-free control**, so the row fix is not judged against an inflated baseline.
+
 - **⚠ FEATURE AUDIT 2026-08-13 — 7 stamped, 11 DEAD, and one recorded belief refuted.**
   Systematic within-symbol constancy scan over every numeric feature the model receives
   (`scratchpad/stamped_scan2.py`), separating three causes that look identical:
