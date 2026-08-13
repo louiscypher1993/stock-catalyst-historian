@@ -19,6 +19,28 @@ time-gated, not effort-gated. History/evidence lives in the memory files and
      discriminating power. Candidate replacements: signal_completeness, |z| percentile,
      or reweight the drawdown term. Do NOT recalibrate A — wrong tool for this term;**
    - switch riskScore to 1-2dp display THEN (decimals before the refit = false precision).
+   - **⚠ ADD TO THIS REFIT — `HORIZON_TIER_CONFIG`'s cutoffs are miscalibrated live too
+     (measured 2026-08-13, `scratch_liveTierOccupancy.ts`).** Same defect as the Model C
+     breakpoints, in a different component: cutoffs fitted to a v9.3 *fold* distribution
+     that live does not reproduce. On 418 post-parity clean live rows, against the
+     design target of ~10% STRONG_BUY / ~10% BUY / ~10% SELL / ~70% HOLD:
+
+     | head | STRONG_BUY | BUY | SELL | HOLD |
+     |---|---|---|---|---|
+     | D5 2W | **21.3%** | 35.6% | **3.6%** | 39.5% |
+     | D3 2D | **48.3%** | — | 3.6% | 48.1% |
+     | D1 3M | 12.9% | — | — | 87.1% |
+     | D2 6M | — | 35.6% | — | 64.4% |
+
+     **56.9% of live rows resolve BUY or better against a ~20% design target, and SELL
+     fires on 3.6% against 10%.** D3 calls nearly half of everything STRONG_BUY. The
+     stored canonical `recommendation` matches (18.7% STRONG_BUY, 32.5% BUY, 3.6% SELL),
+     so this is what the system actually issues, not an artefact of recomputation. It
+     dilutes the conviction signal the pots gate on — an `ambition≤3` pot needing only
+     ADD-tier will clear on half the universe. Refit the cutoffs on post-parity live
+     output at the same time as the C breakpoints; they share a cause and a fix.
+     *Caveat: n=418 over ~4 days, and 50% of live rows are quarantined so this is a
+     selected subset. Re-measure at the ~08-21 refit rather than treating 4 days as final.*
 2. **Expansion cohort readouts** (`expansionReadout.ts`)
    - 2D: **gate does NOT open 2026-08-11 — corrected 2026-08-13.** Maturities have
      started, but the rule needs ≥10 days with ≥5 rows and there are **3**. Realistic
@@ -409,6 +431,33 @@ re-run the extraction expecting the anchors to move.
 cutoffs are *absolute* values. A model trained on ~9,858 fabricated zeros could carry a
 different prediction distribution even at identical IC, which would shift where the
 STRONG_BUY/BUY/SELL breakpoints land. That is a calibration question this run did not ask.
+
+## v17 calibration check — ANSWERED 2026-08-13: label fix is immaterial, cutoffs are not
+
+The question v14 could not answer. Day-clustered IC is a *rank* correlation and therefore
+rank-invariant: a model whose predictions are uniformly shifted scores identically. Every
+tier decision is the opposite — `HORIZON_TIER_CONFIG`'s cutoffs are **absolute**. Training
+on ~9,858 rows asserting "outcome exactly 0%" is a systematic pull toward zero, exactly
+the change IC cannot see and thresholds are maximally exposed to.
+
+**Answer: no.** Tier occupancy barely moves between old and corrected training —
+D5 +2.4pp STRONG_BUY, D3 −1.1pp, D1 +0.2pp, D2 +0.0pp. The null-label fix is confirmed
+immaterial for routing as well as for IC. That closes the last open thread on it.
+
+**Two things the check turned up that matter more, and one caution about my own harness:**
+
+1. **The deployed cutoffs are badly miscalibrated live** — folded into near-term item 1
+   above, since it shares a cause and a fix with the Model C breakpoint refit.
+2. **Fold-trained models and the live model produce very different distributions.** My
+   protocol-trained D5 has median **−0.0205** and puts 86.6% of the fold below the SELL
+   cutoff; the deployed model live has median **+0.0261** and 3.6% SELL. Opposite ends.
+   Some of that is population (live scores only detected, unquarantined anomalies in one
+   4-day window; the fold is the last 15% of 2021-2026), but the size of the gap is a
+   standing warning: **cutoffs derived from a fold are not transferable to live**, which
+   is the same lesson as `live-vs-fold-distribution-gap` and the pinned drawdown term.
+   Any refit must be fitted on live output, never on fold percentiles.
+
+Script: `scratch_v17_calibration.py` + `scratch_liveTierOccupancy.ts`.
 
 ## Power budget — what actually buys statistical power (measured 2026-08-13)
 
