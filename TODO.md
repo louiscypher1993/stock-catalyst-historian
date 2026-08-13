@@ -482,12 +482,36 @@ nothing on top of `bag1`, so this is a **hyperparameter result, not an ensemble 
 roughly −19% days-to-significance under the quadratic rule. It **hurts B (−0.0202) and
 D2 (−0.0013)**, so it is not a global config change.
 
-**NOT DEPLOYABLE YET — post-hoc selection.** D5 was picked out after seeing five heads,
-which is exactly the multiple-comparison trap the DSR work exists to guard against. It is
-mitigated but not removed by the fact that D5 was the pre-registered expectation
-(`top-of-book-rank-stability` named a D5 ensemble as the cheap win before this ran).
-**Next step is one confirmatory test on a different fold split, pre-registering D5 +
-subsampling as the single hypothesis** — not a deployment.
+**REFUTED 2026-08-13 by the pre-registered confirmatory test (v16). Do not deploy.**
+`scratch_v16_confirm_d5subsample.py`, pre-registration committed at `e02fe56` *before*
+the run, on six fold windows entirely before 2023-06-01 — disjoint from every v15 test
+row.
+
+| fold | train | prod | bag (mean of 5 seeds) | Δ |
+|---|---|---|---|---|
+| 2021-07-01 | 16,139 | +0.0935 | +0.0552 | **−0.0383** |
+| 2021-11-01 | 16,484 | +0.0680 | +0.0551 | −0.0129 |
+| 2022-03-01 | 25,500 | +0.1902 | +0.1871 | −0.0031 |
+| 2022-07-01 | 33,165 | +0.2955 | +0.2709 | −0.0246 |
+| 2022-11-01 | 37,450 | +0.2189 | +0.2296 | +0.0108 |
+| 2023-03-01 | 39,902 | +0.2107 | +0.2139 | +0.0032 |
+
+**Mean Δ −0.0108, bagging wins 2/6, sign test p=0.89.** Not merely absent — the sign
+*reverses* against v15's +0.0286. The pre-registered rule required >0 mean and ≥75% of
+folds; it got a negative mean and 33%. **The v15 result is best explained as the
+best-of-five selection effect**, which is exactly what the confirmatory test was built to
+detect. Without it, a +11% D5 IC improvement that does not exist would have gone into the
+retrain bundle.
+
+**A lead, explicitly NOT a rescue of the original claim:** Δ correlates with training-set
+size (Spearman ρ≈0.77 over these six folds; the two largest training sets are the only
+two positive ones, and v15's folds all had 42k–56k training rows). A plausible mechanism
+is that `subsample=0.8` costs effective data when data is scarce and helps once it is
+plentiful. **This is a post-hoc story generated after seeing the refutation, ρ is not
+significant at n=6, and it is the precise species of reasoning that produced the false
+result in the first place.** It is recorded as a hypothesis needing its own
+pre-registered test, not as a finding, and the standing verdict remains: production
+params stay.
 
 Caveat worth chasing: `member_corr` is exactly **1.000** for D1 and D2 in fold 4, i.e.
 subsampling produced identical members there despite 0.8/0.8. Probably early stopping
