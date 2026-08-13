@@ -331,13 +331,31 @@ and applies whenever extraction next runs. What the retrain bundle should actual
 the leakage-free `EXCLUDE_COLS`, not a source change. Scripts: `scratch_sourceCompare.ts`,
 `scratch_joinViability.ts`.
 
-**⚠ OPEN, found while measuring this — `event_features` is stale.** Last row 2026-06-18;
-monthly counts decay 903 (Jan) → 1,032 (Feb) → 778 → 605 → 528 → 171 (Jun) → nothing.
-`training_events_v11` runs to 2026-07-31. So a retrain today trains on data ending ~8 weeks
-ago. Two candidate causes, not yet separated: event detection stopped feeding the table, or
-rows are gated on forward-label maturity and the taper is that gate filling in. The decay
-shape looks more like a gate than a cliff, but that is an impression, not a measurement.
-**Resolve before any retrain** — it decides whether the bundle needs a detection re-run first.
+### `event_features` staleness — CHASED DOWN 2026-08-13. Not maturity gating, and the refresh is UNSAFE.
+
+Both candidate causes are now settled, and the answer is worse than either.
+
+- **Not maturity gating.** The table plainly accepts immature rows — `forward_return_12m`
+  is NULL for every row after 2025-06. Daily counts through June are a **cliff, not a
+  taper**: 55, 27, 21, 27, 29 per day to 06-05, then 1–5/day, then nothing after 06-18.
+- **The writer is manual.** `setEventFeatures` (`db.ts:1086`) has exactly three callers —
+  `HistoricalEngine.ts:676`, `EnrichBackfillService.ts:357`, `server.ts:474`. **No
+  workflow runs any of them** (the five are keep-alive, live-inference, outcome-tracker,
+  pit-snapshot, watchlist-pulse). The training table was only ever fed by hand, and the
+  last run was ~2026-06-18. Nothing is broken; nothing was ever scheduled.
+- **⚠ REFRESHING IT WOULD DESTROY THE PREMIUM DATA.** `HistoricalEngine.ts:1549` calls
+  `getFullCompanyContext()` — the exact call the standing constraint forbids — and
+  `setEventFeatures` is `ON CONFLICT(cache_key) DO UPDATE SET features_json =
+  excluded.features_json`. On the free tier that call returns nulls, so a re-run would
+  **overwrite irreplaceable premium enrichment with empty values** on every cache_key it
+  touches. FMP premium expired 2026-07-06 and cannot be repurchased retroactively.
+  **Do not re-run HistoricalEngine to refresh training data.** Any future refresh needs a
+  new writer that adds rows without calling the premium path, and never UPDATEs an
+  existing cache_key. Not built; not urgent (see below).
+- **Cost of the staleness is smaller than it looks.** Labels need maturity anyway, so the
+  usable training frontier always trails: ~2 weeks for D5, a year for E. An event table
+  ending 06-18 costs roughly six weeks of short-horizon rows, not eight weeks of
+  everything.
 
 ## October checkpoint / v-next retrain bundle
 *(gate: the 2W checkpoint verdict, ~October — nothing here ships alone; one retrain
