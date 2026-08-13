@@ -116,14 +116,40 @@ time-gated, not effort-gated. History/evidence lives in the memory files and
    a genuine behavioural divergence between two consumers of one model, not a
    horizon-mismatch artefact.
    Two separate defects fall out of it:
-   - **Behaviour:** pots take trades the canonical basis has explicitly de-rated for
-     trend opposition. Frequency is currently low — **1 of 18 BUY trades since
-     2026-08-11** — so this is not urgent, but it is unmeasured over any longer window.
-     Decide deliberately: either pots respect the overlay (route both consumers through
-     one function), or the divergence is declared intentional and documented. Right now
-     it is neither, it just happened. Related to
-     `notifications-2w-only-by-design` — same root shape: alerts and trades running on
-     different bases.
+   - **Behaviour — MEASURED 2026-08-13, and the answer points the other way. Change
+     nothing yet.** Rate first: recomputing the raw tier with the real production
+     resolver across all 4,157 rows since the v9.3 cutoff recalibration, the downgrade
+     fires on **260 rows (6.3%)** — STRONG_BUY→BUY 156, BUY→HOLD 104 — and **4 of 59
+     entry trades (6.8%)** were taken on a de-rated row (pots 5, 9, 17). My "1 of 18"
+     anecdote was representative after all. Sanity check passes exactly: divergence is
+     19.7% of OPPOSING rows and **0.0%** of NEUTRAL and ALIGNED, so the recomputation is
+     capturing the overlay and nothing else.
+
+     Then the question that actually decides it — is the overlay *informative*? Held
+     within raw tier (so the model's own view is identical across arms) against matured
+     2W outcomes from `outcome_results`:
+
+     | | n | mean | median |
+     |---|---|---|---|
+     | de-rated | 51 | **+6.26%** | +4.52% |
+     | kept | 441 | +1.39% | +1.06% |
+
+     **De-rated rows do BETTER, not worse** — pooled Welch t=3.65, and it survives both
+     outlier checks (medians show the same gap; trimming the best and worst row leaves
+     t=3.76). Widening to alignment rather than the 0.6 threshold: OPPOSING rows return
+     4.95% mean / 4.41% median vs 1.16% / 0.99% for NEUTRAL+ALIGNED, pooled t=3.91. The
+     reading is that **the overlay has the wrong SIGN** — trend-opposing signals are the
+     best ones at 2W, and the canonical basis both downgrades them AND haircuts their
+     position size 25–50%.
+
+     **But it does NOT survive day-clustering: t=1.59 over 8 days, OPPOSING winning
+     5/8.** This project already moved its IC anchors to `TEST_IC_DAILY` for exactly this
+     reason, and the pooled t=3.91 is the overstatement clustering exists to catch. So:
+     **do not route the pots through the overlay, and do not flip it.** Re-run
+     `scratch_trendDowngradeValue.ts` at ≥20 clustered days. If it holds, the fix is in
+     `getRecommendation`, not `PotService` — and the pots ignoring it will have been
+     accidentally right. Related to `notifications-2w-only-by-design`: same root shape,
+     alerts and trades on different bases.
    - **Audit trail:** `PotService.ts:880/949` writes `tradeReason: result.recommendation`
      — the *canonical* recommendation, which for these rows is not what gated the trade.
      The ledger therefore records a reason that cannot explain the action. Log the pot's
