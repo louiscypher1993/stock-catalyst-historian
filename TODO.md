@@ -357,6 +357,49 @@ Both candidate causes are now settled, and the answer is worse than either.
   ending 06-18 costs roughly six weeks of short-horizon rows, not eight weeks of
   everything.
 
+## v14 retrain on corrected labels — RUN 2026-08-13. DO NOT DEPLOY. v9.4 stays.
+
+Re-extracted `features.csv` with the null-label fix (`02c0929`) and retrained under the
+production protocol, 4 folds × 5 heads × 3 arms = 60 models
+(`scratch_v14_nulllabels.py`, results in `src/ml/scratch/v14_nulllabels_results.csv`).
+Row alignment asserted identical between old and new CSVs, so "corrected labels" cannot
+smuggle in "different sample".
+
+Mean day-clustered IC, corrected test basis:
+
+| head | v94-old | honest-old | honest-new |
+|---|---|---|---|
+| B 1M | 0.1321 | 0.1351 | 0.1334 |
+| D1 3M | 0.1025 | 0.1025 | 0.1008 |
+| D2 6M | 0.0607 | 0.0629 | **0.0684** |
+| D3 2D | 0.1777 | 0.1756 | 0.1713 |
+| D5 2W | 0.2809 | 0.2745 | **0.2629** |
+
+**`honest-new` vs `honest-old`: −0.0028 mean, wins 10/20 head-folds.** A coin flip. The
+one coherent signal is that **D2 — the most contaminated head (57.9% fabricated test
+labels in the last fold) — is the one that improves (+0.0055)**, while D5, barely
+contaminated at 1.2%, degrades. That is the direction the mechanism predicts, but it does
+not add up to a deployable gain.
+
+**⚠ AND IT CORRECTS MY OWN ALARM.** I called the fabricated-label discovery "the most
+consequential thing found today" on the strength of the contamination percentages. The
+measurement says otherwise: scoring `v94-old` on both bases, **the anchor shift is
+≤0.0055 everywhere and ~0.002 typically** — including in the 57.9%-fabricated D2 fold
+(−0.0020) and the 98.7%-fabricated E case. The reason is mechanical: day-clustered IC is
+a *rank* correlation, so a block of rows all sharing exactly 0.0 is a tie that
+contributes almost nothing, and `daily_ic` skips any day where `y.nunique() < 2`
+outright. **The rank metric absorbed the contamination.** The bug was real in the data
+and nearly invisible in the measurement.
+
+**Keep the fix anyway** — training a model to predict a fabricated zero is wrong on its
+own terms, and it costs nothing. Just do not expect performance from it, and do not
+re-run the extraction expecting the anchors to move.
+
+**Untested and worth one follow-up:** IC is rank-based, but `HORIZON_TIER_CONFIG`'s
+cutoffs are *absolute* values. A model trained on ~9,858 fabricated zeros could carry a
+different prediction distribution even at identical IC, which would shift where the
+STRONG_BUY/BUY/SELL breakpoints land. That is a calibration question this run did not ask.
+
 ## October checkpoint / v-next retrain bundle
 *(gate: the 2W checkpoint verdict, ~October — nothing here ships alone; one retrain
 batches all of it, then the checkpoint clock restarts once)*
