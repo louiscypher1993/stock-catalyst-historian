@@ -440,6 +440,59 @@ purely combinatorial in n and robust to that; the *genuine* term may move. `outc
 holds only 2D/1M/2W — 3M and 6M simply have not matured yet (live inference starts ~July
 2026), which is expected, not a gap.
 
+## v15 ensemble — RUN 2026-08-13. The ensemble is weak; the SUBSAMPLING is the finding.
+
+`scratch_v15_ensemble.py`, 4 folds × 5 heads × 7 fits = 140 models, day-clustered,
+leakage-free features, corrected labels. **Validity check passed first**: production
+params are `subsample=1.0, colsample_bytree=1.0`, which makes XGBoost deterministic, so
+members differing only by seed would have been byte-identical and any null result
+meaningless. Diversity was introduced (0.8/0.8) and then *verified* — mean pairwise
+prediction correlation **0.700**.
+
+vs the production baseline (mean Δ, head-folds won):
+
+| arm | Δ | won |
+|---|---|---|
+| `bag1` (one bagged member) | +0.0006 | 11/20 |
+| `ens3` | +0.0026 | 10/20 |
+| `ens5` | **+0.0043** | 12/20 |
+| `best_member` (hindsight, not deployable) | +0.0133 | 16/20 |
+
+**Averaging does beat its own members: +0.0055, 15/20.** The variance-reduction mechanism
+is real and replicates `top-of-book-rank-stability`. But **against the production baseline
+the whole ensemble is only +0.0043 on 12/20 — barely better than a coin flip**, because
+the members are individually *worse* than the production fit (`member_mean` −0.0011). The
+ensemble spends its gain climbing back to par.
+
+**The actual finding is head-specific and is not about ensembling at all.** Mean IC by
+head shows the effect is concentrated:
+
+| head | prod | bag1 | ens5 |
+|---|---|---|---|
+| B 1M | 0.1334 | 0.1132 | 0.1264 |
+| D1 3M | 0.1008 | 0.1033 | 0.1138 |
+| D2 6M | 0.0684 | 0.0671 | 0.0545 |
+| D3 2D | 0.1713 | 0.1646 | 0.1705 |
+| **D5 2W** | **0.2629** | **0.2915** | **0.2933** |
+
+**For D5 — the live recommendation basis — simply adding subsampling gains +0.0286 (bag1
+vs prod), in 4 of 4 folds** (+0.0177, +0.0216, +0.0065, +0.0686). `ens5` adds almost
+nothing on top of `bag1`, so this is a **hyperparameter result, not an ensemble result**:
+`subsample=1.0` is simply the wrong setting for D5. That is ~+11% relative IC, worth
+roughly −19% days-to-significance under the quadratic rule. It **hurts B (−0.0202) and
+D2 (−0.0013)**, so it is not a global config change.
+
+**NOT DEPLOYABLE YET — post-hoc selection.** D5 was picked out after seeing five heads,
+which is exactly the multiple-comparison trap the DSR work exists to guard against. It is
+mitigated but not removed by the fact that D5 was the pre-registered expectation
+(`top-of-book-rank-stability` named a D5 ensemble as the cheap win before this ran).
+**Next step is one confirmatory test on a different fold split, pre-registering D5 +
+subsampling as the single hypothesis** — not a deployment.
+
+Caveat worth chasing: `member_corr` is exactly **1.000** for D1 and D2 in fold 4, i.e.
+subsampling produced identical members there despite 0.8/0.8. Probably early stopping
+after very few rounds. It makes those two cells uninformative rather than wrong.
+
 ## October checkpoint / v-next retrain bundle
 *(gate: the 2W checkpoint verdict, ~October — nothing here ships alone; one retrain
 batches all of it, then the checkpoint clock restarts once)*
