@@ -240,6 +240,52 @@ batches all of it, then the checkpoint clock restarts once)*
   At full resolution it is a CLIFF: w_chase 0.0/0.1/0.2 are bit-identical (+0.242%), decay
   starts at 0.4, negative by 0.6. Mechanism: chasing dumps ~87% of trades into 1M, the
   worst horizon. An automated broker should trade ONE committed horizon.
+- **⚠ FEATURE AUDIT 2026-08-13 — 7 stamped, 11 DEAD, and one recorded belief refuted.**
+  Systematic within-symbol constancy scan over every numeric feature the model receives
+  (`scratchpad/stamped_scan2.py`), separating three causes that look identical:
+
+  **(a) STAMPED — present-day value written onto every historical row.** Varies widely
+  ACROSS symbols, never WITHIN one, so the model memorises "symbol X scores Y" — which
+  still generalises across a TEMPORAL split because the test fold holds the same symbols.
+  Inflates backtest IC without being forward-predictive.
+  | feature | const-within-symbol | distinct globally |
+  |---|---|---|
+  | `gdelt_tone_z` | 97.2% | 765 |
+  | `price_target_upside_pct` | 93.7% | 1,549 |
+  | `insider_net_shares_30d` | 92.9% | 204 |
+  | `price_target_consensus` | 91.5% | 411 |
+  | `eps_surprise_pct` | 67.3% | 2,932 |
+  | `revenue_surprise_pct` | 67.3% | 2,366 |
+  | `vix_close` | 55.0% | 1,503 |
+  Only `price_target_consensus` was previously known. **`vix_close` at exactly 55.0%
+  independently confirms the VIX defect** (4 of 7 regional vol tickers dead on Yahoo →
+  55% of rows carry vix=0) from a completely different direction.
+
+  **⚠ CORRECTION: `stocktwits_virality_z` is NOT stamped.** Measured 1.5% constant within
+  symbol, 30 distinct values, 60.5% non-zero. The recorded "95.9% constant" claim does not
+  hold against the current `features.csv` — do not drop it on that basis. See
+  [[stamped-symbol-constant-features]], which is wrong on this point.
+
+  **(b) DEAD — globally constant, all-zero, carrying zero information (11):**
+  `news_relevance_z`, `short_interest_pct_float`, `put_call_ratio_t_minus_1`,
+  `dark_pool_index`, `ctb_velocity_7d`, `iv_crush_pct`, `congressional_net_flow_30d`,
+  `institutional_ownership_pct`, `av_news_sentiment`, plus two one-hot levels that never
+  fire (`primaryCategory_technical`, `confidence_tier_low`). Harmless to accuracy (XGBoost
+  ignores them) but the feature count is inflated and several sources believed to be
+  contributing are not.
+  **NOT a wiring break — checked and the caches are genuinely empty of signal:**
+  `congressional_trades_cache` has 66,841 rows, all non-null, and **not one non-zero
+  `net_flow`**; `fmp_institutional_ownership_cache` has 337 rows and **zero non-null**
+  `ownership_pct`; `alphavantage_news_sentiment_cache` has 24 rows, 7 usable. The features
+  are correctly zero given their inputs.
+  **The real defect is one level upstream: the congressional fetch wrote 66,841 cache rows
+  every one of which is 0.0, and reported success.** A cache that persists 66k rows of
+  nothing looks identical to a cache that is working — the same silent-failure family as
+  ClinicalTrials and the FINRA capture, just before the feature rather than after. Decide
+  whether that source is fixable or should be retired; do not carry a dead feature into
+  the retrain on the assumption its data will show up.
+
+  **(c) structural (18)** — sector one-hots and similar, legitimately fixed per symbol.
 - **D4 (3d head): retire or retrain.** v9.2, dead-wired for decisions, and its live
   output collapses to ~82 distinct values over 261 rows (30-symbol identical buckets —
   the "static bucketing" a 2026-08-10 external audit flagged; `scratch_dupeCheck.ts`).
