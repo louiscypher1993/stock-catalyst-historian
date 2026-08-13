@@ -434,6 +434,32 @@ export function modelCPercentileRank(value: number): number {
  */
 export const RISK_REWARD_FLOOR = 0.15;
 
+/**
+ * The reason recorded against a trade must be the tier that actually GATED it.
+ *
+ * Both this file and getRecommendation resolve a tier from the same
+ * HORIZON_TIER_CONFIG cutoffs, but getRecommendation additionally applies a
+ * trend-opposition downgrade (LiveInferenceService.ts: OPPOSING && trendStrength
+ * > 0.6 => STRONG_BUY->BUY, BUY->HOLD) that resolveHorizonSignal below does not.
+ * Recording `result.recommendation` therefore stored, on divergent rows, a value
+ * that cannot explain the action it sits next to -- the live ledger holds entries
+ * reading "BUY COR ... HOLD" (1 of 18 BUY trades in the 2026-08-11..13 sample).
+ * That is unreadable as an audit trail: nothing in the row says why the pot bought.
+ *
+ * The canonical value is still worth keeping, so it is appended only when the two
+ * disagree. The common case keeps the same bare-tier shape as every historical row
+ * (no reinterpretation of existing data needed) and divergences stay greppable via
+ * "canon:".
+ *
+ * This changes the RECORD only, never a decision. Whether pots SHOULD honour the
+ * downgrade is a separate open question (TODO.md, near-term 5) and is deliberately
+ * not pre-empted here -- fixing the log first is what makes the next occurrence
+ * measurable enough to decide on.
+ */
+function tradeReasonFor(gatingTier: string, canonical: string): string {
+  return gatingTier === canonical ? gatingTier : `${gatingTier} (canon:${canonical})`;
+}
+
 function resolveHorizonSignal(result: PipelineResult, patience: number): {
   tier: string; riskScore: number; riskReward: number;
 } {
@@ -877,7 +903,7 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
       patienceHorizonLabel:  ph.label,
       exitDeadline:          deadline,
       tradeAction:           'BUY',
-      tradeReason:           result.recommendation,
+      tradeReason:           tradeReasonFor(entrySignal.tier, result.recommendation),
       runDateStr,
       logMessage:            `[PotService] ${pot.name}: BUY ${result.symbol} @ ${entryPrice.toFixed(2)} — expected ${(expReturn * 100).toFixed(1)}% over ${ph.label}`,
       skipLogMessage:        `[PotService] ${pot.name}: BUY insert error for ${result.symbol}:`,
@@ -946,7 +972,7 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
       patienceHorizonLabel:  ph.label,
       exitDeadline:          deadline,
       tradeAction:           'SHORT',
-      tradeReason:           result.recommendation,
+      tradeReason:           tradeReasonFor(shortSignal.tier, result.recommendation),
       runDateStr,
       logMessage:            `[PotService] ${pot.name}: SHORT ${result.symbol} @ ${entryPrice.toFixed(2)} (score=${ss.toFixed(1)})`,
       // No skipLogMessage -- the original short branch had no error log at all.

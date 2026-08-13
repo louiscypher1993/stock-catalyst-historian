@@ -30,6 +30,33 @@ time-gated, not effort-gated. History/evidence lives in the memory files and
 4. **Native-vs-SPY benchmark adjudication** *(gate: ~2 weeks of shadow data, ~2026-08-16)*
    `LIVE_BENCHMARK_MODE=shadow` has logged divergences since 2026-08-02; 33% of
    detections would change under `native`. Needs its own readout script + decision.
+5. **Pots ignore the trend-opposition downgrade** *(found 2026-08-13, no gate — decide
+   and fix)*
+   Spotted from a ledger line that reads as a contradiction: `pot 33 BUY COR … HOLD`.
+   It is not a logging typo. `getRecommendation` (`LiveInferenceService.ts:997-1000`)
+   applies a downgrade the pots never see — when the anomaly OPPOSES the recent trend
+   with strength > 0.6, STRONG_BUY→BUY and BUY→HOLD. `resolveHorizonSignal`
+   (`PotService.ts:437`) resolves its tier from the *same* `HORIZON_TIER_CONFIG`
+   cutoffs but **without that overlay**, so a symbol the canonical basis has demoted to
+   HOLD can still clear a pot's entry gate on the undowngraded BUY. Pot 33 is
+   patience 3.5 → 2W, i.e. the *same head* as the canonical recommendation — so this is
+   a genuine behavioural divergence between two consumers of one model, not a
+   horizon-mismatch artefact.
+   Two separate defects fall out of it:
+   - **Behaviour:** pots take trades the canonical basis has explicitly de-rated for
+     trend opposition. Frequency is currently low — **1 of 18 BUY trades since
+     2026-08-11** — so this is not urgent, but it is unmeasured over any longer window.
+     Decide deliberately: either pots respect the overlay (route both consumers through
+     one function), or the divergence is declared intentional and documented. Right now
+     it is neither, it just happened. Related to
+     `notifications-2w-only-by-design` — same root shape: alerts and trades running on
+     different bases.
+   - **Audit trail:** `PotService.ts:880/949` writes `tradeReason: result.recommendation`
+     — the *canonical* recommendation, which for these rows is not what gated the trade.
+     The ledger therefore records a reason that cannot explain the action. Log the pot's
+     own resolved tier (and ideally both) instead. Cheap, independent of the behaviour
+     decision, and should be done first so the next occurrence is legible.
+   `scratch_potReasonCheck.ts` reproduces the count.
 
 ## CI verification 2026-08-11 — done, and it found two live bugs
 
