@@ -400,6 +400,46 @@ cutoffs are *absolute* values. A model trained on ~9,858 fabricated zeros could 
 different prediction distribution even at identical IC, which would shift where the
 STRONG_BUY/BUY/SELL breakpoints land. That is a calibration question this run did not ask.
 
+## Power budget — what actually buys statistical power (measured 2026-08-13)
+
+`scratch_powerBudget.ts`. If sample size is the binding constraint, the question is which
+lever moves it. `t = IC / (sd/√D)`, and `var(daily IC)` splits into **sampling noise**
+(how badly one day's IC is estimated from n symbols, ≈1/(n−1)) and **genuine day-to-day
+variation** (the market actually differing). Measured live:
+
+| horizon | days | sym/day | sampling | genuine |
+|---|---|---|---|---|
+| 2D | 26 | 100 | 45.4% | **54.6%** |
+| 2W | 19 | 87 | 33.5% | **66.5%** |
+
+**Breadth is real but capped.** Two-thirds of 2W's daily-IC variance is genuine variation
+that no amount of scanning touches. Days-to-t=3 for 2W: 31 at today's breadth, 26 at 2×,
+**21 at infinite** — a 32% ceiling on the entire lever. The 1.7× universe expansion buys
+perhaps 10–15%. Worth having; does not change the timeline.
+
+**IC enters quadratically, so raising IC beats gathering data.** days ∝ (sd/IC)², so
++10% IC ⇒ −17% days, +20% ⇒ −31%, +30% ⇒ −41%. **A 20% better IC is worth roughly the
+same as infinite breadth**, and `top-of-book-rank-stability` already records that
+ensembling beats every member at k=3 — an unexploited lever that costs one training run,
+not a bigger universe. **This is the highest-leverage item on the backlog and it is not
+gated on any date.**
+
+**⚠ AND THE HONEST NUMBER IS WORSE THAN ALL OF THESE.** Day-clustering fixed correlation
+*within* a day and does nothing about correlation *across* days: consecutive run_dates'
+2W outcomes share 13 of their 14 days, so D days is nowhere near D independent
+observations. **Every "days for t=3" above is an optimistic floor**, and more so at longer
+horizons. Fixing it needs Newey-West at lag = horizon, or non-overlapping sampling; 19
+days is far too few to estimate the autocorrelation, so it is flagged, not applied.
+Re-check once post-parity data accumulates — and note this applies to the recorded
+`TEST_IC_DAILY` anchors too.
+
+Measurement caveat: matured live outcomes are **entirely pre-parity** (2W needs 14 days;
+parity landed 08-09, so nothing post-parity has matured — 0 days for 2W, 1 for 2D). The
+split above is therefore measured on the known-broken regime. The *sampling* term is
+purely combinatorial in n and robust to that; the *genuine* term may move. `outcome_results`
+holds only 2D/1M/2W — 3M and 6M simply have not matured yet (live inference starts ~July
+2026), which is expected, not a gap.
+
 ## October checkpoint / v-next retrain bundle
 *(gate: the 2W checkpoint verdict, ~October — nothing here ships alone; one retrain
 batches all of it, then the checkpoint clock restarts once)*
