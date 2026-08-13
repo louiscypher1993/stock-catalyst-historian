@@ -20,16 +20,46 @@ time-gated, not effort-gated. History/evidence lives in the memory files and
      or reweight the drawdown term. Do NOT recalibrate A — wrong tool for this term;**
    - switch riskScore to 1-2dp display THEN (decimals before the refit = false precision).
 2. **Expansion cohort readouts** (`expansionReadout.ts`)
-   - 2D: first post-parity maturities ~2026-08-11.
+   - 2D: **gate does NOT open 2026-08-11 — corrected 2026-08-13.** Maturities have
+     started, but the rule needs ≥10 days with ≥5 rows and there are **3**. Realistic
+     date ~2026-08-20. Measured post-parity so far: day-IC **−0.1391 (t=−1.01, 327
+     matured rows, 3 days)** against a +0.083 anchor — same sign as the pre-parity
+     cohort's −0.1256, so the early read is unpromising but nowhere near significant.
+     Quarantine stays regardless; nothing to decide yet.
    - 2W: ~2026-08-23 → the un-quarantine decision for the +1,183 expansion symbols.
      Positive day-IC over ≥10 days = open pots/notifications to the cohort; anything
      else = stays display-only. Pre-parity cohort IC was NEGATIVE (broken regime) —
      do not blend regimes.
 3. **First expanded-scan health check** — runtime, Yahoo error rate, row volume at
    2,906 symbols (first full runs 2026-08-10 15:30/20:00 UTC).
-4. **Native-vs-SPY benchmark adjudication** *(gate: ~2 weeks of shadow data, ~2026-08-16)*
-   `LIVE_BENCHMARK_MODE=shadow` has logged divergences since 2026-08-02; 33% of
-   detections would change under `native`. Needs its own readout script + decision.
+4. **Native-vs-SPY benchmark adjudication** — **readout BUILT 2026-08-13
+   (`benchmarkAdjudication.ts`); 2D says STAY ON SPY, 2W not decidable until ~2026-08-27**
+   208 divergences logged 08-03→08-13 (57 SPY-only, 151 native-only). Scored as
+   *eventfulness* = |forward return of the flagged bar| ÷ that symbol's mean |forward
+   return| over the trailing year, so cross-market comparison is legitimate (the two
+   groups hold different symbols — native-only skews .HK/.NS/.AX).
+
+   | 2D | n | eventfulness | native−SPY |
+   |---|---|---|---|
+   | SPY-only | 51 | **2.06** | |
+   | native-only | 137 | **1.33** | −0.736, Welch **t=−3.36** |
+
+   **SPY's exclusive detections find bars ~2× as eventful as that symbol's average;
+   native's exclusive detections are barely above a coin-toss.** Switching would add 137
+   near-worthless detections and delete 51 good ones per 10 days. Two confounds were
+   tested and neither overturns it: (a) the ±3-day tolerance on a +2-day horizon could
+   match the flagged bar itself or earlier — fixing it *widened* the gap (t −4.62→−5.50
+   pre-hedge); (b) raw returns favour SPY by construction, since SPY-only detections are
+   enriched in bars where the local market moved and volatility clusters at market level
+   — hedging against the native index (the metric most favourable to native) narrows
+   t −4.42→−3.36 but does not invert it.
+   - **2W is the one that matters for the recommendation basis and has 0 matured SPY
+     rows.** The gate was never really 08-16: divergences needed 2 weeks to accumulate,
+     but their *outcomes* then need 14 more days to mature. Earliest ~2026-08-27.
+   - Caveat, stated in the script: this scores DETECTION QUALITY, not P&L. The
+     native-only bars never entered the pipeline, so no prediction or P&L exists for
+     them and none can be reconstructed.
+   - Decision now: **do not switch.** Re-run at ~08-27 for the 2W verdict.
 5. **Pots ignore the trend-opposition downgrade** *(found 2026-08-13, no gate — decide
    and fix)*
    Spotted from a ledger line that reads as a contradiction: `pot 33 BUY COR … HOLD`.
