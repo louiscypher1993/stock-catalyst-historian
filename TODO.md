@@ -265,7 +265,42 @@ batches all of it, then the checkpoint clock restarts once)*
   `honest-nodead` arm as a harness validity check (dropping 7 provably-inert columns must
   change nothing — confirmed byte-identical to `honest-control`).
 
-  **Interpretation — the cost is the POINT, not a reason to keep them.** A stamped feature
+  ### ✅ v13 VERDICT 2026-08-13 — removing the six real leaks is nearly FREE (−0.0007)
+
+  | arm | mean delta vs v9.4 | vs honest-control | B | D1 | D2 | D3 | D5 (live) |
+  |---|---|---|---|---|---|---|---|
+  | `v94-control` | — | +0.0007 | 0.0064 | 0.0787 | 0.0612 | 0.0725 | **0.0962** |
+  | **`honest-control`** (6 leaks gone) | **−0.0007** | — | 0.0045 | **0.0860** | 0.0520 | 0.0730 | **0.0958** |
+  | `honest-nodead` (validity check) | −0.0007 | 0.0000 | 0.0045 | 0.0860 | 0.0520 | 0.0730 | 0.0958 |
+  | `honest-rowsonly` | −0.0067 | **−0.0060** | 0.0146 | 0.0782 | 0.0360 | 0.0653 | 0.0875 |
+  | `honest-union` | −0.0118 | −0.0111 | 0.0109 | 0.0672 | 0.0370 | 0.0467 | 0.0940 |
+  | `honest-rows-ne` | −0.0169 | −0.0162 | 0.0069 | 0.0585 | 0.0303 | 0.0549 | 0.0796 |
+
+  **HARNESS VALIDITY CONFIRMED:** `honest-nodead` is identical to `honest-control` to four
+  decimals on every head, every fold, same iteration counts. Dropping seven provably-inert
+  columns changed nothing, as it must. The harness does nothing when it should do nothing.
+
+  **⚠ THIS REFUTES THIS MORNING'S HEADLINE.** I reported that removing leakage costs
+  −0.0060 and that "Model B's entire 1M signal is memorisation". **Both were artefacts of
+  the mis-specified arm.** With the correct six features removed: the cost is −0.0007
+  (noise), **D5 — the live recommendation basis — barely moves (0.0962 → 0.0958)**, and
+  **D1 actually IMPROVES (0.0787 → 0.0860)**. B drops 0.0064 → 0.0045, a small decline, not
+  a sign flip. **The measured edge is NOT substantially leakage-driven.**
+  Root cause of the false alarm: the old list dropped `stocktwits_virality_z`, which is a
+  genuinely useful NON-leaked feature — removing it is what cost the IC.
+
+  **ACTIONS THIS SETTLES.**
+  1. **Adopt the leakage-free feature set at the retrain.** It costs ~nothing (−0.0007),
+     removes real lookahead + symbol-identity leakage, and makes the anchors defensible for
+     a capital decision. Add the six to `EXCLUDE_COLS`; do NOT add `stocktwits_virality_z`.
+  2. **The pre-2021 row drop is NOT a win.** Against the honest baseline it costs −0.0060
+     (D5 0.0958 → 0.0875, D2 0.0520 → 0.0360). This morning's "+0.0005, only arm beating
+     control" was an artefact of scoring it against an INFLATED control. Judged honestly,
+     every data-change arm loses. Consistent with the standing v11 no-deployment verdict.
+  3. **The go-live anchor is essentially unchanged**, so the edge is what the checkpoint
+     says it is — no better, but no worse either. The leakage worry is closed.
+
+  **Interpretation of the CONFOUNDED v11 numbers below — the cost is the POINT.** A stamped feature
   is constant per symbol, so the model memorises "symbol X returns Y". That still
   generalises across a TEMPORAL split because the test fold holds the same symbols, so it
   raises measured IC while being worthless forward. **Purging/embargo (López de Prado) —
