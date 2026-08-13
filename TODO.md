@@ -30,8 +30,51 @@ time-gated, not effort-gated. History/evidence lives in the memory files and
      Positive day-IC over ≥10 days = open pots/notifications to the cohort; anything
      else = stays display-only. Pre-parity cohort IC was NEGATIVE (broken regime) —
      do not blend regimes.
-3. **First expanded-scan health check** — runtime, Yahoo error rate, row volume at
-   2,906 symbols (first full runs 2026-08-10 15:30/20:00 UTC).
+3. **First expanded-scan health check** — **DONE 2026-08-13. Expansion is healthy; the
+   two real findings are unrelated to it.**
+   - **Runtime scaled proportionately**: main runs 8–9 min pre-expansion → 11–17 min
+     post, for a 69% universe increase (1,723 → 2,906). Detection volume 87 → 108–157.
+     No timeout pressure.
+   - **Quarantine gate works**: 255 of 255 expansion-cohort rows carry
+     `unreliable_reason` (`null_enrichment` 359, `raw_prediction_outlier` 2
+     post-expansion). Nothing from the cohort can reach pots or notifications.
+   - **⚠ CORRECTION — I nearly filed a false alarm here.** Pooled distinct-value counts
+     appeared to show D5 collapsing 58.9% → 36.1%, the same shape as the known D4
+     defect. It was an artefact: **distinct-share is not scale-invariant** (drawing more
+     rows from a fixed set of achievable leaf values lowers the share combinatorially),
+     and the windows had unequal n. Subsampling all windows to a matched n=91 over 400
+     draws, **D5 is 80.0% distinct — healthy.** Same error class as the stamped-feature
+     false headline: a ratio compared across unmatched denominators.
+   - **The windows are also confounded**, which the naive comparison missed: parity
+     landed 2026-08-09 12:07 UTC and expansion 2026-08-10 10:29 UTC, **22 hours apart**,
+     so any "pre-expansion" window wider than that day is mostly pre-*parity* too. The
+     91-row window between them is what separates them.
+
+   Matched-n distinct-value share (n=91, 400 draws), core symbols only:
+
+   | head | pre-parity | post-parity | post-expansion | attribution |
+   |---|---|---|---|---|
+   | B 1M | 8.6% | 35.2% | 30.1% | both |
+   | D1 3M | 90.7% | 89.0% | 86.5% | stable |
+   | D2 6M | 58.8% | 85.7% | 78.4% | both |
+   | D3 2D | 80.0% | 76.9% | 81.9% | stable |
+   | D5 2W | 91.4% | 84.6% | 80.0% | parity |
+   | C | 56.9% | 97.8% | 90.2% | both |
+
+   - **FINDING 1 — the parity fix measurably improved prediction diversity**: B
+     8.6→35.2, C 56.9→97.8, D2 58.8→85.7. Independent corroboration that it was correct,
+     from a different direction than the anchor-band check. The expansion's own effect is
+     small everywhere (D5 −4.6pp, D1 −2.5pp, D3 +5.0pp).
+   - **FINDING 2 — Model B and Model A are genuinely degenerate, and were before both
+     changes.** This is NOT a sample-size artefact: it is capped by the *global* distinct
+     count, which no subsample can exceed. **A emits 12 distinct values across 684 live
+     rows** (ceiling 13.2% at n=91) — exactly the isotonic saturation already on record,
+     re-measured from a new direction. **B emits 69** (ceiling 75.8%, observed 30.1%).
+     B's degeneracy is consistent with its near-zero v13 fold IC (0.0045) and with
+     `HORIZON_TIER_CONFIG.model_b_return_1m` being deliberately empty. Both belong in the
+     retrain bundle; see the Model-A confidence-term replacement in item 1.
+   - Scripts: `scratch_expandedScanHealthV2.ts`, `scratch_headDegeneracy.ts`,
+     `scratch_coreDegeneracy.ts`, `scratch_degeneracyMatched.ts` (the definitive one).
 4. **Native-vs-SPY benchmark adjudication** — **readout BUILT 2026-08-13
    (`benchmarkAdjudication.ts`); 2D says STAY ON SPY, 2W not decidable until ~2026-08-27**
    208 divergences logged 08-03→08-13 (57 SPY-only, 151 native-only). Scored as
