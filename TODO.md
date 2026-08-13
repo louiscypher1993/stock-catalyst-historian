@@ -134,9 +134,21 @@ pre-rebase 3968.HK stop-loss, pots 10/13's are rounding. **There is no accumulat
 Consequence to remember: pot cumulative = "since the 2026-07-07 rebase", position-sum =
 all-time. Do not compare them without saying which.
 
-**Also found:** `Glass Hands` and `The Stoic` post identical returns and t-stats over 3
-trades despite different traits (patience 7 vs 8.5, conviction 1 vs 7, focus 10 vs 8) —
-the P1 clone symptom on live pots. Investigate separately.
+~~**Also found:** `Glass Hands` / `The Stoic` clone symptom~~ **RESOLVED 2026-08-13 —
+benign** (`scratch_potCloneCheck.ts`). They hold **12 identical positions** (same symbol,
+entry date, direction) differing only in SIZE: `positionGBP = portfolioValue / focus`, so
+focus 8 sizes at 1/8 and focus 10 at 1/10. Pot 8 holds 2 extra (TGT, CTAS) purely because
+its focus cap is higher. Identical % returns follow necessarily from identical instruments
+over identical windows, and £ P&L differs by exactly the sizing ratio. Not the P1 clone
+defect; traits ARE influencing behaviour, there just were not enough qualifying signals to
+exceed either pot's focus cap, so both took everything on offer.
+
+**But it confirms the roster-overlap limit empirically.** Only **30 distinct symbols across
+17 pots** with open positions, and the top names are held very widely — TRV by 7 pots,
+SHEL and O by 5, AVB and PLD by 4. Pots trade the SAME signals, so extra pots buy
+resolution on settings, not extra independent market observations. Treat pot-level results
+as heavily correlated: N pots is nothing like N independent samples, and any significance
+test across pots must not assume it is.
 
 ### Which live pots to keep as the comparison arm
 Selected on **evidence value, not measured success** — after cleaning, 9 of 20 pots have
