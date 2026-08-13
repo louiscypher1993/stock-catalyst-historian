@@ -214,7 +214,17 @@ from the symbol at wiring time.
   (all-codes net + open-market P−S). First run: 442 filings, 1,006 txns, 210 symbols.
   Replaces stale-frozen FMP `insider_net_shares_30d` at the retrain.
 
-## Pot ledger: FX residue repair — PREVIEWED, NOT APPLIED (2026-08-12)
+## Pot ledger: FX residue repair — APPLIED (2026-08-12), verified 2026-08-13
+
+**Status: done.** The repair and the snapshot correction were both applied. Ledger as of
+2026-08-13: **n=84 closed trades, total £−43, pooled mean −0.448%/trade, 40% win**, 5 of
+12 pots with ≥8 closed trades. The phantom £11,995 is gone and the real result is
+slightly negative — consistent with the trial log's negative live Sharpe, and the honest
+baseline the checkpoint will be judged against.
+**⚠ `scratch_potSnapshotFxOnly.ts --apply` is NOT idempotent — never re-run it**; it would
+double-apply the deltas.
+
+Original finding, kept for the record:
 
 **~96% of live pot P&L is an artefact.** Four pre-F8 `.NS`/`.BO` positions closed
 2026-07-15/16 with a native-INR exit price against a GBP-converted entry, giving
@@ -529,7 +539,13 @@ batches all of it, then the checkpoint clock restarts once)*
 - primaryCategory fix: every CI row serves `market_structure`. Measured ~free
   (B/C never split on it; D1/D2/D5 ≤0.005). Needs the category mirrored into
   Supabase snapshots or a live classifier port.
-- **⚠ THE 2026-08-01 RE-EXTRACTION WAS NEVER WIRED INTO TRAINING** (found 2026-08-13).
+- ~~**THE 2026-08-01 RE-EXTRACTION WAS NEVER WIRED INTO TRAINING**~~ **RESOLVED
+  2026-08-13 — see the "Re-extraction source" section above. Line 301 stays; the join that
+  would have made a source swap meaningful retains only 3.9% of the rows it exists to
+  repair, because the corrupt rows' event DATES are themselves artefacts of monthly bars.
+  `features.csv` has since been regenerated (2026-08-13) with the null-label fix applied.
+  The text below is the original framing, kept because the reasoning is still the
+  reason the answer is "no".**
   `reextractDailyEvents.ts` (`1e4071a`) rebuilt every event from true daily bars into
   `event_features_daily` (303,159 rows, 1,429 symbols, to 2026-07-31) and
   `buildUnifiedTrainingSet.ts` merged it into `training_events_v11` (338,099 rows). But
