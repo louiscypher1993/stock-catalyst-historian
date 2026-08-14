@@ -14,7 +14,10 @@ async function main() {
     .gte('created_at', '2026-08-10T08:20:00Z').lt('created_at', '2026-08-10T08:32:00Z')
     .order('created_at', { ascending: true });
   if (error) throw error;
-  const rows = data ?? [];
+  // Cast is required, not cosmetic: the select list is built by string concatenation, so
+  // supabase-js cannot infer the row shape and widens `data` to its error union --
+  // which made every field access below a type error and left `npm run lint` red.
+  const rows = (data ?? []) as any[];
   console.log(`rows: ${rows.length}`);
 
   const clean = rows.filter(r => !r.unreliable_reason);

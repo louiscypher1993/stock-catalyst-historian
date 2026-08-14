@@ -179,6 +179,29 @@ time-gated, not effort-gated. History/evidence lives in the memory files and
      decision, and should be done first so the next occurrence is legible.
    `scratch_potReasonCheck.ts` reproduces the count.
 
+6. **Low-ambition pots can barely use the BUY tier** *(noticed 2026-08-13 while building
+   the trade-reason fixture; no gate — a config question, not a bug)*
+   `ambitionTier(≤3.0)` requires `minReturn` **0.03**, but D5's BUY band is
+   **[0.024743, 0.031582)**. The two constraints overlap on a **~0.0016-wide sliver**, so a
+   cautious pot can essentially only enter on STRONG_BUY — the BUY tier is nearly
+   unreachable for it. That inverts the intended trait semantics: low ambition is supposed
+   to mean *less* demanding, and here it means the pot skips an entire tier that
+   higher-ambition pots (minReturn 0.12) cannot reach either, but for the opposite reason.
+   Compounded by the live-cutoff miscalibration in item 1 (21.3% of live rows are already
+   STRONG_BUY), the practical effect is that ambition mostly stops discriminating.
+   Re-check when the cutoffs are refitted at ~08-21 — the sliver is a property of the
+   cutoffs, so refitting them may dissolve or worsen it. Decide then whether
+   `ambitionTier`'s `minReturn` ladder needs rescaling to the refitted distribution.
+
+## Housekeeping
+
+- **`npm run lint` was red all day and is now green** (fixed 2026-08-13). 12 errors, all in
+  `scratch_expandedScanHealth.ts`: its select list is built by string concatenation, so
+  supabase-js could not infer the row shape and widened `data` to its error union, making
+  every field access a type error. Fixed with an explicit cast. Worth noting because a
+  permanently-red typecheck cannot be used as a gate — it trains you to ignore it, and the
+  next real error hides in the noise.
+
 ## CI verification 2026-08-11 — done, and it found two live bugs
 
 Hand-triggered `pit-snapshot.yml` (run #2, first dispatch ever; run #1 was the
