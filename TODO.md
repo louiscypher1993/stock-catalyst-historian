@@ -116,6 +116,15 @@ Scripts: `potLedgerNet.ts` (the readout), `potLedgerCosts.ts` (the module),
 ## Near-term (this week / next)
 
 1. **Risk-score re-evaluation** *(gate: ~10 trading days of post-parity data, ~2026-08-21)*
+   **⚠ PRE-REGISTERED 2026-08-16 — read `PREREG_2026-08-21_riskscore_refit.md` BEFORE
+   running any part of this.** Acceptance criteria, the frozen candidate list and the
+   abandon-conditions are fixed there ahead of the data. Two things it settles that are
+   not obvious from the text below: (a) refitting percentiles on live output makes the
+   result uniform BY CONSTRUCTION, so a distributional success test cannot fail and proves
+   nothing — the real gate is whether live Model C has ≥50 distinct values at all, given A
+   has 12; (b) **only A1/A2/C1 can honestly be decided on 08-21.** The confidence-term
+   replacement and the beat-the-baseline test both need matured post-parity 2W outcomes,
+   which are n=0 until ~08-23, so they land in early September.
    Decomposed on 2,471 live rows (`scratch_riskDecompose.ts`, `defe2ad`): the 37-38
    spike is the drawdown term pinned by stale Model C breakpoints; `model_a_confidence`
    is ≥0.9999 on ~92% of rows so the 30-point confidence term is dead; 64-69 cluster =
@@ -280,11 +289,13 @@ Scripts: `potLedgerNet.ts` (the readout), `potLedgerCosts.ts` (the module),
      `getRecommendation`, not `PotService` — and the pots ignoring it will have been
      accidentally right. Related to `notifications-2w-only-by-design`: same root shape,
      alerts and trades on different bases.
-   - **Audit trail:** `PotService.ts:880/949` writes `tradeReason: result.recommendation`
-     — the *canonical* recommendation, which for these rows is not what gated the trade.
-     The ledger therefore records a reason that cannot explain the action. Log the pot's
-     own resolved tier (and ideally both) instead. Cheap, independent of the behaviour
-     decision, and should be done first so the next occurrence is legible.
+   - ~~**Audit trail:** `PotService.ts:880/949` writes `tradeReason: result.recommendation`~~
+     **✅ DONE — verified in code 2026-08-16.** `tradeReasonFor(gatingTier, canonical)`
+     (`PotService.ts:459`) is called at `:906` and `:975`: it records the tier that actually
+     GATED the trade, appending `(canon:X)` only when the two disagree, so the common case
+     keeps the historical bare-tier shape and divergences stay greppable via `canon:`. The
+     record changed; no decision did. This item's text described the pre-fix state and was
+     stale — the behavioural question below remains genuinely open.
    `scratch_potReasonCheck.ts` reproduces the count.
 
 6. **Low-ambition pots can barely use the BUY tier** *(noticed 2026-08-13 while building
@@ -649,10 +660,18 @@ perhaps 10–15%. Worth having; does not change the timeline.
 
 **IC enters quadratically, so raising IC beats gathering data.** days ∝ (sd/IC)², so
 +10% IC ⇒ −17% days, +20% ⇒ −31%, +30% ⇒ −41%. **A 20% better IC is worth roughly the
-same as infinite breadth**, and `top-of-book-rank-stability` already records that
-ensembling beats every member at k=3 — an unexploited lever that costs one training run,
-not a bigger universe. **This is the highest-leverage item on the backlog and it is not
-gated on any date.**
+same as infinite breadth.**
+
+**⚠ DEMOTED 2026-08-16 — this was written as "the highest-leverage item on the backlog and
+it is not gated on any date", and its own follow-up experiments have since overtaken it.**
+The principle stands; the two concrete levers it pointed at do not. The `top-of-book-rank-
+stability` ensembling lead was tested in v15 and nets **+0.0043 on 12/20** against the
+production baseline — averaging does beat its own members (+0.0055, 15/20) but the members
+are individually worse (−0.0011), so the ensemble spends its gain climbing back to par. The
+D5 subsampling lead that came out of the same run was **refuted outright** by the
+pre-registered v16 confirmatory test (mean Δ −0.0108, 2/6 folds, sign test p=0.89).
+**This is no longer a shovel-ready item — it needs a NEW idea, not another run.** Do not
+re-read the sentence above as an instruction to re-try ensembling.
 
 **⚠ AND THE HONEST NUMBER IS WORSE THAN ALL OF THESE.** Day-clustering fixed correlation
 *within* a day and does nothing about correlation *across* days: consecutive run_dates'
