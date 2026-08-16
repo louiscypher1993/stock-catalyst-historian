@@ -79,6 +79,18 @@ export const IBKR_DEFAULT: CostConfig = {
 
 // ── Transaction tax by exchange suffix (fraction of value; side-aware). ──
 // Public statutory rates. Buy/sell separated because several are one-sided.
+//
+// ⚠ WHAT THIS MODELS: what a UK-RESIDENT account at a NON-UK-domiciled broker (IBKR)
+// actually pays on the transaction. That is not the same as "what the exchange's
+// jurisdiction levies", and the difference is not cosmetic — several European
+// transaction taxes attach to the INVESTOR's residence or to the INTERMEDIARY's
+// domicile, not to the security, so a UK investor escapes them entirely (see .BR,
+// .HE, .WA below). Encoding the statutory headline rate for those would overstate
+// cost. If the account's residence or broker domicile ever changes, revisit them.
+//
+// ⚠ OUT OF SCOPE: taxes on GAINS. This field multiplies POSITION VALUE, so it models
+// transaction taxes only. Mexico's 10% BMV withholding and every other CGT-style
+// charge belong to a different calculation and are deliberately absent.
 interface TaxRate { buy: number; sell: number; note?: string }
 const TAX: Record<string, TaxRate> = {
   '.L':  { buy: 0.005,  sell: 0,      note: 'UK SDRT 0.5% buy-only (AIM exempt — not distinguished here)' },
@@ -95,15 +107,46 @@ const TAX: Record<string, TaxRate> = {
   '.SI': { buy: 0,      sell: 0 },
   '.KS': { buy: 0,      sell: 0.0018, note: 'Korea securities transaction tax ~0.18% sell' },
   '.KQ': { buy: 0,      sell: 0.0018 },
-  '.NS': { buy: 0.0001, sell: 0.0001, note: 'India STT ~0.1% delivery both sides (approx)' },
+  // ⚠ CORRECTED 2026-08-16: was 0.0001 (=0.01%) while its own note said "~0.1%". The
+  // note was right and the value was wrong by 10x. India STT on DELIVERY equity is
+  // 0.1% each side; Budget 2026 raised F&O rates but left delivery unchanged.
+  '.NS': { buy: 0.001,  sell: 0.001,  note: 'India STT 0.1% delivery, both sides (NSE)' },
+  '.BO': { buy: 0.001,  sell: 0.001,  note: 'India STT 0.1% delivery, both sides (BSE — same as .NS)' },
   '.SA': { buy: 0,      sell: 0 },
+  // ── Added 2026-08-16. Rates verified against current sources, not assumed. ──
+  '.SS': { buy: 0, sell: 0.0005, note: 'China stamp duty 0.05% sell-only (halved from 0.1% on 2023-08-28)' },
+  '.SZ': { buy: 0, sell: 0.0005, note: 'China stamp duty 0.05% sell-only (Shenzhen — same as .SS)' },
+  '.TW': { buy: 0, sell: 0.003,  note: 'Taiwan STT 0.3% sell-only. The 0.15% same-day day-trade rate is NOT modelled — pots hold overnight' },
+  // The next five are ZERO for THIS account, and the reason matters — each would be
+  // non-zero for a differently-situated investor. Do not "correct" them upward without
+  // re-reading the residence/intermediary test.
+  '.BR': { buy: 0, sell: 0, note: 'Belgium TOB 0.35% attaches to Belgian RESIDENTS, or to non-residents holding via a BELGIAN intermediary. UK resident at IBKR: not liable' },
+  '.HE': { buy: 0, sell: 0, note: 'Finnish transfer tax: listed shares bought via a foreign remote intermediary are exempt' },
+  '.WA': { buy: 0, sell: 0, note: 'Polish PCC 1% applies to private share sales; trades executed through a brokerage in organised trading (WSE) are exempt' },
+  '.AS': { buy: 0, sell: 0, note: 'Netherlands levies no stamp duty on share transactions' },
+  '.OL': { buy: 0, sell: 0, note: 'Norway has no financial transaction tax' },
+  '.BK': { buy: 0, sell: 0, note: 'SET share transfers are exempt from stamp duty; the proposed Thai FTT is still draft, not in force' },
+  '.MX': { buy: 0, sell: 0, note: 'Mexico levies no transaction tax. The 10% BMV withholding is a tax on GAINS (treaty-relievable for a UK resident) and is out of scope for this field' },
   US:    { buy: 0,      sell: 0.0000278, note: 'US SEC fee ~0.00278% sell-only (as of 2024; tiny)' },
 };
+
+/** Suffixes with an explicit, verified rate. Anything else hits the REVIEW fallback in
+ *  `taxRate()`. Exported so readouts can report coverage from the source of truth rather
+ *  than from a hand-maintained copy that silently drifts. */
+export const KNOWN_TAX_SUFFIXES: ReadonlySet<string> = new Set(Object.keys(TAX));
 
 function suffixOf(symbol: string): string {
   const dot = symbol.lastIndexOf('.');
   if (dot === -1) return 'US'; // no suffix => US-listed
-  return symbol.slice(dot).toUpperCase();
+  const suf = symbol.slice(dot).toUpperCase();
+  if (TAX[suf]) return suf;
+  // Not a known exchange. A SINGLE trailing letter is a US share class, not a venue —
+  // BRK.B was being read as exchange ".B" and falling through to the REVIEW branch.
+  // Length cannot discriminate on its own (.L/.T/.F are one-letter exchanges), which is
+  // why the known-suffix lookup has to come first. Multi-character unknowns are left on
+  // the loud REVIEW path, since those really are unrecognised venues.
+  if (/^\.[A-Z]$/.test(suf)) return 'US';
+  return suf;
 }
 
 export function taxRate(symbol: string): TaxRate {

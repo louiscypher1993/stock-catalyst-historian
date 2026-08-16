@@ -5,7 +5,7 @@ Items carry their gate (what must happen first) because most of this backlog is
 time-gated, not effort-gated. History/evidence lives in the memory files and
 `DEEP_DIVE_PROGRESS.md`; this file is only what is still OPEN.
 
-## ✅ RESOLVED 2026-08-16 — the pot ledger now reads NET. Honest figure: −0.967%/trade
+## ✅ RESOLVED 2026-08-16 — the pot ledger now reads NET. Honest figure: −0.971%/trade
 
 **`PotService.ts` never imports `costModel.ts`.** Verified: it imports nothing at all, and
 `realisedPnl = returnSoFar × position_size_gbp` (`PotService.ts:701`) — pure price return,
@@ -58,36 +58,44 @@ reliable row 0.5961, threshold 0.20 in the empty gap between: **75.8× separatio
 split**. (0.596 is itself a confirmation of the mechanism: `Math.floor(positionGBP /
 entryPrice)` puts the floor for a *legitimate* row at ~0.5.)
 
+All figures below are on the CORRECTED tax table (2026-08-16, near-term item 7 — full
+exchange coverage, and India STT fixed from a 10× understatement).
+
 | basis | n | cost % | gross | **net** |
 |---|---|---|---|---|
-| **ADMISSIBLE** (reliable rows, costed as traded) | 91 | 0.488% | −0.479% | **−0.967%** |
-| IMPUTED (all rows, costed at intended size) | 105 | 0.460% | −0.349% | −0.809% |
-| naive (all rows as traded — artefact intact) | 105 | 0.535% | −0.349% | −0.883% |
+| **ADMISSIBLE** (reliable rows, costed as traded) | 91 | 0.493% | −0.479% | **−0.971%** |
+| IMPUTED (all rows, costed at intended size) | 105 | 0.498% | −0.349% | −0.847% |
+| naive (all rows as traded — artefact intact) | 105 | 0.539% | −0.349% | −0.888% |
 
-**Quote ADMISSIBLE, −0.967%/trade.** Not because the imputation is unsound but because the
+**Quote ADMISSIBLE, −0.971%/trade.** Not because the imputation is unsound but because the
 cohort is **14 rows over 5 distinct symbols on 2 days** (BAJFINANCE.NS ×5, 500510.BO ×5,
 HDFCLIFE.NS ×2, BPCL, LT). Its gross mean of +0.495% against a median of −3.157% is one
 good BAJFINANCE print counted five times across five pots — the roster-overlap problem
 already recorded below, in miniature. Those rows add correlated repeats, not information.
 
-**⚠ A prediction of mine the measurement REFUTED.** I argued the imputation would be biased
-low, because `.NS`/`.BO` pay the £3.20 FX minimum plus Indian stamp and so would cost *more*
-than the blend at intended sizing. Measured: the cohort at intended size costs **0.376%**
-against the 0.488% blend — **cheaper**, because costModel's Indian STT (0.01%/side) is far
-below UK SDRT (0.5% buy) and the fixed floors dilute at £1,000–5,000. The imputed basis is
-generous, not conservative.
+**⚠ A THREE-STEP CORRECTION WORTH KEEPING — the measuring instrument was the broken part.**
+I predicted the imputation would be biased low, since `.NS`/`.BO` pay the FX minimum plus
+Indian stamp and should cost *more* than the blend. The first measurement said the opposite
+(cohort 0.376% vs 0.488% blend) and I recorded the prediction as refuted. **It was not: the
+measurement was wrong.** `costModel`'s `.NS` entry read `0.0001` while its own note said
+"~0.1%" — the value was out by 10× and understated every Indian trade. Corrected, the
+cohort at intended size costs **0.564% against a 0.493% blend** — *more*, as originally
+predicted. **A measurement that contradicts a well-reasoned prior is a reason to audit the
+instrument, not only the prior.** Nothing here was wrong in a way that changed a decision
+(admissible moved −0.967% → −0.971%), but the reasoning chain would have been.
 
-### And the honest number is worse than −0.967% by an unquantified amount
+### And the honest number is still worse than −0.971%
 
-- **Pessimistic bound with latency slippage: −1.029%** (headline uses
+- **Pessimistic bound with latency slippage: −1.034%** (headline uses
   `slippageBpsPerLeg = 0`; no measured latency data yet — same convention as
   `dumpPotCosts.ts`).
-- **costModel has NO tax rate for 11 exchange suffixes covering 27 of 105 closed positions
-  (26%)** — see the new open item under Near-term.
 - **The measured close-to-next-open signal decay (D5 ~11.6–24.9bps) is not in costModel**
   and so is in none of these figures.
+- Tax coverage is now complete for every suffix the pots have traded, but `taxRate()`'s
+  REVIEW fallback still returns 0 for any *new* venue. `potLedgerNet.ts` reports uncovered
+  suffixes on every run, derived from `KNOWN_TAX_SUFFIXES` rather than a copied list.
 
-**Realistically −1.0% to −1.3%/trade net. That is the baseline the October checkpoint gets
+**Realistically −1.0% to −1.2%/trade net. That is the baseline the October checkpoint gets
 judged against.**
 
 ### What was deliberately NOT done
@@ -293,24 +301,40 @@ Scripts: `potLedgerNet.ts` (the readout), `potLedgerCosts.ts` (the module),
    cutoffs, so refitting them may dissolve or worsen it. Decide then whether
    `ambitionTier`'s `minReturn` ladder needs rescaling to the refitted distribution.
 
-7. **costModel has no tax rate for 11 exchange suffixes — 26% of closed trades are taxed
-   at zero** *(found 2026-08-16 while wiring the pot ledger net; no gate)*
-   `taxRate()` falls through to `{ buy: 0, sell: 0, note: 'unlisted exchange … (REVIEW)' }`
-   for `.SS .OL .BR .BO .HE .WA .MX .AS .SZ .TW .BK` — **27 of 105 closed pot positions**
-   (the readout reports a twelfth, `.B`, which is the `BRK.B` parsing bug below, not an
-   exchange).
-   Several of those markets do levy transaction taxes (Taiwan sell-side, Belgium's TOB,
-   Chinese stamp, and BSE's STT — which `.NS` gets but `.BO` does not, despite 5 of the
-   genesis-cohort rows being `500510.BO`). **Every net figure the project quotes is
-   understated by an unquantified amount**, including the −0.967%/trade above and anything
-   from `outcomeScoreboard` / `readoutHarness` / `topBuysReport`. Rates were not verified
-   here — verify current statutory rates before adding them, do not fill blind.
-   - **Separate parsing bug in the same function:** `suffixOf` (`costModel.ts:103`) splits
-     on the last `.`, so **`BRK.B` is read as exchange suffix `.B`**. Impact for BRK.B
-     specifically is negligible (US tax is ~0 and `needsFx` still correctly returns true),
-     but the mechanism is wrong and bites any dotted US share class. Fix by matching known
-     exchange suffixes rather than "whatever follows the last dot".
-   Reported by `potLedgerNet.ts`, which lists the affected suffixes and symbols on every run.
+7. **✅ DONE 2026-08-16 — costModel's tax table: 11 missing exchanges filled, India
+   corrected 10×, and the `BRK.B` suffix bug fixed.**
+   `taxRate()` was falling through to `{ buy: 0, sell: 0, note: '… (REVIEW)' }` for
+   `.SS .OL .BR .BO .HE .WA .MX .AS .SZ .TW .BK` — **27 of 105 closed pot positions**.
+   All eleven now carry verified rates and the readout reports zero uncovered suffixes.
+
+   - **⚠ THE BIGGEST FIND WAS IN A ROW THAT ALREADY EXISTED.** `.NS` read `buy: 0.0001,
+     sell: 0.0001` while its own note said "India STT ~0.1% delivery both sides". **0.1%
+     is `0.001`; the value was out by 10× and had understated every Indian trade since the
+     table was written.** Corrected, and `.BO` added at the same rate. A wrong constant
+     sitting next to a correct comment survives review indefinitely — worth a grep for
+     other note/value mismatches in that file.
+   - **Non-zero added:** `.SS`/`.SZ` China stamp 0.05% sell-only (halved 2023-08-28),
+     `.TW` Taiwan STT 0.3% sell-only (the 0.15% day-trade rate is deliberately not
+     modelled — pots hold overnight), `.BO` India STT 0.1% both sides.
+   - **⚠ ZERO, and the REASON matters — do not "correct" these upward.** `.BR`, `.HE` and
+     `.WA` all have headline statutory rates that **do not reach this account**: Belgium's
+     TOB 0.35% attaches to Belgian *residents* or to non-residents holding via a *Belgian
+     intermediary*; Finland exempts listed shares bought through a foreign remote
+     intermediary; Poland's PCC 1% exempts trades executed through a brokerage in
+     organised trading. `.AS`/`.OL`/`.BK` levy nothing. `.MX` levies no *transaction* tax —
+     its 10% BMV withholding is a tax on GAINS and out of scope for a field that
+     multiplies position value. **What is modelled is what a UK-resident IBKR account
+     pays, not what the venue's jurisdiction levies.** If residence or broker domicile
+     changes, revisit `.BR`/`.HE`/`.WA`.
+   - **`suffixOf` fixed** (`costModel.ts`): it split on the last `.`, reading **`BRK.B` as
+     exchange `.B`**. Now the known-suffix lookup runs first (length cannot discriminate —
+     `.L`/`.T`/`.F` are one-letter *exchanges*), and only an otherwise-unknown single
+     trailing letter is treated as a US share class. Multi-character unknowns stay on the
+     loud REVIEW path.
+   - **Blast radius beyond the pots:** `outcomeScoreboard`, `readoutHarness`,
+     `topBuysReport`, `dsrPboAudit` and `dumpPotCosts` all share this cost model, so every
+     net figure any of them has previously reported was understated. Re-run before quoting
+     any of them.
 
 ## Housekeeping
 
@@ -388,7 +412,7 @@ negative live Sharpe.
 STALE — the ledger keeps moving, three live scans a day.** As of **2026-08-16**: **105
 closed trades**, of which **91 are sizing-reliable** (see the resolved top-of-queue item);
 on that admissible basis **gross −0.479%/trade, 42% win, gross P&L £−115.05**, and
-**net of costs −0.967%/trade**. All-105 gross P&L is £−111.73. Any figure quoted from this
+**net of costs −0.971%/trade**. All-105 gross P&L is £−111.73. Any figure quoted from this
 section must carry its date and its basis. `potLedgerNet.ts` regenerates all of it.
 **⚠ `scratch_potSnapshotFxOnly.ts --apply` is NOT idempotent — never re-run it**; it would
 double-apply the deltas.

@@ -20,8 +20,9 @@
 import 'dotenv/config';
 import {
   costPositions, costPositionsWithSlippage, summarise,
-  SIZING_MIN_FRACTION, LedgerPosition, LedgerSummary, CostedPosition,
+  SIZING_MIN_FRACTION, LedgerPosition, LedgerSummary,
 } from '../potLedgerCosts';
+import { KNOWN_TAX_SUFFIXES } from '../costModel';
 
 async function page<T>(q: (f: number, t: number) => any): Promise<T[]> {
   const out: T[] = [];
@@ -150,12 +151,15 @@ async function main() {
   }
 
   // ── Symbols costModel has no tax rate for ──────────────────────────────────
+  // Coverage is derived from costModel's own table (KNOWN_TAX_SUFFIXES), not from a
+  // hand-maintained copy here — a duplicated list drifts silently the moment a rate is
+  // added, which is exactly the failure this check exists to catch. Single trailing
+  // letters are skipped: those are US share classes (BRK.B), not venues.
   const unpriced = [...new Set(rows.map(r => {
     const d = r.symbol.lastIndexOf('.');
     return d === -1 ? null : r.symbol.slice(d).toUpperCase();
   }).filter(Boolean) as string[])]
-    .filter(sfx => !['.L', '.IR', '.PA', '.MI', '.HK', '.SW', '.AX', '.TO', '.T', '.DE',
-                     '.F', '.SI', '.KS', '.KQ', '.NS', '.SA'].includes(sfx));
+    .filter(sfx => !KNOWN_TAX_SUFFIXES.has(sfx) && !/^\.[A-Z]$/.test(sfx));
   if (unpriced.length) {
     console.log(`\n⚠ suffixes with NO tax rate in costModel (taxed at 0 — understates cost): ${unpriced.join(', ')}`);
     const affected = rows.filter(r => unpriced.some(s => r.symbol.toUpperCase().endsWith(s)));
