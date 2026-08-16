@@ -5,38 +5,105 @@ Items carry their gate (what must happen first) because most of this backlog is
 time-gated, not effort-gated. History/evidence lives in the memory files and
 `DEEP_DIVE_PROGRESS.md`; this file is only what is still OPEN.
 
-## ⚠ TOP OF QUEUE — the pot ledger is GROSS of costs (found 2026-08-13, nothing done yet)
+## ✅ RESOLVED 2026-08-16 — the pot ledger now reads NET. Honest figure: −0.967%/trade
 
 **`PotService.ts` never imports `costModel.ts`.** Verified: it imports nothing at all, and
 `realisedPnl = returnSoFar × position_size_gbp` (`PotService.ts:701`) — pure price return,
 no cost term. `costModel` IS wired into `outcomeScoreboard`, `dsrPboAudit`,
-`readoutHarness`, `topBuysReport` and `dumpPotCosts` — **the pot ledger is the one consumer
-that misses it.**
+`readoutHarness`, `topBuysReport` and `dumpPotCosts` — **the pot ledger was the one consumer
+that missed it.** Fixed as a READ layer: `src/potLedgerCosts.ts` + `src/scripts/potLedgerNet.ts`.
 
-Measured drag over 105 closed positions: **0.535% of turnover, median 0.562%/trade**. So
-the recorded −0.35%/−0.45% per trade is a **pre-cost** number and the honest figure is
-roughly **−0.9%/trade — about twice as bad as the ledger says.** This is the baseline the
-October checkpoint gets judged against, so it must be right before any go/no-go.
+### The 14 impossible sizes: NOT a corrupt field. The audit inverted the plan.
 
-**BUT FIX THIS FIRST — 14 positions have impossible sizes.** `.NS`/`.BO` rows carry
-`position_size_gbp` of £4–£16 where the sizing rule (`portfolioValue / focus`) gives
-~£1,250 — out by roughly the INR/GBP rate (~105×):
+The framing here was "repair `position_size_gbp` before wiring costs, or the ratio inherits
+the artefact". **The repair was the wrong move and would have made things worse.**
+`scratch_potSizeAudit.ts` measured it:
 
-```
-pot 15  HDFCLIFE.NS    £4.57   round-trip cost £4.80 = 105.1%
-pot 15  BAJFINANCE.NS  £7.86   cost £4.80 =  61.1%
-pot 13  500510.BO      £9.83   cost £4.80 =  48.9%
-```
+1. **The invariant `position_size_gbp === shares × entry_price` (`PotService.ts:887-888`)
+   HOLDS on 185 of 185 rows**, the 14 included (ratio 1.000). The size field is an honest
+   record, not a corrupted one.
+2. **The prices are right.** `LT.NS` £31.8447 vs `500510.BO` £31.8518 — Larsen & Toubro on
+   NSE and BSE, agreeing to 0.02%. Currency conversion on the price side works.
+3. **The wrong input was the BUDGET, and the constant is exact.** Every one of the 14
+   implies a `portfolioValue` of ~**£78.63** where the snapshot records £10,000 — a uniform
+   **127.2×**, not the ~105× guessed above. Multiply size by focus and it is the same number
+   every time regardless of pot: 15.73×5 = 78.65, 9.83×8 = 78.64, 7.86×10 = 78.60,
+   39.32×2 = 78.64.
+4. **Same-day control inside pot 13** settles it: `KBANK.BK` and `PKO.WA` sized at £1,250.00
+   (= 10,000/8) on the genesis run while `500510.BO` sized at £9.83 (= 78.63/8). Same pot,
+   same day, same focus — only the INR names were mis-sized, so the sizing budget was
+   FX-converted on top of the price conversion that was already correct.
+5. **12 of the 14 carry FRACTIONAL `shares`** (1.08897, 0.246901, …), impossible under
+   `Math.floor` at `:882` — legacy code. The two dated 06-15 have integer shares, so the
+   sizing code changed between 06-14 and 06-15 while the budget defect survived it.
+6. **Bounded and unrepeatable:** no entry after 2026-06-15 is affected and **0 of 80 open
+   positions** are. It cannot recur.
 
-Same `.NS`/`.BO` family as the FX defect — including `500510.BO`, the symbol cross-validated
-during that repair. **The 2026-08-12 FX repair fixed realised P&L but NOT
-`position_size_gbp`.** These blow up any cost ratio (mean per-trade cost reads 5.539%
-against a 0.562% median purely from these rows). Wiring costs in without repairing them
-first produces a number as misleading as the £11,995 phantom was.
+**Consequence: do not rewrite them.** Rewriting `position_size_gbp` would BREAK the
+invariant that currently holds, and keeping the row coherent would mean inventing `shares`
+and `realised_pnl` too — fabricating trades that never happened. They are honest records of
+genuinely tiny trades. Flag, report, and state the basis; do not filter silently.
 
-**Sequence:** audit the 14 rows → repair sizes (previewed, not applied, as with the FX fix)
-→ wire `roundTripCost` into the ledger → re-read all closed trades net.
-Scripts: `scratch_potCostVerify.ts`, `scratch_potMicro.ts`.
+**⚠ A risk this raised and CLOSED, in the safe direction.** 13 of the 14 overlap the
+FX-repair window, and `scratch_potFxRepairPreview.ts:38` wrote
+`newRet = newPnl / position_size_gbp` — so a corrupt size would have corrupted the repaired
+RETURNS too. It didn't: since size is exactly `shares × entry_price`, that reduces to
+`shares×(exit−entry) / (shares×entry)` and **the shares cancel**. `realised_return_pct` was
+never contaminated. Worth having checked; it could as easily have gone the other way.
+
+### The numbers
+
+Threshold for `sizingReliable` is audited, not assumed — worst flagged row 0.0079, best
+reliable row 0.5961, threshold 0.20 in the empty gap between: **75.8× separation, clean
+split**. (0.596 is itself a confirmation of the mechanism: `Math.floor(positionGBP /
+entryPrice)` puts the floor for a *legitimate* row at ~0.5.)
+
+| basis | n | cost % | gross | **net** |
+|---|---|---|---|---|
+| **ADMISSIBLE** (reliable rows, costed as traded) | 91 | 0.488% | −0.479% | **−0.967%** |
+| IMPUTED (all rows, costed at intended size) | 105 | 0.460% | −0.349% | −0.809% |
+| naive (all rows as traded — artefact intact) | 105 | 0.535% | −0.349% | −0.883% |
+
+**Quote ADMISSIBLE, −0.967%/trade.** Not because the imputation is unsound but because the
+cohort is **14 rows over 5 distinct symbols on 2 days** (BAJFINANCE.NS ×5, 500510.BO ×5,
+HDFCLIFE.NS ×2, BPCL, LT). Its gross mean of +0.495% against a median of −3.157% is one
+good BAJFINANCE print counted five times across five pots — the roster-overlap problem
+already recorded below, in miniature. Those rows add correlated repeats, not information.
+
+**⚠ A prediction of mine the measurement REFUTED.** I argued the imputation would be biased
+low, because `.NS`/`.BO` pay the £3.20 FX minimum plus Indian stamp and so would cost *more*
+than the blend at intended sizing. Measured: the cohort at intended size costs **0.376%**
+against the 0.488% blend — **cheaper**, because costModel's Indian STT (0.01%/side) is far
+below UK SDRT (0.5% buy) and the fixed floors dilute at £1,000–5,000. The imputed basis is
+generous, not conservative.
+
+### And the honest number is worse than −0.967% by an unquantified amount
+
+- **Pessimistic bound with latency slippage: −1.029%** (headline uses
+  `slippageBpsPerLeg = 0`; no measured latency data yet — same convention as
+  `dumpPotCosts.ts`).
+- **costModel has NO tax rate for 11 exchange suffixes covering 27 of 105 closed positions
+  (26%)** — see the new open item under Near-term.
+- **The measured close-to-next-open signal decay (D5 ~11.6–24.9bps) is not in costModel**
+  and so is in none of these figures.
+
+**Realistically −1.0% to −1.3%/trade net. That is the baseline the October checkpoint gets
+judged against.**
+
+### What was deliberately NOT done
+
+`PotService.ts:701` is untouched. Deducting cost inside `realisedPnl` propagates through
+`totalRealisedPnl` (`:845`) → `portfolioValue` (`:822`) → `positionGBP = portfolioValue / F`
+(`:876`), i.e. it changes how every future position is SIZED. That is a behavioural change
+to a live paper-trading system and would split the record into non-comparable halves — the
+same trap the 2026-07-07 accumulator rebase created. With 24 R2 pots at **0 closed trades**
+accruing the data October depends on, a second discontinuity now would be expensive. If the
+pots should trade net of costs, that is a deliberate decision at the checkpoint with its own
+clock reset, not a side effect of a reporting fix.
+
+Scripts: `potLedgerNet.ts` (the readout), `potLedgerCosts.ts` (the module),
+`scratch_potSizeAudit.ts` (the audit that inverted the plan), `scratch_potCostVerify.ts`,
+`scratch_potCostNet.ts`, `scratch_potMicro.ts`.
 
 ## Near-term (this week / next)
 
@@ -226,6 +293,25 @@ Scripts: `scratch_potCostVerify.ts`, `scratch_potMicro.ts`.
    cutoffs, so refitting them may dissolve or worsen it. Decide then whether
    `ambitionTier`'s `minReturn` ladder needs rescaling to the refitted distribution.
 
+7. **costModel has no tax rate for 11 exchange suffixes — 26% of closed trades are taxed
+   at zero** *(found 2026-08-16 while wiring the pot ledger net; no gate)*
+   `taxRate()` falls through to `{ buy: 0, sell: 0, note: 'unlisted exchange … (REVIEW)' }`
+   for `.SS .OL .BR .BO .HE .WA .MX .AS .SZ .TW .BK` — **27 of 105 closed pot positions**
+   (the readout reports a twelfth, `.B`, which is the `BRK.B` parsing bug below, not an
+   exchange).
+   Several of those markets do levy transaction taxes (Taiwan sell-side, Belgium's TOB,
+   Chinese stamp, and BSE's STT — which `.NS` gets but `.BO` does not, despite 5 of the
+   genesis-cohort rows being `500510.BO`). **Every net figure the project quotes is
+   understated by an unquantified amount**, including the −0.967%/trade above and anything
+   from `outcomeScoreboard` / `readoutHarness` / `topBuysReport`. Rates were not verified
+   here — verify current statutory rates before adding them, do not fill blind.
+   - **Separate parsing bug in the same function:** `suffixOf` (`costModel.ts:103`) splits
+     on the last `.`, so **`BRK.B` is read as exchange suffix `.B`**. Impact for BRK.B
+     specifically is negligible (US tax is ~0 and `needsFx` still correctly returns true),
+     but the mechanism is wrong and bites any dotted US share class. Fix by matching known
+     exchange suffixes rather than "whatever follows the last dot".
+   Reported by `potLedgerNet.ts`, which lists the affected suffixes and symbols on every run.
+
 ## Housekeeping
 
 - **`npm run lint` was red all day and is now green** (fixed 2026-08-13). 12 errors, all in
@@ -294,11 +380,16 @@ from the symbol at wiring time.
 
 ## Pot ledger: FX residue repair — APPLIED (2026-08-12), verified 2026-08-13
 
-**Status: done.** The repair and the snapshot correction were both applied. Ledger as of
-2026-08-13: **n=84 closed trades, total £−43, pooled mean −0.448%/trade, 40% win**, 5 of
-12 pots with ≥8 closed trades. The phantom £11,995 is gone and the real result is
-slightly negative — consistent with the trial log's negative live Sharpe, and the honest
-baseline the checkpoint will be judged against.
+**Status: done.** The repair and the snapshot correction were both applied. The phantom
+£11,995 is gone and the real result is slightly negative — consistent with the trial log's
+negative live Sharpe.
+
+**⚠ The figures once recorded here (n=84, £−43, −0.448%/trade, 40% win, 2026-08-13) are
+STALE — the ledger keeps moving, three live scans a day.** As of **2026-08-16**: **105
+closed trades**, of which **91 are sizing-reliable** (see the resolved top-of-queue item);
+on that admissible basis **gross −0.479%/trade, 42% win, gross P&L £−115.05**, and
+**net of costs −0.967%/trade**. All-105 gross P&L is £−111.73. Any figure quoted from this
+section must carry its date and its basis. `potLedgerNet.ts` regenerates all of it.
 **⚠ `scratch_potSnapshotFxOnly.ts --apply` is NOT idempotent — never re-run it**; it would
 double-apply the deltas.
 
@@ -841,15 +932,21 @@ batches all of it, then the checkpoint clock restarts once)*
   output collapses to ~82 distinct values over 261 rows (30-symbol identical buckets —
   the "static bucketing" a 2026-08-10 external audit flagged; `scratch_dupeCheck.ts`).
   Either upgrade it in the bundle or stop displaying it.
-- **POT ROSTER RE-SPEC (analysis 2026-08-12; `historic_pots_ranges*.py`,
-  `historic_pots_shrinkage.py`). ⚠ GATE CORRECTED SAME DAY — deploy NOW, not in October.**
-  Originally filed here because the checkpoint is open. That was wrong: pots are
-  paper-traded and touch no model, so adding them cannot reset the checkpoint or affect
-  inference. The October gate belongs to retrain-COUPLED items only. Waiting is actively
-  costly — a 2W pot needs ~2 weeks per outcome and a 3M pot a quarter, so an October
-  deployment reads out with ~zero closed trades, whereas deploying now gives October ~10
-  weeks of 2W data. Roster built and dry-run clean in `scratch_potRosterDeploy.ts`
-  (24 pots, no trait collisions with the existing 20); `--apply` needs a human to run it.
+- **POT ROSTER RE-SPEC — ✅ DEPLOYED. Verified live 2026-08-16 (`scratch_potRosterList.ts`).**
+  **44 pots exist: the legacy 20 plus `R2 *` at pot_id 21–44.** The R2 cohort holds **30
+  open positions and 0 closed** — so it is accruing exactly the 2W data October needs, and
+  nothing it holds is readable yet. (12 of the 24 hold nothing at all so far, which is
+  expected this early and not evidence about their traits.) The deployed set is wider than
+  the 12-row table below: it adds `Bold-3/6/8`, `Ratio-0.5/1.5/2.5/3.5`, `Fast-Bold-5/7/9`
+  and `Wide-Ratio-1/3`, i.e. the one-factor ladders were filled in rather than sampled.
+  **Do not re-run `scratch_potRosterDeploy.ts --apply`** — the roster is already in place
+  and a second run would duplicate it.
+
+  *(analysis 2026-08-12; `historic_pots_ranges*.py`, `historic_pots_shrinkage.py`. Gate was
+  corrected the same day — deploy NOW, not in October — because pots are paper-traded and
+  touch no model, so adding them cannot reset the checkpoint or affect inference. The
+  October gate belongs to retrain-COUPLED items only. That reasoning is what made the
+  deployment right, and is kept because it applies to any future roster change.)
 
   *Out-of-sample first, because picking the best of 770,000 configs is selection on noise.*
   Selecting on the first half of events and measuring on the second retained **~75%**
