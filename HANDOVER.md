@@ -1,110 +1,141 @@
-# Session handover — written 2026-08-16
+# Session handover — updated 2026-08-16 (evening)
 
-Written at the end of a long session so the next one starts from the written record rather
-than from recollection. **This file is deliberately short. It does not restate `TODO.md`,
-which is the canonical backlog and was updated throughout.** Read `TODO.md` first; this
-only covers what that file can't tell you.
+Written so the next session starts from the written record rather than from recollection.
+**Deliberately short. It does not restate `TODO.md`, which is the canonical backlog and was
+updated throughout.** Read `TODO.md` first; this only covers what that file can't tell you.
 
-> **Date note.** The session ran from **2026-08-13 to 2026-08-16**. Findings annotated
-> "2026-08-13" in `TODO.md` are correctly dated — that is when they were measured. But
-> anything time-sensitive is now **three days staler than those notes imply**: in
-> particular the 2D expansion readout was measured on the 13th with 3 of the required 10
-> days, so **re-run `expansionReadout.ts` before quoting it**. Gate dates below are
-> unchanged and still in the future.
+> **Two sessions are folded into this file.** Session 1 ran 2026-08-13 → 08-16 (~22 commits,
+> `94d9ab9` → `23a36bc`). Session 2 ran the evening of 2026-08-16 (4 commits,
+> `eff487a` → `770a435`) and closed the top of the queue. Where they conflict, session 2 wins.
 
 ---
 
 ## State
 
-- Working tree **clean**, everything **pushed** to `feature/local-development`.
-- `npm run lint` is **green** (it had been red all day with 12 pre-existing errors).
-- ~20 commits today, `94d9ab9` → `3fea102`.
+- Working tree **clean** except `trading-rules/` (untracked, yours). Everything **pushed** to
+  `feature/local-development`, currently at **`770a435`**.
+- `npm run lint` (`tsc --noEmit`) **green**.
 - Live system runs in **GitHub Actions** and needs nothing local. Scans fire 07:00 / 15:30 /
   20:00 UTC (currently ~40–55 min late).
-- `origin/HEAD` was a stale clone-time cache pointing at `main`; corrected to
-  `feature/local-development`. **`main` is a genuine orphan** — last commit 2026-06-05, no
-  `PotService.ts`, no workflows, 252 commits behind. Never merge to it.
+- **`main` is a genuine orphan** — last commit 2026-06-05, no `PotService.ts`, no workflows,
+  250+ commits behind. Never merge to it.
 
 ---
 
 ## Start here
 
-**The pot ledger is gross of trading costs** — top section of `TODO.md`. `PotService.ts`
-never imports `costModel.ts`, so the recorded −0.35%/−0.45% per trade is pre-cost and the
-honest number is ~**−0.9%/trade**. But **14 `.NS`/`.BO` positions carry impossible sizes
-(£4–£16 against a ~£1,250 rule)** and must be repaired first or the net figure inherits the
-artefact. Sequence and evidence are in `TODO.md`.
+**Everything unblocked is done. The next real item is the risk-score + tier-cutoff refit,
+gated ~2026-08-21 — and it is PRE-REGISTERED.**
 
-Everything else on the backlog is **date-gated**: 2D expansion ~08-20, risk-score + tier-cutoff
-refit ~08-21, 2W expansion ~08-23, benchmark 2W ~08-27, trend overlay ~early Sept, checkpoint
-October.
+> **Read `PREREG_2026-08-21_riskscore_refit.md` before running any part of it.** Acceptance
+> criteria, the frozen candidate list and the abandon-conditions are fixed there ahead of the
+> data, deliberately, because the middle part is a best-of-N selection on live data — the
+> exact shape that produced the v15 false positive. Do not amend that file in place; an
+> amendment must be a separate later commit stating what changed and why.
 
----
+Two things it settles that are **not** obvious from `TODO.md`:
 
-## What today established (detail in `TODO.md` / commit messages)
+1. **The obvious success test cannot fail.** Refitting percentiles on live output makes the
+   result uniform *by construction*. The real gate is whether live Model C has ≥50 distinct
+   values at all — Model A has 12 across 684 rows, Model B has 69.
+2. **Only A1/A2/C1 can honestly be decided on 08-21.** Post-parity maturity is **n=0 on every
+   horizon**; 2W first matures ~08-23, so the confidence-term and beat-the-baseline decisions
+   land in **early September**.
 
-Four data-driven claims tested, **all four negative** — leakage removal −0.0007, pre-2021 row
-drop −0.0060, corrected labels −0.0028, D5 subsampling −0.0108. **v9.4 stays.** The consistent
-lesson is that data hygiene is not what's binding; elapsed time is.
+Small unblocked leftovers, none urgent: the `£50` default in `outcomeScoreboard` /
+`dsrPboAudit` (see below), and a re-run of `expansionReadout.ts` (more informative nearer its
+~08-20 gate).
 
-Closed decisions: re-extraction source (**line 301 stays** — the join retains only 3.9% of the
-rows it exists to repair, because corrupt rows' event *dates* are artefacts of monthly bars);
-benchmark mode (**stay on SPY**, 2D t=−3.36); expanded-scan health (**fine**).
-
-New live findings: **tier cutoffs are miscalibrated live** (56.9% of rows resolve BUY-or-better
-against a ~20% design target — folded into the 08-21 refit); **pots ignore the trend-opposition
-downgrade** (audit trail fixed, behavioural decision deferred); **Model A emits 12 distinct
-values across 684 live rows**, Model B 69.
+Gate calendar: 2D expansion ~08-20 · **refit ~08-21** · 2W expansion ~08-23 · benchmark 2W
+~08-27 · trend overlay ~early Sept · **checkpoint October**.
 
 ---
 
-## Things I got wrong today — don't re-derive them
+## What session 2 established
 
-1. **"Removing leakage costs −0.0060 / Model B is memorisation."** False. Caused by a
-   mis-specified arm that dropped `stocktwits_virality_z` (a *good* feature) while leaving
-   five real leaks in. Corrected in memory.
-2. **"D5 prediction diversity collapsed 58.9%→36.1%."** Measurement artefact — distinct-share
-   is not scale-invariant and I compared unmatched *n*. At matched n=91 it's 80%. Healthy.
-3. **"Fabricated labels are the most consequential finding today."** Overstated. Day-clustered
-   IC is rank-based, so tied blocks at 0.0 barely move it — the anchor shift is ~0.002.
-4. **"§13.2 broker/cost is the project's unanswered critical path"** (in the trading-rules
-   review). Wrong — `costModel.ts` answered it on 2026-07-24. **Grep before asserting
-   something doesn't exist.**
+- **The pot ledger reads NET now.** `src/potLedgerCosts.ts` + `src/scripts/potLedgerNet.ts`.
+  Honest figure **−0.971%/trade** on the admissible basis (91 sizing-reliable of 105 closed);
+  −1.034% with the slippage bound; worse still once the un-modelled signal decay is allowed
+  for. `PotService.ts:701` is deliberately **untouched** — deducting cost there would change
+  how every future position is sized.
+- **⚠ THE PLANNED SIZE REPAIR WAS REFUTED. Do not redo it.** `TODO.md` had said to repair 14
+  `.NS`/`.BO` rows carrying £4–16 sizes. The invariant `position_size_gbp === shares ×
+  entry_price` **holds on 185 of 185 rows**. The wrong input was the sizing *budget*
+  (~£78.63 against a recorded £10,000, a uniform 127.2×), proven by a same-day control inside
+  pot 13. They are honest records of tiny trades; rewriting them would have broken the
+  invariant and required inventing `shares` and `realised_pnl`.
+- **costModel's tax table was wrong in a way that had nothing to do with the missing rows.**
+  `.NS` read `0.0001` while its own note said "~0.1%" — **out by 10×** since it was written.
+  Eleven missing exchanges added, `.BO` added, `BRK.B` suffix-parsing fixed. Consequence
+  beyond the pots: `outcomeScoreboard`, `readoutHarness`, `topBuysReport`, `dsrPboAudit` and
+  `dumpPotCosts` all share this model, so any net figure they reported before `f19dc35` was
+  understated.
+- **⚠ AT REALISTIC SIZE, TIER SELECTION SUBTRACTS VALUE.** `dsrPboAudit --position 1250`, 29
+  run_dates: the unselective baseline is the **only positive variant** (+0.466%, Sharpe
+  +0.240) against STRONG_BUY −0.976%, actionable −1.128%, top-10/day −1.232%, top-3/day
+  −2.267%. Pre-parity and overlapping, so not a verdict — but it raised the bar in the prereg
+  from "occupancy is correct" to "must beat picking nothing."
+- **The `£50` default is doing real damage to how reports read.** At £50 the fixed IBKR floors
+  are ~930–975bps. `readoutHarness` and `topBuysReport` document this; `outcomeScoreboard`
+  prints "**loses to cost ✗**" with no size caveat where £1,250 gives "**clears cost ✓**" on
+  the same 641 rows, and `dsrPboAudit` prints absolute Sharpes at that size. Not fixed.
+- **Four `TODO.md` items were stale against live state** — ledger figures frozen at 08-13
+  (105 closed now, not 84), the R2 pot roster listed as un-deployed (it is live: 44 pots,
+  R2 at 21–44, 30 open / 0 closed), item 5's audit trail already fixed in code, and the
+  power-budget "highest-leverage, not gated" claim overtaken by its own follow-ups.
+  **Grep or query before trusting a dated claim in that file.**
 
-**The methodological win:** the D5 subsampling result looked clean at 4/4 folds and was a
-best-of-five selection effect. It was caught **only** because the hypothesis was pre-registered
-and committed (`e02fe56`) before the confirmatory run (`f5ff036`). Keep doing that.
+---
+
+## Things we got wrong — don't re-derive them
+
+**Session 2:**
+
+1. **"The measurement refutes my prediction."** It did not — **the instrument was broken.** I
+   predicted `.NS`/`.BO` would cost more than the blend, measured the opposite (0.376% vs
+   0.488%), and recorded the prediction as refuted. The 10× India error was the cause;
+   corrected, it is 0.564% vs 0.493% and the original prediction was right. **A measurement
+   that contradicts a well-reasoned prior is a reason to audit the instrument, not only the
+   prior.**
+2. **Near-miss worth remembering:** I first proposed baking the 14-row exclusion in as a
+   hardcoded predicate. That is the same shape as this project's recurring failure mode —
+   the empty ClinicalTrials roster, the query truncated at 1,000 rows, CI failures swallowed
+   into warnings. Changed to a reported flag emitting *both* bases. Prefer visible over tidy.
+3. Said the R2 roster held 24 open positions; it holds **30**.
+
+**Session 1** (still worth not re-deriving):
+
+4. **"Removing leakage costs −0.0060 / Model B is memorisation."** False — mis-specified arm
+   that dropped a *good* feature (`stocktwits_virality_z`) while leaving five real leaks in.
+5. **"D5 prediction diversity collapsed 58.9%→36.1%."** Measurement artefact: distinct-share
+   is not scale-invariant and the *n* were unmatched. At matched n=91 it is 80%. Healthy.
+6. **"Fabricated labels are the most consequential finding."** Overstated — day-clustered IC
+   is rank-based, so tied blocks at 0.0 barely move it. Anchor shift ~0.002.
+7. **"§13.2 broker/cost is the unanswered critical path."** Wrong — `costModel.ts` answered it
+   on 2026-07-24. **Grep before asserting something doesn't exist.**
+
+**The methodological through-line:** the v15 D5 result looked clean at 4/4 folds and was a
+best-of-five selection effect, caught **only** because the hypothesis was committed
+(`e02fe56`) before the confirmatory run (`f5ff036`). That is why the 08-21 refit is
+pre-registered. Keep doing this.
 
 ---
 
 ## `trading-rules/` — reviewed, not implemented
 
-User added a spec for a future live-trading accounting engine (`SPEC.md`, `CLAUDE.md`,
-`BUILD-PHASE-1.md`) and asked for a review only. **No code was written and none should be
-without an explicit instruction.**
+> **PARKED — do not lead with this.** Your words on 2026-08-16: *"not too fussed about trading
+> rules atm, I just wanted to get it to a good point for now."* Raise it only if asked.
+> `trading-rules/` is still **untracked** — yours to commit, not the assistant's.
 
-> **PARKED — do not lead with this.** The user's words on 2026-08-16: *"not too fussed about
-> trading rules atm, I just wanted to get it to a good point for now."* It is a future-phase
-> concern, deliberately set aside. The top of the queue is the cost/ledger item above. Raise
-> trading-rules only if asked. `trading-rules/` is also still **untracked** — the user's to
-> commit, not yours.
-
-Review verdict, recorded so it doesn't need redoing:
-
-- Genuinely good work. §1.4 friction wall, §1.3.3/§1.3.4 HWM arithmetic, §6.3.4 suspension
-  ring-fencing and §4.6.2 limit-in/stop-market-out are all correct and non-obvious.
-- **The container is not the binding constraint — §13.4 (the signal) is**, and the spec says so
-  itself. `E[G]` in pounds does not exist; §2.6.4's calibration guard would likely halt on
-  contact with today's model.
-- Concrete gaps: no stop-loss *level* in §4.6, no time-based exit, no signal-reversal exit
-  (all three exist already in `PotService` — `HORIZON_STOP_FLOOR`, `patienceHorizon`,
-  reactivity exits — so the spec is behind the code).
-- `LOSS_STREAK_HALT = 4` at the measured 40% win rate fires ~13% of four-trade windows.
-- §2.6.4 uses mean/mean; should be median or trimmed, given this project's history of
-  outlier-driven results (t +4.61 → −0.42 on dropping the top 1%).
-- §13.1's stamp-duty-avoidance analysis is aimed at a smaller problem than assumed: the
-  universe is only **34% US** (471/1,397) but the dominant cost is the **£3.20 FX minimum**,
-  not stamp.
+Review verdict, recorded so it needn't be redone: genuinely good work (§1.4 friction wall,
+§1.3.3/§1.3.4 HWM arithmetic, §6.3.4 suspension ring-fencing, §4.6.2 limit-in/stop-market-out
+are all correct and non-obvious). **The container is not the binding constraint — §13.4, the
+signal, is**, and the spec says so itself. Concrete gaps: no stop-loss *level* in §4.6, no
+time-based exit, no signal-reversal exit — all three already exist in `PotService`, so the
+spec is behind the code. `LOSS_STREAK_HALT = 4` at the measured 40% win rate fires ~13% of
+four-trade windows. §2.6.4 uses mean/mean and should be median or trimmed. §13.1's
+stamp-duty analysis targets the wrong cost — the universe is only 34% US and the dominant
+cost is the **£3.20 FX minimum**, not stamp.
 
 ---
 
@@ -115,11 +146,14 @@ Review verdict, recorded so it doesn't need redoing:
   tier it overwrites irreplaceable FMP premium enrichment with nulls. Premium expired
   2026-07-06. See memory `fmp-premium-data-preservation`.
 - **Never re-run `scratch_potSnapshotFxOnly.ts --apply`** — not idempotent, double-applies.
+- **Never re-run `scratch_potRosterDeploy.ts --apply`** — the R2 roster is already live; a
+  second run would duplicate it.
 - No commits, deploys or live-DB writes without explicit sign-off. Preview-then-apply is the
   house pattern for any ledger repair.
 - No `--no-verify`, no force push, no amends; new commits only.
-- `market_cache.db` is 2.7 GB, gitignored, local-only, and **no CI script may touch it**.
-  `MAX(date)` on `daily_prices` does not return inside 180 s — use Supabase or Yahoo instead.
+- `market_cache.db` is 2.7 GB, gitignored, local-only. A CI-reachable script must open it
+  **readonly or not at all** — `new Database(p)` read-write CREATES an empty file.
+  `MAX(date)` on `daily_prices` does not return inside 180 s; use Supabase or Yahoo.
 
 ---
 
@@ -128,6 +162,8 @@ Review verdict, recorded so it doesn't need redoing:
 | what | where |
 |---|---|
 | Canonical backlog, every open item + its gate | `TODO.md` |
+| The 08-21 refit's fixed acceptance criteria | `PREREG_2026-08-21_riskscore_refit.md` |
+| Net-of-cost pot ledger | `npx tsx src/scripts/potLedgerNet.ts` |
 | Durable cross-session facts | `~/.claude/projects/.../memory/` + `MEMORY.md` index |
 | Evidence and reasoning for any finding | the commit message that introduced it |
 | Model experiment results | `src/ml/scratch/*.csv` (gitignored; numbers are in commits) |
