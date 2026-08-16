@@ -81,7 +81,15 @@ and committed (`e02fe56`) before the confirmatory run (`f5ff036`). Keep doing th
 
 User added a spec for a future live-trading accounting engine (`SPEC.md`, `CLAUDE.md`,
 `BUILD-PHASE-1.md`) and asked for a review only. **No code was written and none should be
-without an explicit instruction.** Review verdict:
+without an explicit instruction.**
+
+> **PARKED — do not lead with this.** The user's words on 2026-08-16: *"not too fussed about
+> trading rules atm, I just wanted to get it to a good point for now."* It is a future-phase
+> concern, deliberately set aside. The top of the queue is the cost/ledger item above. Raise
+> trading-rules only if asked. `trading-rules/` is also still **untracked** — the user's to
+> commit, not yours.
+
+Review verdict, recorded so it doesn't need redoing:
 
 - Genuinely good work. §1.4 friction wall, §1.3.3/§1.3.4 HWM arithmetic, §6.3.4 suspension
   ring-fencing and §4.6.2 limit-in/stop-market-out are all correct and non-obvious.
