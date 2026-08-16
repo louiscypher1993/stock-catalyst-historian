@@ -8021,10 +8021,10 @@
   "2144751": "CTNKY",
   "2144761": "MTBOY",
   "_note": "Accumulated CIK->ticker map. SEC prunes delisted companies from company_tickers.json, so this copy is merge-only and never pruned — that is what keeps a delisted name resolvable after the fact.",
-  "_built": "2026-08-11T20:42:52.514Z",
+  "_built": "2026-08-16T06:54:23.517Z",
   "_counts": {
     "retained": 8021,
-    "inCurrentSecFile": 10387,
-    "absentFromSecNow": 24
+    "inCurrentSecFile": 10398,
+    "absentFromSecNow": 23
   }
 }
