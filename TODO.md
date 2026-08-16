@@ -5,6 +5,39 @@ Items carry their gate (what must happen first) because most of this backlog is
 time-gated, not effort-gated. History/evidence lives in the memory files and
 `DEEP_DIVE_PROGRESS.md`; this file is only what is still OPEN.
 
+## ⚠ TOP OF QUEUE — the pot ledger is GROSS of costs (found 2026-08-13, nothing done yet)
+
+**`PotService.ts` never imports `costModel.ts`.** Verified: it imports nothing at all, and
+`realisedPnl = returnSoFar × position_size_gbp` (`PotService.ts:701`) — pure price return,
+no cost term. `costModel` IS wired into `outcomeScoreboard`, `dsrPboAudit`,
+`readoutHarness`, `topBuysReport` and `dumpPotCosts` — **the pot ledger is the one consumer
+that misses it.**
+
+Measured drag over 105 closed positions: **0.535% of turnover, median 0.562%/trade**. So
+the recorded −0.35%/−0.45% per trade is a **pre-cost** number and the honest figure is
+roughly **−0.9%/trade — about twice as bad as the ledger says.** This is the baseline the
+October checkpoint gets judged against, so it must be right before any go/no-go.
+
+**BUT FIX THIS FIRST — 14 positions have impossible sizes.** `.NS`/`.BO` rows carry
+`position_size_gbp` of £4–£16 where the sizing rule (`portfolioValue / focus`) gives
+~£1,250 — out by roughly the INR/GBP rate (~105×):
+
+```
+pot 15  HDFCLIFE.NS    £4.57   round-trip cost £4.80 = 105.1%
+pot 15  BAJFINANCE.NS  £7.86   cost £4.80 =  61.1%
+pot 13  500510.BO      £9.83   cost £4.80 =  48.9%
+```
+
+Same `.NS`/`.BO` family as the FX defect — including `500510.BO`, the symbol cross-validated
+during that repair. **The 2026-08-12 FX repair fixed realised P&L but NOT
+`position_size_gbp`.** These blow up any cost ratio (mean per-trade cost reads 5.539%
+against a 0.562% median purely from these rows). Wiring costs in without repairing them
+first produces a number as misleading as the £11,995 phantom was.
+
+**Sequence:** audit the 14 rows → repair sizes (previewed, not applied, as with the FX fix)
+→ wire `roundTripCost` into the ledger → re-read all closed trades net.
+Scripts: `scratch_potCostVerify.ts`, `scratch_potMicro.ts`.
+
 ## Near-term (this week / next)
 
 1. **Risk-score re-evaluation** *(gate: ~10 trading days of post-parity data, ~2026-08-21)*
