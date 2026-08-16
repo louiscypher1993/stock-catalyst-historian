@@ -1,9 +1,16 @@
-# Session handover — 2026-08-13
+# Session handover — written 2026-08-16
 
 Written at the end of a long session so the next one starts from the written record rather
 than from recollection. **This file is deliberately short. It does not restate `TODO.md`,
 which is the canonical backlog and was updated throughout.** Read `TODO.md` first; this
 only covers what that file can't tell you.
+
+> **Date note.** The session ran from **2026-08-13 to 2026-08-16**. Findings annotated
+> "2026-08-13" in `TODO.md` are correctly dated — that is when they were measured. But
+> anything time-sensitive is now **three days staler than those notes imply**: in
+> particular the 2D expansion readout was measured on the 13th with 3 of the required 10
+> days, so **re-run `expansionReadout.ts` before quoting it**. Gate dates below are
+> unchanged and still in the future.
 
 ---
 
