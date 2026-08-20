@@ -1,19 +1,22 @@
-# Session handover — updated 2026-08-16 (evening)
+# Session handover — updated 2026-08-20
 
 Written so the next session starts from the written record rather than from recollection.
 **Deliberately short. It does not restate `TODO.md`, which is the canonical backlog and was
 updated throughout.** Read `TODO.md` first; this only covers what that file can't tell you.
 
-> **Two sessions are folded into this file.** Session 1 ran 2026-08-13 → 08-16 (~22 commits,
-> `94d9ab9` → `23a36bc`). Session 2 ran the evening of 2026-08-16 (4 commits,
-> `eff487a` → `770a435`) and closed the top of the queue. Where they conflict, session 2 wins.
+> **Three sessions are folded into this file; the latest wins on any conflict.** Session 1
+> ran 2026-08-13 → 08-16 (~22 commits, `94d9ab9` → `23a36bc`). Session 2 ran the evening of
+> 2026-08-16 (5 commits, `eff487a` → `00a19f5`) and closed the top of the queue. Session 3 ran
+> 2026-08-20: re-measured the expansion gate and confirmed the refit is ready to run.
 
 ---
 
 ## State
 
-- Working tree **clean** except `trading-rules/` (untracked, yours). Everything **pushed** to
-  `feature/local-development`, currently at **`770a435`**.
+- Working tree **clean** except `trading-rules/` (untracked, yours) and
+  `src/scripts/scratch_refitReadiness.ts`. Everything else **pushed** to
+  `feature/local-development`. Check `git log -1` for the tip rather than trusting a hash
+  written here — the commit that updates this file always post-dates the line describing it.
 - `npm run lint` (`tsc --noEmit`) **green**.
 - Live system runs in **GitHub Actions** and needs nothing local. Scans fire 07:00 / 15:30 /
   20:00 UTC (currently ~40–55 min late).
@@ -42,12 +45,19 @@ Two things it settles that are **not** obvious from `TODO.md`:
    horizon**; 2W first matures ~08-23, so the confidence-term and beat-the-baseline decisions
    land in **early September**.
 
-Small unblocked leftovers, none urgent: the `£50` default in `outcomeScoreboard` /
-`dsrPboAudit` (see below), and a re-run of `expansionReadout.ts` (more informative nearer its
-~08-20 gate).
+Small unblocked leftover, not urgent: the `£50` default in `outcomeScoreboard` /
+`dsrPboAudit` (see below). `expansionReadout.ts` was re-run 2026-08-20 — result in `TODO.md`.
 
-Gate calendar: 2D expansion ~08-20 · **refit ~08-21** · 2W expansion ~08-23 · benchmark 2W
-~08-27 · trend overlay ~early Sept · **checkpoint October**.
+**⚠ GATE DATES ARE COUNTS, NOT DATES — stop writing them as dates.** The 2D expansion gate
+has now slipped twice (08-11 → ~08-20 → ~08-24) because the rule is ≥10 days with ≥5 rows,
+and that accrues slower than the calendar: each day needs enough rows AND time to mature.
+Re-measure before quoting any of these.
+
+Gate calendar (best estimates 2026-08-20): 2D expansion **~08-24** (8 of 10 days) ·
+**refit ~08-21, READY — 773 clean post-parity rows over 11 run_dates, A1's ≥400 gate met** ·
+2W expansion **September** (08-23 is when its clock STARTS — 0 matured rows today, then ≥10
+qualifying days on top) · benchmark 2W ~08-27 · trend overlay ~early Sept ·
+**checkpoint October**.
 
 ---
 

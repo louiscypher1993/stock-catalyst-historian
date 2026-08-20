@@ -159,16 +159,31 @@ Scripts: `potLedgerNet.ts` (the readout), `potLedgerCosts.ts` (the module),
      *Caveat: n=418 over ~4 days, and 50% of live rows are quarantined so this is a
      selected subset. Re-measure at the ~08-21 refit rather than treating 4 days as final.*
 2. **Expansion cohort readouts** (`expansionReadout.ts`)
-   - 2D: **gate does NOT open 2026-08-11 — corrected 2026-08-13.** Maturities have
-     started, but the rule needs ≥10 days with ≥5 rows and there are **3**. Realistic
-     date ~2026-08-20. Measured post-parity so far: day-IC **−0.1391 (t=−1.01, 327
-     matured rows, 3 days)** against a +0.083 anchor — same sign as the pre-parity
-     cohort's −0.1256, so the early read is unpromising but nowhere near significant.
-     Quarantine stays regardless; nothing to decide yet.
-   - 2W: ~2026-08-23 → the un-quarantine decision for the +1,183 expansion symbols.
-     Positive day-IC over ≥10 days = open pots/notifications to the cohort; anything
-     else = stays display-only. Pre-parity cohort IC was NEGATIVE (broken regime) —
-     do not blend regimes.
+   - 2D: **gate has now slipped TWICE — 08-11 → ~08-20 → ~2026-08-24 (re-measured
+     2026-08-20).** The rule needs ≥10 days with ≥5 rows; post-parity has **8**. The
+     count accrues slower than the calendar because each day needs ≥5 rows AND two days
+     to mature, so quote a day count, never a date. 08-20 is a Thursday — Fri gives 9,
+     Mon 08-24 gives 10.
+
+     | 2D post-parity | day-IC | t | rows | days |
+     |---|---|---|---|---|
+     | measured 2026-08-13 | −0.1391 | −1.01 | 327 | 3 |
+     | **measured 2026-08-20** | **−0.0395** | **−0.51** | 638 | 8 |
+
+     **Converging toward zero FROM BELOW, not toward the +0.083 anchor.** Still
+     negative-signed, still nowhere near significant — unpromising but undecided.
+     **⚠ The pre-parity cohort now has 13 days and reads −0.1266, t=−2.10** — just
+     short of the 95% bar (t-crit ≈2.18 on 12 df). That is not evidence about the
+     post-parity cohort, but it is a poor prior for one. Quarantine stays regardless;
+     nothing to decide until the day count reaches 10.
+   - 2W: the un-quarantine decision for the +1,183 expansion symbols. Positive day-IC
+     over ≥10 days = open pots/notifications to the cohort; anything else = stays
+     display-only. Pre-parity cohort IC was NEGATIVE (broken regime) — do not blend
+     regimes. **Confirmed 2026-08-20: post-parity 2W has 0 matured rows**, exactly as
+     expected (parity 08-09 + 14 days = 08-23 for the FIRST row). Then it needs ≥10
+     qualifying days on top of that, so by the 2D item's own lesson the real 2W date is
+     **well into September, not 08-23.** 08-23 is when the clock STARTS, not when it
+     reads out.
 3. **First expanded-scan health check** — **DONE 2026-08-13. Expansion is healthy; the
    two real findings are unrelated to it.**
    - **Runtime scaled proportionately**: main runs 8–9 min pre-expansion → 11–17 min
