@@ -1,0 +1,41 @@
+{
+  "name": "Auto-detected new listings",
+  "stocks": [
+    {
+      "symbol": "STLN",
+      "companyName": "Starling Oncology, Inc."
+    },
+    {
+      "symbol": "NXH",
+      "companyName": "NEIGHBORHOOD INTELLIGENCE, INC."
+    },
+    {
+      "symbol": "THEO",
+      "companyName": "BOA Acquisition Corp. II"
+    },
+    {
+      "symbol": "IA",
+      "companyName": "INNOVATIVE SOLUTIONS & SUPPORT INC"
+    },
+    {
+      "symbol": "VMRK",
+      "companyName": "VIVMARK RESIDENTIAL"
+    },
+    {
+      "symbol": "UUP",
+      "companyName": "Invesco DB US Dollar Index Bullish Fund"
+    },
+    {
+      "symbol": "ADAMK",
+      "companyName": "ADAMAS TRUST, INC."
+    },
+    {
+      "symbol": "DUKU",
+      "companyName": "Duke Energy CORP"
+    },
+    {
+      "symbol": "TBCVU",
+      "companyName": "Thunder Bridge Capital Partners V, Ltd."
+    }
+  ]
+}
