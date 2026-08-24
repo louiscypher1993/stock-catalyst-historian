@@ -398,8 +398,19 @@ async function main() {
       const buyIdx = [...(tierIdx.get('STRONG_BUY') ?? []), ...(tierIdx.get('BUY') ?? [])];
       if (buyIdx.length) {
         const netMean = mean(buyIdx.map(i => net[i]));
+        // The size is stamped INTO the verdict deliberately. At the £50 default the
+        // fixed IBKR floors are ~930-975bps and this line reads "loses to cost ✗" on
+        // the very same rows that read "clears cost ✓" at the £1,250 sizing rule
+        // (measured 2026-08-24: -7.88% vs +1.01% on 641 rows). A bare verdict is
+        // therefore quotable as a strategy conclusion when it is a size artefact.
         const verdict = netMean > 0 ? 'clears cost ✓' : 'loses to cost ✗';
-        console.log(`    ▪ actionable (STRONG_BUY+BUY) n=${buyIdx.length}: mean net ${pct(netMean)}  → ${verdict}`);
+        console.log(`    ▪ actionable (STRONG_BUY+BUY) n=${buyIdx.length}: mean net ${pct(netMean)}  → ${verdict} AT £${positionGBP}`);
+        if (positionGBP < 1000) {
+          console.log(`      ⚠ £${positionGBP} is below the viable-position floor — fixed per-order and FX`);
+          console.log(`        minimums dominate at this size, so the verdict above describes the SIZE,`);
+          console.log(`        not the signal. Re-run with --position 1250 (the pot sizing rule) before`);
+          console.log(`        quoting it.`);
+        }
       }
     }
   }

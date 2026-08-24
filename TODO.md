@@ -184,23 +184,33 @@ Scripts: `potLedgerNet.ts` (the readout), `potLedgerCosts.ts` (the module),
      *Caveat: n=418 over ~4 days, and 50% of live rows are quarantined so this is a
      selected subset. Re-measure at the ~08-21 refit rather than treating 4 days as final.*
 2. **Expansion cohort readouts** (`expansionReadout.ts`)
-   - 2D: **gate has now slipped TWICE — 08-11 → ~08-20 → ~2026-08-24 (re-measured
-     2026-08-20).** The rule needs ≥10 days with ≥5 rows; post-parity has **8**. The
-     count accrues slower than the calendar because each day needs ≥5 rows AND two days
-     to mature, so quote a day count, never a date. 08-20 is a Thursday — Fri gives 9,
-     Mon 08-24 gives 10.
+   - 2D: **✅ GATE OPEN 2026-08-24 — 10 days with ≥5 rows. VERDICT: NO SIGNAL.**
+     (Gate slipped twice getting here, 08-11 → ~08-20 → 08-24, because the rule is a
+     COUNT and each day needs ≥5 rows AND two days to mature. Quote day counts, never
+     dates.)
 
      | 2D post-parity | day-IC | t | rows | days |
      |---|---|---|---|---|
-     | measured 2026-08-13 | −0.1391 | −1.01 | 327 | 3 |
-     | **measured 2026-08-20** | **−0.0395** | **−0.51** | 638 | 8 |
+     | 2026-08-13 | −0.1391 | −1.01 | 327 | 3 |
+     | 2026-08-20 | −0.0395 | −0.51 | 638 | 8 |
+     | **2026-08-24** | **−0.0023** | **−0.03** | 923 | **10** |
 
-     **Converging toward zero FROM BELOW, not toward the +0.083 anchor.** Still
-     negative-signed, still nowhere near significant — unpromising but undecided.
-     **⚠ The pre-parity cohort now has 13 days and reads −0.1266, t=−2.10** — just
-     short of the 95% bar (t-crit ≈2.18 on 12 df). That is not evidence about the
-     post-parity cohort, but it is a poor prior for one. Quarantine stays regardless;
-     nothing to decide until the day count reaches 10.
+     **The trajectory is the finding, not the endpoint.** Across three measurements the
+     cohort converged monotonically to **zero** and never toward the +0.083 D3 anchor.
+     So the expansion symbols' 2D predictions carry **no information** — this is not a
+     negative-signal result, it is a no-signal result, and the two have different
+     implications (nothing to invert, nothing to salvage). Fails the readout's own
+     criterion, which requires same-sign and within ~2× of the anchor.
+     **2D quarantine stands, decided rather than pending.**
+     Pre-parity cohort, for contrast: −0.1298, t=−2.11 over 13 days — still just short
+     of the 95% bar (t-crit ≈2.18 on 12 df), and a poor prior, but a different regime.
+   - **2W is now the live question, and it points the OTHER way.** First post-parity
+     maturities arrived 2026-08-24: **392 rows, 4 days, day-IC +0.0604 (t=0.86)**
+     against a +0.107 D5 anchor — same sign, within 2×, not remotely significant at 4
+     of 10 days. Consistent with [[live-vs-fold-distribution-gap]]: D5/2W is the one
+     head genuinely in-distribution live, so 2D failing does NOT pre-judge it.
+     Needs ~6 more qualifying days → **mid-September**. This is the readout the
+     un-quarantine decision actually rests on.
    - 2W: the un-quarantine decision for the +1,183 expansion symbols. Positive day-IC
      over ≥10 days = open pots/notifications to the cohort; anything else = stays
      display-only. Pre-parity cohort IC was NEGATIVE (broken regime) — do not blend

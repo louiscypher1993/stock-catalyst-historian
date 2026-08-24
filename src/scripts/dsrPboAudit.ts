@@ -298,6 +298,14 @@ async function main() {
   console.log(` (which tier cut / how many picks per day) get picked for being truly best, or for`);
   console.log(` looking best on this specific history?`);
   console.log(`${'─'.repeat(80)}`);
+  if (positionGBP < 1000) {
+    console.log(` ⚠ £${positionGBP} IS BELOW THE VIABLE-POSITION FLOOR. The per-variant Sharpes below are`);
+    console.log(`   dominated by fixed per-order and FX minimums (~930-975bps at £50) and are NOT`);
+    console.log(`   interpretable as Sharpe ratios. Re-run with --position 1250 (the pot sizing rule)`);
+    console.log(`   before quoting any absolute figure. PBO itself is a relative ranking test and is`);
+    console.log(`   far less affected — though not perfectly invariant: it moved 0.022 → 0.041 between`);
+    console.log(`   £50 and £1,250 on 2026-08-16, because the cost drag is per-symbol, not shared.`);
+  }
   console.log(` (net-of-cost @ £${positionGBP} — PBO is a RELATIVE ranking test across variants under the`);
   console.log(`  SAME cost model, so the shared cost drag doesn't distort it the way it distorts an absolute Sharpe.)`);
   console.log(` Trial variants (all over the SAME ${dates.length} run_dates, £${positionGBP} netted):`);

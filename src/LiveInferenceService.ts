@@ -1133,6 +1133,20 @@ export function computeSignalCompleteness(vector: Record<string, number>): numbe
   return Math.round((1 - nullCount / indicatorKeys.length) * 1000) / 1000;
 }
 
+/**
+ * Set once per process if inference_results lacks the Model C rank columns, so a
+ * missing migration costs one warning rather than one failed write per symbol.
+ *
+ * These two fields are sent OPTIMISTICALLY: they are additive columns
+ * (src/db/supabase_model_c_rank_migration.sql) and PostgREST rejects the WHOLE row
+ * when a payload names a column that does not exist. Without this guard, deploying
+ * the code before running the migration would silently stop persisting every
+ * inference result — the schema-drift failure mode this project has hit before.
+ * With it, either deployment order is safe and the migration turns the fields on
+ * with no redeploy.
+ */
+let modelCRankColumnsMissing = false;
+
 export async function writeResultToSupabase(
   runDate: string,
   anomaly: AnomalySignal,
@@ -1152,7 +1166,7 @@ export async function writeResultToSupabase(
 ): Promise<void> {
   try {
     const { supabase } = await import('./db/supabaseClient');
-    const { error } = await supabase.from('inference_results').upsert({
+    const basePayload = {
       run_date: runDate,
       symbol: anomaly.symbol,
       company_name: anomaly.companyName,
@@ -1185,7 +1199,33 @@ export async function writeResultToSupabase(
       digital_exhaust_velocity_14d: digitalExhaustVelocity,
       alphavantage_sentiment_avg: alphavantageSentimentAvg,
       unreliable_reason: unreliableReason,
-    }, { onConflict: 'run_date,symbol' });
+    };
+
+    // Persisting the rank is what lets any later analysis read the drawdown term
+    // production ACTUALLY used, instead of falling back to PotService's v9.1 table
+    // (a 22.3-point difference out of 40 — see the migration's header).
+    const rankFields = {
+      model_c_percentile_rank: scores.model_c_percentile_rank ?? null,
+      model_c_version: scores.model_c_version ?? null,
+    };
+
+    const send = (withRank: boolean) => supabase.from('inference_results')
+      .upsert(withRank ? { ...basePayload, ...rankFields } : basePayload,
+              { onConflict: 'run_date,symbol' });
+
+    let { error } = await send(!modelCRankColumnsMissing);
+
+    // PGRST204 = payload names a column absent from the schema cache. Retry once
+    // without the additive fields, and remember, so the migration being unapplied
+    // degrades to "rank not stored" rather than "nothing stored".
+    if (error && !modelCRankColumnsMissing &&
+        (error.code === 'PGRST204' || /model_c_(percentile_rank|version)/.test(error.message))) {
+      modelCRankColumnsMissing = true;
+      console.warn('[LiveInference] inference_results lacks model_c_percentile_rank/model_c_version — ' +
+        'apply src/db/supabase_model_c_rank_migration.sql. Continuing without them; ' +
+        'analyses will keep falling back to the v9.1 breakpoint table until it is applied.');
+      ({ error } = await send(false));
+    }
 
     if (error) {
       console.error(`[LiveInference] Supabase write failed for ${anomaly.symbol}:`, error.message);

@@ -1,0 +1,33 @@
+-- ============================================================
+-- inference_results — model_c_percentile_rank + model_c_version (additive)
+-- Run once in the Supabase SQL editor.
+-- ============================================================
+-- WHY. riskScore's 40-point drawdown term is (1 - model_c_percentile_rank) * 40.
+-- infer.py computes that rank against the breakpoints of the Model C version it
+-- actually loaded (MODEL_C_VERSION, currently 9.5 in both live workflows) and passes
+-- it through to PotService, which prefers it:
+--     result.model_c_percentile_rank ?? modelCPercentileRank(modelC)   [PotService.ts:475]
+-- The local MODEL_C_PERCENTILE_BREAKPOINTS table is v9.1's and is only the FALLBACK.
+--
+-- Until this migration runs, the rank is NOT persisted, so every analysis reading
+-- inference_results falls back to that v9.1 table — for a model that has not been served
+-- since v9.5 shipped (e745e08). Measured 2026-08-24 on 1,101 clean post-parity rows, the
+-- two tables disagree by a mean of 22.3 points out of 40:
+--     v9.1 fallback : median term 38.7,  4 distinct values, >=37/40 on 91.7% of rows
+--     v9.5 served   : median term 16.3, 38 distinct values, >=37/40 on  0.6% of rows
+-- That gap is the entire basis of the recorded "riskScore's drawdown term is pinned
+-- 37-40 on every live row" finding, which was therefore measuring the fallback and not
+-- production. See PREREG_2026-08-21_riskscore_refit.md, AMENDMENT 1.
+--
+-- model_c_version is stored alongside deliberately: knowing WHICH breakpoints produced a
+-- row is what makes the rank interpretable later, and its absence is what let a v9.1
+-- reading masquerade as a live measurement for two weeks.
+--
+-- Schema-drift hazard: writeResultToSupabase sends these fields fail-soft — if the
+-- columns are missing it logs once and retries the upsert without them, so live
+-- inference keeps writing either way. Applying this migration is what turns them on;
+-- no code change or redeploy is needed afterwards.
+-- ============================================================
+
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_c_percentile_rank NUMERIC;
+ALTER TABLE inference_results ADD COLUMN IF NOT EXISTS model_c_version TEXT;

@@ -1,4 +1,4 @@
-# Session handover — updated 2026-08-20
+# Session handover — updated 2026-08-24
 
 Written so the next session starts from the written record rather than from recollection.
 **Deliberately short. It does not restate `TODO.md`, which is the canonical backlog and was
@@ -7,7 +7,8 @@ updated throughout.** Read `TODO.md` first; this only covers what that file can'
 > **Three sessions are folded into this file; the latest wins on any conflict.** Session 1
 > ran 2026-08-13 → 08-16 (~22 commits, `94d9ab9` → `23a36bc`). Session 2 ran the evening of
 > 2026-08-16 (5 commits, `eff487a` → `00a19f5`) and closed the top of the queue. Session 3 ran
-> 2026-08-20: re-measured the expansion gate and confirmed the refit is ready to run.
+> 2026-08-20: re-measured the expansion gate. Session 4 ran 2026-08-24: **executed the
+> pre-registered refit, closed the 2D expansion gate, and persisted the Model C rank.**
 
 ---
 
@@ -27,39 +28,64 @@ updated throughout.** Read `TODO.md` first; this only covers what that file can'
 
 ## Start here
 
-**Everything unblocked is done. The next real item is the risk-score + tier-cutoff refit,
-gated ~2026-08-21 — and it is PRE-REGISTERED.**
+**⚠ ONE THING NEEDS A HUMAN: apply `src/db/supabase_model_c_rank_migration.sql` in the
+Supabase SQL editor.** It is written, committed, and the code that uses it is deployed
+fail-soft — until it runs, `model_c_percentile_rank` and `model_c_version` are simply not
+stored and every analysis keeps silently falling back to a v9.1 breakpoint table that
+production has not used since v9.5 shipped. Nothing breaks either way; the fields turn on
+the moment the migration runs, with no redeploy.
 
-> **Read `PREREG_2026-08-21_riskscore_refit.md` before running any part of it.** Acceptance
-> criteria, the frozen candidate list and the abandon-conditions are fixed there ahead of the
-> data, deliberately, because the middle part is a best-of-N selection on live data — the
-> exact shape that produced the v15 false positive. Do not amend that file in place; an
-> amendment must be a separate later commit stating what changed and why.
+**The 08-21 refit is DONE (2026-08-24) and both halves changed the plan. Read AMENDMENT 1 at
+the top of `PREREG_2026-08-21_riskscore_refit.md` before touching riskScore or the tier
+cutoffs.** In brief:
 
-Two things it settles that are **not** obvious from `TODO.md`:
+1. **A1 passed** (Model C has 525 distinct live values — it is NOT degenerate; A has 16, B
+   has 51). **A2 was cancelled anyway**: the "drawdown term pinned at 37-40" defect was
+   measuring the v9.1 FALLBACK. In production the term is healthy — ≥37/40 on 0.6% of rows,
+   not 91.7%, a 22.3-point mean difference. The fix was persistence, not calibration.
+2. **C1 passed its occupancy criterion and half the result is incoherent.** Refitting to a
+   10% SELL tier puts D5's cutoff at **+0.0147** — calling a predicted +1.47% GAIN a SELL —
+   because only 3.5% of live D5 predictions are negative (D2: 0.0%). **Adopt the upper tiers,
+   leave SELL sign-anchored.** Nothing has been applied to `HORIZON_TIER_CONFIG`; the
+   proposed constants are printed in the amendment, not deployed.
+3. **Part B (the dead confidence term) survives untouched** — `model_a_confidence` IS stored,
+   so it was measured on real production values. Gated on matured 2W outcomes, early Sept.
 
-1. **The obvious success test cannot fail.** Refitting percentiles on live output makes the
-   result uniform *by construction*. The real gate is whether live Model C has ≥50 distinct
-   values at all — Model A has 12 across 684 rows, Model B has 69.
-2. **Only A1/A2/C1 can honestly be decided on 08-21.** Post-parity maturity is **n=0 on every
-   horizon**; 2W first matures ~08-23, so the confidence-term and beat-the-baseline decisions
-   land in **early September**.
+**Next real work is early September** (Part B + C2, both needing ~10 clustered days of
+matured post-parity 2W outcomes). Before then: benchmark-2W adjudication ~08-27.
 
-Small unblocked leftover, not urgent: the `£50` default in `outcomeScoreboard` /
-`dsrPboAudit` (see below). `expansionReadout.ts` was re-run 2026-08-20 — result in `TODO.md`.
+**⚠ GATE DATES ARE COUNTS, NOT DATES.** The 2D expansion gate slipped twice (08-11 → ~08-20
+→ 08-24) because the rule is ≥10 days with ≥5 rows and that accrues slower than the calendar.
+Re-measure before quoting any gate.
 
-**⚠ GATE DATES ARE COUNTS, NOT DATES — stop writing them as dates.** The 2D expansion gate
-has now slipped twice (08-11 → ~08-20 → ~08-24) because the rule is ≥10 days with ≥5 rows,
-and that accrues slower than the calendar: each day needs enough rows AND time to mature.
-Re-measure before quoting any of these.
-
-Gate calendar (best estimates 2026-08-20): 2D expansion **~08-24** (8 of 10 days) ·
-**refit ~08-21, READY — 773 clean post-parity rows over 11 run_dates, A1's ≥400 gate met** ·
-2W expansion **September** (08-23 is when its clock STARTS — 0 matured rows today, then ≥10
-qualifying days on top) · benchmark 2W ~08-27 · trend overlay ~early Sept ·
-**checkpoint October**.
+Gate calendar (best estimates 2026-08-24): 2D expansion **CLOSED — no signal, quarantine
+stands** · benchmark 2W ~08-27 · 2W expansion **mid-September** (4 of 10 days) · Part B + C2
+**early September** · trend overlay ~early Sept · **checkpoint October**.
 
 ---
+
+## What session 4 established (2026-08-24)
+
+- **The pre-registered refit ran, and both tests passed while being the wrong thing to act
+  on.** Details in AMENDMENT 1. The reusable lesson is at the bottom of it: pre-registration
+  fixes the decision rule against hindsight, but **does not certify that the rule measures
+  what you think it measures**. Neither of today's problems was caught by any criterion in
+  the file — both were caught by asking what the number would mean if it came out fine.
+- **2D expansion gate CLOSED with a no-signal verdict.** day-IC −0.0023 (t=−0.03) over 10
+  days. The trajectory matters more than the endpoint: −0.1391 → −0.0395 → −0.0023 across
+  three measurements is convergence to **zero**, never toward the +0.083 anchor. No
+  information, as distinct from negative information — nothing to invert or salvage.
+- **2W expansion points the other way and is now the live question**: +0.0604 (t=0.86) on 4
+  of 10 days against a +0.107 anchor. Same sign, within 2×, early. Mid-September.
+- **`model_c_percentile_rank` + `model_c_version` are now written to Supabase**, fail-soft
+  (PGRST204 → one warning, retry without, remember for the process). Deploy order is
+  therefore safe in both directions — which matters, because sending an unknown column makes
+  PostgREST reject the WHOLE row, and doing that unguarded would have silently stopped
+  persisting every inference result.
+- **The £50 reporting hazard is fixed**, finally. `outcomeScoreboard`'s verdict now reads
+  "loses to cost ✗ **AT £50**" plus an explicit below-the-floor warning, and `dsrPboAudit`
+  refuses to let its absolute Sharpes be read bare at that size. Both name £1,250 as the
+  re-run.
 
 ## What session 2 established
 
