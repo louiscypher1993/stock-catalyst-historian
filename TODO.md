@@ -125,11 +125,36 @@ Scripts: `potLedgerNet.ts` (the readout), `potLedgerCosts.ts` (the module),
    has 12; (b) **only A1/A2/C1 can honestly be decided on 08-21.** The confidence-term
    replacement and the beat-the-baseline test both need matured post-parity 2W outcomes,
    which are n=0 until ~08-23, so they land in early September.
+   **⚠ RUN 2026-08-24 — A1 and C1 are DONE and both changed the plan. See AMENDMENT 1 in
+   the prereg for the full record. Headlines:**
+   - **The "37-38 spike = pinned drawdown term" claim is WRONG about production.** It
+     measured the v9.1 FALLBACK table. `infer.py` serves `model_c_percentile_rank` from
+     v9.5's own breakpoints and `PotService.ts:475` prefers it; the local table is only
+     used when that field is absent — which is exactly what happens to any analysis
+     reading Supabase, because **the rank is never persisted there**. On the same 1,101
+     live rows the term is `>=37/40` on **91.7%** under v9.1 but **0.6%** under v9.5,
+     median 38.7 vs 16.3, 4 distinct values vs 38. **Live, the term is healthy.**
+     **`MODEL_C_PERCENTILE_BREAKPOINTS` refit is CANCELLED** — it would only change the
+     fallback. **The real fix is to persist `model_c_percentile_rank` into
+     `inference_results`** (ALTER TABLE first — [[supabase-schema-drift-hazard]]).
+   - **Model C is NOT degenerate**: 525 distinct values over 1,101 rows. A emits 16, B
+     emits 51 — the degeneracy is theirs.
+   - **The confidence-term finding SURVIVES** (`model_a_confidence` IS stored, so it was
+     measured on real production values). That part of the refit stands, gated on
+     matured 2W outcomes in early September.
+   - **C1 cutoff refit: adopt the UPPER tiers, reject the SELL target.** Live predictions
+     are almost all positive (D5 3.5% negative, D2 0.0%), so forcing SELL to 10% puts the
+     D5 cutoff at **+0.0147** — calling a predicted +1.47% GAIN a SELL, and handing 10%
+     of rows a 30-point `tailRiskTerm` penalty that gates entry. Occupancy is the wrong
+     instrument for a sign-defined tier.
+
+   *(original framing, kept because the confidence-term half of it still holds)*
    Decomposed on 2,471 live rows (`scratch_riskDecompose.ts`, `defe2ad`): the 37-38
    spike is the drawdown term pinned by stale Model C breakpoints; `model_a_confidence`
    is ≥0.9999 on ~92% of rows so the 30-point confidence term is dead; 64-69 cluster =
    pinned term + binary 30-pt sell term. One change, three parts:
-   - refit `MODEL_C_PERCENTILE_BREAKPOINTS` on post-parity live C output (NOT on n=4);
+   - ~~refit `MODEL_C_PERCENTILE_BREAKPOINTS` on post-parity live C output~~ **CANCELLED
+     2026-08-24, see above — persist the rank instead;**
    - **REPLACE the confidence term — measured 2026-08-10: the isotonic calibrator maps
      97.1% of fold EVENTS to exactly 1.0 (raw A: 41% ≥0.9999). A separates events from
      non-events; every row reaching riskScore IS an event, so the term never had

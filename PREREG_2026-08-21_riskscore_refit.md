@@ -15,6 +15,115 @@ why. Editing this file in place before the run defeats its only purpose.
 
 ---
 
+# AMENDMENT 1 — 2026-08-24, written AFTER running A1 and C1
+
+**Per this file's own protocol, amendments are a separate later commit stating what changed
+and why. The original text below is left intact so the record shows what was pre-registered
+versus what reality forced.**
+
+Run on 2026-08-24 (gate was ~08-21; three days late, no data was harmed — the criteria were
+frozen on 08-16 either way). Readiness at run time: **1,101 clean post-parity rows over 14
+run_dates**, both gates met.
+
+## A1 RESULT: **PASS** — and Part A is nonetheless VOID
+
+`model_c_max_drawdown` has **525 distinct values** over 1,101 clean post-parity rows, against
+the ≥50 / ≥400 thresholds. **Model C is not degenerate.** For contrast on the same rows,
+Model A emits **16** distinct values and Model B **51** — the degeneracy belongs to A and B.
+
+By the letter of A1, this says "proceed to A2". **A2 must not run, because its premise is
+false.** Verified end to end:
+
+- The live workflows set `MODEL_C_VERSION=9.5`, so `infer.py` loads
+  `model_c_breakpoints_v9.5.json` and emits `model_c_percentile_rank` against **v9.5's own**
+  table (`infer.py:243`).
+- That field survives `clampedScores` (object spread; it is not in the override list) into the
+  pot payload, and `PotService.ts:475` **prefers it**:
+  `result.model_c_percentile_rank ?? modelCPercentileRank(modelC)`.
+- `MODEL_C_PERCENTILE_BREAKPOINTS` in `PotService.ts` is **v9.1's** and is only the FALLBACK.
+- The rank is **never written to Supabase** (already noted in `scratch_checkModelCLive.ts`),
+  so every Supabase-based analysis silently falls back to the v9.1 table.
+
+Same 1,101 live rows, drawdownTerm computed both ways:
+
+| drawdownTerm (0–40) | v9.1 fallback — what the analyses saw | v9.5 — what production uses |
+|---|---|---|
+| median | 38.7 | **16.3** |
+| distinct rounded values | 4 | **38** |
+| rows ≥37/40 | 1,010 (**91.7%**) | 7 (**0.6%**) |
+
+Mean difference **−22.3 points**, matching the ~18-point warning written into
+`model_c_breakpoints_v9.5.json` itself.
+
+**The drawdown term is NOT pinned in production. It is healthy.** The "37–38 spike = pinned
+by stale breakpoints" finding measured the fallback, not the deployed path.
+
+**Therefore:**
+- **A2 is CANCELLED.** Refitting the local table would only change the fallback, making the
+  analyses accidentally right while leaving the real gap in place.
+- **The real fix is persistence, not calibration:** write `model_c_percentile_rank` into
+  `inference_results` (ALTER TABLE first — silent-write-failure hazard, see
+  `supabase-schema-drift-hazard`) so analyses stop measuring a table production does not use.
+- **Part B is unaffected** — `model_a_confidence` IS stored, so the dead-confidence-term
+  finding was measured on real production values. Its candidate list and decision rule stand.
+
+## C1 RESULT: occupancy criterion PASSES, and the SELL half of it is INCOHERENT
+
+Refitted on post-parity clean live percentiles, occupancy lands on target as predicted —
+which the original text already warned proves nothing, being self-fulfilling by construction:
+
+| head | deployed | refitted |
+|---|---|---|
+| D3 2D | SB **48.5%** / SELL 3.8% / HOLD 47.7% | SB 10.2% / SELL 10.2% / HOLD 79.7% |
+| D5 2W | SB 18.3% / BUY **43.2%** / SELL 3.5% / HOLD 35.0% | SB 10.4% / BUY 9.9% / SELL 10.1% / HOLD 69.7% |
+| D1 3M | SB 11.9% / HOLD 88.1% | SB 10.1% / HOLD 89.9% |
+| D2 6M | BUY **39.0%** / HOLD 61.0% | BUY 10.1% / HOLD 89.9% |
+
+**But the live distribution is almost entirely positive**, so a 10% SELL tier can only be
+manufactured by putting the cutoff above zero:
+
+| head | % of live predictions negative | refitted SELL cutoff |
+|---|---|---|
+| D3 2D | 6.2% | **v ≤ +0.0036** |
+| D5 2W | **3.5%** | **v ≤ +0.0147** |
+| D1 3M | 1.0% | (no SELL tier) |
+| D2 6M | **0.0%** | (no SELL tier) |
+
+**A refitted D5 SELL would classify a predicted +1.47% GAIN as SELL.** That is not a
+threshold, it is a renaming of "least positive". Concrete harm: `tailRiskTerm =
+cfg.sell?.(value) ? 30 : 0`, so 10% of rows would take a 30-point riskScore penalty for a
+positive predicted return, and riskScore gates entry (`riskScore > boldness × 10`). Shorts
+themselves are protected by the F5 fix (`downside < tier.minReturn` filters positive-return
+SELLs), so the damage is to riskScore and entry gating, not to short selection.
+
+**AMENDED C1 DECISION RULE, replacing the flat ±5pp-of-10% target:**
+
+1. **Adopt the refit for the UPPER tiers only** (`strongBuy`, `buy`). Those are genuine
+   percentile cuts on a region where the distribution has mass, and they fix the real defect:
+   D3 calling **48.5%** of everything STRONG_BUY, D5's BUY at 43.2%, D2's BUY at 39.0%.
+2. **Do NOT force SELL to 10%.** SELL must stay sign-meaningful. Keep it anchored at or below
+   zero and let its occupancy be whatever the data supports (~3–6%). An occupancy target is
+   the wrong instrument for a tier defined by the sign of a prediction.
+3. D1 3M moved 11.9% → 10.1% and was already well calibrated; adopting it is near-inert and
+   is fine either way.
+
+**Unchanged: C2 still governs.** Correct occupancy remains insufficient — the refitted
+cutoffs must still beat the unselective baseline on matured 2W outcomes (early September),
+and if they do not, the pre-committed response is to report that tier selection has no
+demonstrable live edge rather than tune a third time.
+
+## The through-line, for the third time this month
+
+A1 and C1 both went the same way: the pre-registered test passed on its literal terms and was
+still the wrong thing to act on. In A's case the measuring instrument was reading a table
+production does not use; in C's case the target metric (occupancy) was indifferent to whether
+the resulting tier means anything. **Pre-registration fixes the decision rule against
+hindsight. It does not certify that the rule measures what you think it measures.** Both
+failures were caught by asking what the number would mean if it came out fine — not by any
+criterion written into this file.
+
+---
+
 ## Standing rules (apply to every part below)
 
 1. **Fit on LIVE output. Never on fold percentiles.** This is the single most-repeated lesson
