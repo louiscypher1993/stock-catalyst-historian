@@ -204,13 +204,24 @@ Scripts: `potLedgerNet.ts` (the readout), `potLedgerCosts.ts` (the module),
      **2D quarantine stands, decided rather than pending.**
      Pre-parity cohort, for contrast: −0.1298, t=−2.11 over 13 days — still just short
      of the 95% bar (t-crit ≈2.18 on 12 df), and a poor prior, but a different regime.
-   - **2W is now the live question, and it points the OTHER way.** First post-parity
-     maturities arrived 2026-08-24: **392 rows, 4 days, day-IC +0.0604 (t=0.86)**
-     against a +0.107 D5 anchor — same sign, within 2×, not remotely significant at 4
-     of 10 days. Consistent with [[live-vs-fold-distribution-gap]]: D5/2W is the one
-     head genuinely in-distribution live, so 2D failing does NOT pre-judge it.
-     Needs ~6 more qualifying days → **mid-September**. This is the readout the
-     un-quarantine decision actually rests on.
+   - **2W is the remaining question. ⚠ CORRECTED 2026-08-27 — the encouraging first
+     read was noise, and it did not survive one extra day.**
+
+     | 2W post-parity | day-IC | t | rows | days |
+     |---|---|---|---|---|
+     | 2026-08-24 | **+0.0604** | 0.86 | 392 | 4 |
+     | **2026-08-27** | **−0.0037** | **−0.07** | 484 | **5** |
+
+     The 08-24 figure was written up as "points the OTHER way — same sign as the +0.107
+     D5 anchor, within 2×". **It was a four-day reading at t=0.86 and it evaporated
+     immediately.** The ≥10-day rule exists precisely to stop four points being read as
+     a direction; the rule was stated and then the number was described directionally
+     anyway. Do not repeat that with the next partial read.
+     Current: 5 of 10 days, day-IC ≈ 0 — now resembling 2D's no-signal result rather
+     than contradicting it. Still undecided; ~5 more qualifying days → **mid-September**.
+     This remains the readout the un-quarantine decision rests on.
+   - 2D re-measured 2026-08-27 at **13 days: −0.0155 (t=−0.24)** — unchanged in
+     substance, confirming the closed no-signal verdict as more days accrue.
    - 2W: the un-quarantine decision for the +1,183 expansion symbols. Positive day-IC
      over ≥10 days = open pots/notifications to the cohort; anything else = stays
      display-only. Pre-parity cohort IC was NEGATIVE (broken regime) — do not blend
@@ -264,8 +275,31 @@ Scripts: `potLedgerNet.ts` (the readout), `potLedgerCosts.ts` (the module),
      retrain bundle; see the Model-A confidence-term replacement in item 1.
    - Scripts: `scratch_expandedScanHealthV2.ts`, `scratch_headDegeneracy.ts`,
      `scratch_coreDegeneracy.ts`, `scratch_degeneracyMatched.ts` (the definitive one).
-4. **Native-vs-SPY benchmark adjudication** — **readout BUILT 2026-08-13
-   (`benchmarkAdjudication.ts`); 2D says STAY ON SPY, 2W not decidable until ~2026-08-27**
+4. **Native-vs-SPY benchmark adjudication** — **✅ CLOSED 2026-08-27. STAY ON SPY.
+   The 2W verdict arrived and is significant under the metric that favours native.**
+
+   | 2W (hedged — the headline) | n | eventfulness | native − SPY |
+   |---|---|---|---|
+   | SPY-only | 63 | **1.231** | |
+   | native-only | 171 | **0.926** | −0.304, Welch **t=−2.65** |
+
+   Raw (beta-contaminated, for contrast): −0.309, **t=−3.12**. Both directions agree.
+
+   **The number that settles it is native-only's 0.926 — BELOW 1.000.** Eventfulness is
+   normalised so 1.000 means "no more eventful than that symbol's average bar", so
+   native's exclusive detections flag bars that move LESS than average. They are not
+   merely worse than SPY's, they are anti-informative. Switching would trade 63 good
+   detections for 171 worse-than-random ones.
+
+   **⚠ And 2D WEAKENED as n grew — worth remembering before quoting the 08-13 figure.**
+   It read −0.736 (t=−3.36) on 51/137 rows; at 101/267 it reads −0.261 (t=−1.79),
+   same sign but no longer significant. The early large effect was partly small-sample.
+   **2D is now NOT significant on its own; the decision rests on 2W**, which is the
+   recommendation basis anyway. That is the right way round, but it is luck rather than
+   design that the two agree in sign.
+
+   *(the 2026-08-13 measurement and its methodology, kept — the eventfulness metric and
+   both confound tests are still the reason this readout is trustworthy)*
    208 divergences logged 08-03→08-13 (57 SPY-only, 151 native-only). Scored as
    *eventfulness* = |forward return of the flagged bar| ÷ that symbol's mean |forward
    return| over the trailing year, so cross-market comparison is legitimate (the two
@@ -285,13 +319,15 @@ Scripts: `potLedgerNet.ts` (the readout), `potLedgerCosts.ts` (the module),
    enriched in bars where the local market moved and volatility clusters at market level
    — hedging against the native index (the metric most favourable to native) narrows
    t −4.42→−3.36 but does not invert it.
-   - **2W is the one that matters for the recommendation basis and has 0 matured SPY
-     rows.** The gate was never really 08-16: divergences needed 2 weeks to accumulate,
-     but their *outcomes* then need 14 more days to mature. Earliest ~2026-08-27.
+   - ~~**2W is the one that matters and has 0 matured SPY rows**… earliest ~2026-08-27.~~
+     **RESOLVED on schedule 2026-08-27 — see the verdict above.** Note 39 of 102 SPY-only
+     and 102 of 273 native-only 2W rows were still immature at the read, so the verdict
+     rests on resolved rows only and will firm further; it will not change sign.
    - Caveat, stated in the script: this scores DETECTION QUALITY, not P&L. The
      native-only bars never entered the pipeline, so no prediction or P&L exists for
      them and none can be reconstructed.
-   - Decision now: **do not switch.** Re-run at ~08-27 for the 2W verdict.
+   - **Decision: DO NOT SWITCH. `LIVE_BENCHMARK_MODE` stays `spy`. Item closed** — no
+     further re-runs needed unless the detection logic itself changes.
 5. **Pots ignore the trend-opposition downgrade** *(found 2026-08-13, no gate — decide
    and fix)*
    Spotted from a ledger line that reads as a contradiction: `pot 33 BUY COR … HOLD`.

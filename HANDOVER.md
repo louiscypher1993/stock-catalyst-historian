@@ -1,4 +1,4 @@
-# Session handover — updated 2026-08-24
+# Session handover — updated 2026-08-27
 
 Written so the next session starts from the written record rather than from recollection.
 **Deliberately short. It does not restate `TODO.md`, which is the canonical backlog and was
@@ -9,6 +9,8 @@ updated throughout.** Read `TODO.md` first; this only covers what that file can'
 > 2026-08-16 (5 commits, `eff487a` → `00a19f5`) and closed the top of the queue. Session 3 ran
 > 2026-08-20: re-measured the expansion gate. Session 4 ran 2026-08-24: **executed the
 > pre-registered refit, closed the 2D expansion gate, and persisted the Model C rank.**
+> Session 5 ran 2026-08-27: **closed the benchmark adjudication (stay on SPY) and
+> retracted a premature 2W expansion read.**
 
 ---
 
@@ -28,12 +30,12 @@ updated throughout.** Read `TODO.md` first; this only covers what that file can'
 
 ## Start here
 
-**⚠ ONE THING NEEDS A HUMAN: apply `src/db/supabase_model_c_rank_migration.sql` in the
-Supabase SQL editor.** It is written, committed, and the code that uses it is deployed
-fail-soft — until it runs, `model_c_percentile_rank` and `model_c_version` are simply not
-stored and every analysis keeps silently falling back to a v9.1 breakpoint table that
-production has not used since v9.5 shipped. Nothing breaks either way; the fields turn on
-the moment the migration runs, with no redeploy.
+**⚠ STILL NEEDS A HUMAN: apply `src/db/supabase_model_c_rank_migration.sql` in the Supabase
+SQL editor.** Checked 2026-08-27 — not yet applied. **The fail-soft path is VERIFIED working
+in production**: the write change shipped 08-24 and rows kept landing normally (143 / 135 /
+123 on 08-24/25/26), so nothing is broken and the migration can land whenever suits. Until it
+does, `model_c_percentile_rank` is not stored and every analysis keeps falling back to a v9.1
+breakpoint table production has not used since v9.5.
 
 **The 08-21 refit is DONE (2026-08-24) and both halves changed the plan. Read AMENDMENT 1 at
 the top of `PREREG_2026-08-21_riskscore_refit.md` before touching riskScore or the tier
@@ -49,18 +51,39 @@ cutoffs.** In brief:
    leave SELL sign-anchored.** Nothing has been applied to `HORIZON_TIER_CONFIG`; the
    proposed constants are printed in the amendment, not deployed.
 3. **Part B (the dead confidence term) survives untouched** — `model_a_confidence` IS stored,
-   so it was measured on real production values. Gated on matured 2W outcomes, early Sept.
+   so it was measured on real production values. Gated on matured 2W outcomes.
 
-**Next real work is early September** (Part B + C2, both needing ~10 clustered days of
-matured post-parity 2W outcomes). Before then: benchmark-2W adjudication ~08-27.
+**Next real work is ~2026-09-03** (Part B + C2). Both need ≥10 run_dates of matured
+post-parity 2W outcomes; there were **5** on 08-27, accruing ~1 per trading day.
 
-**⚠ GATE DATES ARE COUNTS, NOT DATES.** The 2D expansion gate slipped twice (08-11 → ~08-20
-→ 08-24) because the rule is ≥10 days with ≥5 rows and that accrues slower than the calendar.
-Re-measure before quoting any gate.
+**⚠ GATE DATES ARE COUNTS, NOT DATES**, and **⚠ DO NOT READ A PARTIAL COUNT DIRECTIONALLY.**
+Both lessons were learned the hard way this month — the 2D gate slipped twice on the first,
+and on 2026-08-24 a 4-day expansion read of +0.0604 (t=0.86) was written up as "points the
+other way" and was −0.0037 three days later. Re-measure before quoting; say "undecided"
+until the count is met.
 
-Gate calendar (best estimates 2026-08-24): 2D expansion **CLOSED — no signal, quarantine
-stands** · benchmark 2W ~08-27 · 2W expansion **mid-September** (4 of 10 days) · Part B + C2
-**early September** · trend overlay ~early Sept · **checkpoint October**.
+Gate calendar (2026-08-27): 2D expansion **CLOSED — no signal** · benchmark adjudication
+**CLOSED — stay on SPY** · Part B + C2 **~09-03** (5 of 10 days) · 2W expansion
+**mid-September** (5 of 10 days) · trend overlay ~early Sept · **checkpoint October**.
+
+---
+
+## What session 5 established (2026-08-27)
+
+- **Benchmark adjudication CLOSED: stay on SPY.** 2W, hedged (the metric that favours
+  native): SPY-only eventfulness **1.231** (n=63) vs native-only **0.926** (n=171),
+  native−SPY −0.304, **Welch t=−2.65**; raw agrees at t=−3.12. The decisive number is
+  native-only's **0.926 — below 1.000**, i.e. its exclusive detections flag bars that move
+  LESS than that symbol's average. Anti-informative, not merely worse. `LIVE_BENCHMARK_MODE`
+  stays `spy`; no further re-runs unless detection logic changes.
+- **⚠ 2D benchmark weakened as n grew** — −0.736 (t=−3.36) at 51/137 rows, −0.261
+  (t=−1.79) at 101/267. Same sign, no longer significant. Do not quote the 08-13 2D figure;
+  the decision rests on 2W.
+- **A premature read was retracted.** The expansion cohort's 2W went +0.0604 (t=0.86, 4 days)
+  → −0.0037 (t=−0.07, 5 days). It now resembles 2D's no-signal result rather than
+  contradicting it.
+- **The fail-soft Supabase write is verified in production** — three full scan days since the
+  08-24 deploy with no gap, while the migration remains unapplied.
 
 ---
 
