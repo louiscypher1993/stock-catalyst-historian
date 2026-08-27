@@ -1,4 +1,4 @@
-# Session handover — updated 2026-08-27
+# Session handover — updated 2026-08-27 (evening)
 
 Written so the next session starts from the written record rather than from recollection.
 **Deliberately short. It does not restate `TODO.md`, which is the canonical backlog and was
@@ -30,12 +30,11 @@ updated throughout.** Read `TODO.md` first; this only covers what that file can'
 
 ## Start here
 
-**⚠ STILL NEEDS A HUMAN: apply `src/db/supabase_model_c_rank_migration.sql` in the Supabase
-SQL editor.** Checked 2026-08-27 — not yet applied. **The fail-soft path is VERIFIED working
-in production**: the write change shipped 08-24 and rows kept landing normally (143 / 135 /
-123 on 08-24/25/26), so nothing is broken and the migration can land whenever suits. Until it
-does, `model_c_percentile_rank` is not stored and every analysis keeps falling back to a v9.1
-breakpoint table production has not used since v9.5.
+**✅ NOTHING IS BLOCKED. The Model C rank migration was applied 2026-08-27 and the history
+backfilled** (5,085 rows, 0 failures, idempotent — `backfillModelCRank.ts`). Verified three
+ways: columns exist, every run_date reads 100% populated, and rows created after the
+migration carry ranks written by live inference itself. `model_c_version` is stored alongside,
+so a future reading can tell WHICH model a row came from — see AMENDMENT 2.
 
 **The 08-21 refit is DONE (2026-08-24) and both halves changed the plan. Read AMENDMENT 1 at
 the top of `PREREG_2026-08-21_riskscore_refit.md` before touching riskScore or the tier
@@ -63,8 +62,15 @@ other way" and was −0.0037 three days later. Re-measure before quoting; say "u
 until the count is met.
 
 Gate calendar (2026-08-27): 2D expansion **CLOSED — no signal** · benchmark adjudication
-**CLOSED — stay on SPY** · Part B + C2 **~09-03** (5 of 10 days) · 2W expansion
-**mid-September** (5 of 10 days) · trend overlay ~early Sept · **checkpoint October**.
+**CLOSED — stay on SPY** · Model C rank **DONE — migrated + backfilled** · Part B + C2
+**~09-03** (5 of 10 days) · 2W expansion **mid-September** (5 of 10 days) · trend overlay
+~early Sept · **checkpoint October**.
+
+**⚠ A finding can be CORRECT and still be wrong to cite — see AMENDMENT 2.** The "drawdown
+term pinned at 37-40" claim was a true measurement of v9.1, which stopped being the deployed
+model on 2026-08-06. It was cited for three weeks afterwards, and because the rank was not
+persisted, every re-check silently reproduced the stale answer. Stamp findings with the model
+version they describe, not just the date.
 
 ---
 

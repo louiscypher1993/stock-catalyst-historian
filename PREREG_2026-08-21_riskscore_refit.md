@@ -124,6 +124,44 @@ criterion written into this file.
 
 ---
 
+# AMENDMENT 2 — 2026-08-27. The original finding was not wrong. It went STALE.
+
+Migration applied and the rank backfilled (5,085 rows, 0 failures, idempotent). Verified
+three ways: columns exist, every run_date reads 100% populated, and rows created at
+18:11–18:13 UTC today carry ranks written by live inference itself — the backfill only
+updates, never inserts.
+
+**The backfill refines AMENDMENT 1's framing, and not in my favour.** Splitting the 5,085
+rows at the e745e08 flip by `created_at` and ranking each against its OWN version's table:
+
+| era | rows | run_dates | resulting drawdownTerm |
+|---|---|---|---|
+| v9.1 (pre-flip) | 2,489 | 07-19 .. 08-06 | median **39.2**, p25 38.5, p75 39.6 |
+| v9.5 (post-flip) | 2,596 | 08-07 .. 08-27 | median **15.1**, p25 4.6, p75 25.4 |
+
+**The v9.1-era rows really were pinned.** So "the drawdown term is pinned at 37-40" was a
+CORRECT measurement of the system as it stood when it was taken. AMENDMENT 1 called it an
+instrument error; that is too harsh. What actually happened is subtler and more dangerous:
+
+**the finding outlived the model it described, and nothing could tell it so.** v9.5 shipped
+2026-08-06 and fixed the pinning. The finding was recorded before that and kept being cited
+after, and because the rank was never persisted, every re-measurement silently reproduced
+the OLD answer through the v9.1 fallback — confirming a stale claim with fresh data. A wrong
+instrument gets caught the first time someone checks. This one passed every check.
+
+**That is the reusable lesson, and it is different from AMENDMENT 1's.** Findings need a
+currency stamp, not just a provenance one: *which model version, which regime*. `model_c_version`
+is now stored next to the rank for exactly this reason — so a future reading can tell whether
+it is looking at the same system the claim was made about. The three-way split of this month's
+errors is now: one broken instrument (the 10× India tax rate), one metric indifferent to
+meaning (C1's occupancy target), and one correct finding left to rot past its model version.
+
+**Boundary note, for the record:** zero rows fell within ±2h of the flip and no run_date
+carried both versions, so the era split required no judgement call. `created_at` (insert time)
+was used rather than `run_date`, which is date-granular and would have been ambiguous on 08-06.
+
+---
+
 ## Standing rules (apply to every part below)
 
 1. **Fit on LIVE output. Never on fold percentiles.** This is the single most-repeated lesson
