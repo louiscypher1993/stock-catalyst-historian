@@ -1,6 +1,6 @@
 {
   "_note": "symbol -> FINRA consolidated short interest (US-listed only). Source: cdn.finra.org biweekly settlement file, free/no-auth. Point-in-time via settlementDate. Rebuild via buildShortInterest.ts.",
-  "_built": "2026-08-23",
+  "_built": "2026-08-30",
   "_settlementDate": "20260731",
   "_sourceUrl": "https://cdn.finra.org/equity/otcmarket/biweekly/shrt20260731.csv",
   "_unmatched": [
