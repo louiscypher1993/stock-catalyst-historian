@@ -10469,7 +10469,53 @@
     "AEMRF": "2026-08-30",
     "OTGLF": "2026-08-30",
     "ALCED": "2026-08-30",
-    "PITAF": "2026-08-30"
+    "PITAF": "2026-08-30",
+    "WEGRY": "2026-09-06",
+    "SBE": "2026-09-06",
+    "WCCB": "2026-09-06",
+    "SPNV": "2026-09-06",
+    "HYAC": "2026-09-06",
+    "PTBS": "2026-09-06",
+    "SNFI": "2026-09-06",
+    "YQAI": "2026-09-06",
+    "BGICF": "2026-09-06",
+    "INKW": "2026-09-06",
+    "GLG": "2026-09-06",
+    "EAIQ": "2026-09-06",
+    "GOSC": "2026-09-06",
+    "ZTEKF": "2026-09-06",
+    "AUXX": "2026-09-06",
+    "MGMYY": "2026-09-06",
+    "SKUB": "2026-09-06",
+    "HCPC": "2026-09-06",
+    "GOTV": "2026-09-06",
+    "LPNE": "2026-09-06",
+    "ETRA": "2026-09-06",
+    "BOGD": "2026-09-06",
+    "KHG": "2026-09-06",
+    "WELA": "2026-09-06",
+    "BMB": "2026-09-06",
+    "AGKO": "2026-09-06",
+    "ACCV": "2026-09-06",
+    "LXSPY": "2026-09-06",
+    "IPHX": "2026-09-06",
+    "RNAQ": "2026-09-06",
+    "AGYXY": "2026-09-06",
+    "LABI": "2026-09-06",
+    "OTGLY": "2026-09-06",
+    "DCCPY": "2026-09-06",
+    "GSHRD": "2026-09-06",
+    "CAPA": "2026-09-06",
+    "GSHRF": "2026-09-06",
+    "WILCF": "2026-09-06",
+    "IDXGD": "2026-09-06",
+    "DCCPF": "2026-09-06",
+    "NIFCF": "2026-09-06",
+    "WEIGF": "2026-09-06",
+    "GLTKD": "2026-09-06",
+    "FTRKD": "2026-09-06",
+    "AGXXF": "2026-09-06",
+    "FNLPF": "2026-09-06"
   },
   "rejected": {
     "FOIL": {
@@ -10595,6 +10641,118 @@
     "MIACW": {
       "date": "2026-08-30",
       "reason": "bars=1 close=1.02 medDV=0.0M"
+    },
+    "IPXG": {
+      "date": "2026-09-06",
+      "reason": "bars=64 close=10.04 medDV=0.4M"
+    },
+    "ATLQ": {
+      "date": "2026-09-06",
+      "reason": "bars=10 close=9.98 medDV=0.3M"
+    },
+    "SGLD": {
+      "date": "2026-09-06",
+      "reason": "bars=4 close=5.45 medDV=12.8M"
+    },
+    "JTTT": {
+      "date": "2026-09-06",
+      "reason": "bars=8 close=11.00 medDV=0.6M"
+    },
+    "PAAI": {
+      "date": "2026-09-06",
+      "reason": "bars=64 close=1.04 medDV=0.1M"
+    },
+    "VAI": {
+      "date": "2026-09-06",
+      "reason": "bars=64 close=2.25 medDV=0.0M"
+    },
+    "YFOR": {
+      "date": "2026-09-06",
+      "reason": "bars=10 close=1.43 medDV=3.3M"
+    },
+    "ISRL": {
+      "date": "2026-09-06",
+      "reason": "bars=3 close=25.83 medDV=0.1M"
+    },
+    "AEMC": {
+      "date": "2026-09-06",
+      "reason": "bars=7 close=20.09 medDV=0.0M"
+    },
+    "SAX": {
+      "date": "2026-09-06",
+      "reason": "bars=7 close=24.92 medDV=1.1M"
+    },
+    "RIV-RI": {
+      "date": "2026-09-06",
+      "reason": "bars=1 close=0.00 medDV=0.0M"
+    },
+    "RIV-RW": {
+      "date": "2026-09-06",
+      "reason": "bars=1 close=0.01 medDV=0.0M"
+    },
+    "IPXGU": {
+      "date": "2026-09-06",
+      "reason": "Yahoo Finance request failed for IPXGU: HTTP 404"
+    },
+    "IPXGW": {
+      "date": "2026-09-06",
+      "reason": "bars=1 close=0.75 medDV=0.0M"
+    },
+    "XLABW": {
+      "date": "2026-09-06",
+      "reason": "bars=1 close=0.40 medDV=0.0M"
+    },
+    "PSQLW": {
+      "date": "2026-09-06",
+      "reason": "bars=64 close=1.82 medDV=0.0M"
+    },
+    "SAMO-WT": {
+      "date": "2026-09-06",
+      "reason": "bars=1 close=0.23 medDV=0.0M"
+    },
+    "AAC-WT": {
+      "date": "2026-09-06",
+      "reason": "bars=1 close=0.95 medDV=0.0M"
+    },
+    "TLACU": {
+      "date": "2026-09-06",
+      "reason": "bars=4 close=10.00 medDV=3.7M"
+    },
+    "ATLQR": {
+      "date": "2026-09-06",
+      "reason": "bars=1 close=0.14 medDV=0.0M"
+    },
+    "ATLQU": {
+      "date": "2026-09-06",
+      "reason": "bars=61 close=10.10 medDV=0.1M"
+    },
+    "ATLQW": {
+      "date": "2026-09-06",
+      "reason": "bars=1 close=0.05 medDV=0.0M"
+    },
+    "JONER": {
+      "date": "2026-09-06",
+      "reason": "bars=2 close=0.17 medDV=0.4M"
+    },
+    "SCATU": {
+      "date": "2026-09-06",
+      "reason": "bars=8 close=10.02 medDV=0.7M"
+    },
+    "NSAIR": {
+      "date": "2026-09-06",
+      "reason": "bars=3 close=0.14 medDV=0.0M"
+    },
+    "NSAIW": {
+      "date": "2026-09-06",
+      "reason": "bars=3 close=0.05 medDV=0.0M"
+    },
+    "XTERW": {
+      "date": "2026-09-06",
+      "reason": "bars=7 close=0.29 medDV=0.0M"
+    },
+    "RNAQU": {
+      "date": "2026-09-06",
+      "reason": "bars=7 close=10.20 medDV=0.7M"
     }
   },
   "added": {
@@ -10606,6 +10764,8 @@
     "UUP": "2026-08-23",
     "ADAMK": "2026-08-23",
     "DUKU": "2026-08-23",
-    "TBCVU": "2026-08-23"
+    "TBCVU": "2026-08-23",
+    "HOS": "2026-09-06",
+    "IPHXU": "2026-09-06"
   }
 }
