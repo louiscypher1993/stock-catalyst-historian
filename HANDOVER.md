@@ -79,10 +79,32 @@ other way" and was −0.0037 three days later. Re-measure before quoting; say "u
 until the count is met.
 
 Gate calendar (2026-09-12): 2D expansion **CLOSED — no signal** · benchmark **CLOSED — stay
-on SPY** · Model C rank **DONE** · **Part B + C2 READY NOW** (18 post-parity 2W run_dates vs
-a ≥10 gate, 9 days overdue) · 2W expansion **gate OPEN, result MARGINAL** (17 days,
-day-IC +0.0420 t=1.17 vs a +0.107 anchor — same sign, below half the anchor, not
-significant; see below) · trend overlay ~now · **checkpoint October**.
+on SPY** · Model C rank **DONE** · **C2 RUN — REJECTED, see AMENDMENT 3** · Part B still
+ready (18 post-parity 2W run_dates) · 2W expansion **gate OPEN, result MARGINAL** ·
+**checkpoint October**.
+
+**⚠⚠ THE BIGGEST RESULT ON RECORD, AND IT IS NEGATIVE — read AMENDMENT 3 before the
+checkpoint.** C2 ran 2026-09-12 on 18 post-parity 2W run_dates and **REJECTED**. The five
+arms are MONOTONE in selectivity — the harder the selection, the worse the outcome:
+
+| arm | mean net%/trade | vs baseline | t |
+|---|---|---|---|
+| ALL scored (baseline) | −1.011% | — | — |
+| DEPLOYED actionable | −1.199% | −0.189pp | −1.05 |
+| REFITTED actionable | −1.723% | −0.736pp | −1.73 |
+| REFITTED STRONG_BUY only | −2.141% | −1.132pp | −2.23 |
+
+Coherent with the head's own live IC, measured on the same rows as a check:
+**D5 2W post-parity day-clustered IC −0.0421 (t=−1.28), positive on 4 of 16 days**, against
+a +0.1111 anchor. A negative IC is what makes "select harder → do worse" follow.
+
+**The pre-committed response is honoured: tier selection has NO demonstrable live edge and
+the cutoffs are NOT re-tuned. Do not open a third round of threshold tuning.**
+
+Read it as "no demonstrated edge", NOT "demonstrated anti-edge" — t=−1.28 and t=−1.73 are
+not significant, and 18 run_dates of overlapping 2W windows is far fewer than 18 independent
+observations. But the ORDERING is consistent with the pre-parity `dsrPboAudit` run too, so
+this is now the second window in which the unselective baseline beats every selective variant.
 
 **⚠ THE 2W EXPANSION DECISION RULE CONTRADICTS ITSELF — resolve before deciding.**
 `TODO.md` says "positive day-IC over ≥10 days = open pots/notifications to the cohort",

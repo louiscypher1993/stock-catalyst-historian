@@ -162,6 +162,59 @@ was used rather than `run_date`, which is date-granular and would have been ambi
 
 ---
 
+# AMENDMENT 3 — 2026-09-12. C2 RUN. **REJECT. Tier selection has no demonstrable live edge.**
+
+18 post-parity 2W run_dates (2026-08-09..08-28) against a ≥10 gate. Paired by run_date:
+each day's tier mean minus that same day's baseline mean, then a t-test on the daily
+differences. `net = actual_return − roundTripCost(symbol, £1,250) + dividend_credit`
+(mean cost 57bps). Script: `prereg_C2.ts`.
+
+| arm | n | days | mean net%/trade | vs baseline (paired) | t |
+|---|---|---|---|---|---|
+| **ALL scored (baseline)** | 1326 | 18 | **−1.011%** | — | — |
+| DEPLOYED actionable (SB+BUY) | 823 | 18 | −1.199% | −0.189pp | −1.05 |
+| DEPLOYED STRONG_BUY only | 243 | 16 | −1.527% | −0.518pp | −1.42 |
+| **REFITTED actionable (SB+BUY)** | 271 | 17 | **−1.723%** | **−0.736pp** | **−1.73** |
+| REFITTED STRONG_BUY only | 142 | 16 | −2.141% | −1.132pp | −2.23 |
+
+**VERDICT: REJECT.** The refitted actionable tier does not beat the unselective baseline;
+it loses to it by 0.736pp. **The pre-committed response applies and is hereby honoured: tier
+selection has no demonstrable live edge, and the cutoffs are NOT re-tuned.** No third round.
+
+**The result is stronger than "the refit did not help."** The five arms are MONOTONE in
+selectivity: the harder the selection, the worse the outcome, and the refitted (stricter)
+cutoffs are worse than the deployed ones at every level. Selecting on predicted return is
+actively destroying value on this window, not merely failing to add any.
+
+**SANITY CHECK — the monotone pattern is coherent, not an artefact.** A monotone decline
+would contradict a positive IC, so the head's own IC was measured on the same rows:
+**D5 2W post-parity day-clustered IC = −0.0421 (t=−1.28), positive on 4 of 16 days**,
+against a **+0.1111** `TEST_IC_DAILY` anchor. The live ranking is on the wrong side of zero,
+which is exactly what makes "select harder → do worse" follow. Everything hangs together;
+had the IC come back clearly positive, C2 would have been a contradiction needing
+explanation rather than a result.
+
+**WHAT THIS MEANS FOR THE OCTOBER CHECKPOINT — stated plainly.** The recommendation basis
+(D5/2W) shows **no demonstrated edge on post-parity live data**, and its point estimate is
+negative. Every arm above loses money before selection is even considered. This is the
+honest baseline the go/no-go gets judged against.
+
+**CAVEATS, none of which rescue it:**
+- `t=−1.28` on the IC and `t=−1.73` on the C2 difference are **not significant**. The
+  correct reading is "no demonstrated edge", NOT "demonstrated anti-edge". Only the most
+  selective arm (refitted STRONG_BUY, t=−2.23) clears 95%, and it is the smallest.
+- **18 run_dates is far fewer than 18 independent observations.** Consecutive run_dates' 2W
+  outcomes share 13 of their 14 days, so the effective sample is much smaller and every
+  t above is optimistic — the standing caveat from the power-budget work.
+- The C1 cutoffs were fitted on 08-09..08-24 predictions, which overlaps this outcome
+  window. Cutoffs are fitted on PREDICTIONS only and never touch outcomes, so this is not
+  circular — but it is not clean out-of-sample either.
+- The baseline was **+0.466%** over 29 pre-parity run_dates (`dsrPboAudit`, 2026-08-16) and
+  is **−1.011%** here. Different window, different market. Do not read the change as
+  degradation; do read the ORDERING, which is the same in both: baseline beats selection.
+
+---
+
 ## Standing rules (apply to every part below)
 
 1. **Fit on LIVE output. Never on fold percentiles.** This is the single most-repeated lesson

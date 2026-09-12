@@ -207,6 +207,16 @@ Scripts: `potLedgerNet.ts` (the readout), `potLedgerCosts.ts` (the module),
      discriminating power. Candidate replacements: signal_completeness, |z| percentile,
      or reweight the drawdown term. Do NOT recalibrate A — wrong tool for this term;**
    - switch riskScore to 1-2dp display THEN (decimals before the refit = false precision).
+   - **⚠ C2 RUN 2026-09-12 — REJECTED. See AMENDMENT 3.** The refitted cutoffs LOSE to the
+     unselective baseline (−0.736pp, t=−1.73, 17 days), and the five arms are monotone in
+     selectivity — harder selection, worse outcome, refitted worse than deployed at every
+     level. Coherent with the head's own live IC on the same rows: **D5 2W post-parity
+     day-clustered IC −0.0421 (t=−1.28), positive on 4 of 16 days, vs a +0.1111 anchor.**
+     **Pre-committed response honoured: tier selection has no demonstrable live edge; the
+     cutoffs are NOT re-tuned and no third round is opened.** Not significant, so read it as
+     "no demonstrated edge" rather than "demonstrated anti-edge" — but this is the second
+     window (after the pre-parity `dsrPboAudit` run) where the baseline beats every
+     selective variant. **This is the honest input to the October go/no-go.**
    - **⚠ ADD TO THIS REFIT — `HORIZON_TIER_CONFIG`'s cutoffs are miscalibrated live too
      (measured 2026-08-13, `scratch_liveTierOccupancy.ts`).** Same defect as the Model C
      breakpoints, in a different component: cutoffs fitted to a v9.3 *fold* distribution
