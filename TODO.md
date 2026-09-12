@@ -5,6 +5,52 @@ Items carry their gate (what must happen first) because most of this backlog is
 time-gated, not effort-gated. History/evidence lives in the memory files and
 `DEEP_DIVE_PROGRESS.md`; this file is only what is still OPEN.
 
+## ⚠ TOP OF QUEUE — `inference_results` IS BEING PRUNED (found 2026-09-12)
+
+**Supabase `inference_results` retains only ~40 days and nobody knew.** On 2026-09-12 its
+earliest `run_date` was **2026-08-03**. On 2026-08-27 `backfillModelCRank.ts` explicitly
+reported rows spanning **2026-07-19 onwards** and updated 5,085 of them. **~15 run_dates
+were deleted in between.**
+
+**It is not our code.** The only `.delete()` in the repo is a probe cleanup in
+`verifyShadowTable.ts`; no workflow prunes anything. **It is not a global limit either** —
+every other durable table is intact back to June:
+
+| table | rows | earliest |
+|---|---|---|
+| **inference_results** | 5,022 | **2026-08-03** ⚠ |
+| outcome_results | 12,959 | 2026-06-13 |
+| pot_snapshots | 3,105 | 2026-06-14 |
+| pot_positions | 321 | 2026-06-14 |
+
+`outcome_results` holds 2.5× the rows over three months, so this is a table-level policy or
+platform behaviour configured **outside the repo**. Mechanism UNKNOWN — not determined from
+the codebase, and worth checking the Supabase dashboard for a TTL/pg_cron job or a
+table-level retention setting.
+
+**WHY IT IS URGENT.** Parity landed **2026-08-09**. On a rolling 40-day window the
+post-parity rows — the exact data the October checkpoint, Part B and C2 all read — begin
+aging out around **2026-09-18**.
+
+**MITIGATED, NOT FIXED (2026-09-12):** `archiveInferenceResults.ts` →
+`data/inference_results_archive.ndjson`, wired into `pit-snapshot.yml` (weekly, comfortably
+inside a 40-day window). First capture: **5,022 rows, 37 run_dates, 2026-08-03..09-12.**
+**The script MERGES rather than dumps** — union on `run_date|symbol`, archive-only rows kept
+and counted as "rescued" — because the source is shrinking, so a plain dump would let a
+later run overwrite the archive with a smaller snapshot and complete the very loss it exists
+to prevent.
+
+**Still open:**
+1. **Find the mechanism.** Until it is known, the 40-day figure is an observation, not a
+   rule — it could tighten without warning.
+2. **The rows already lost (07-19..08-02) are GONE.** Nothing in the archive covers them.
+   Check whether `outcome_results` (which retains them) can reconstruct anything needed.
+3. **How this stayed invisible is the real lesson.** Nothing errored. `expansionReadout.ts`
+   simply reported fewer rows each run, and on 2026-09-12 its pre-parity 2W arm printed
+   **+0.2181 (t=4.93)** — a spectacular-looking result computed on the biased 189-row
+   remnant of what had been 580 rows. A shrinking denominator manufactures significance.
+   **Any longitudinal readout should assert its row count is non-decreasing.**
+
 ## ✅ RESOLVED 2026-08-16 — the pot ledger now reads NET. Honest figure: −0.971%/trade
 
 **`PotService.ts` never imports `costModel.ts`.** Verified: it imports nothing at all, and

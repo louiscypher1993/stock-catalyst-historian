@@ -1,4 +1,4 @@
-# Session handover — updated 2026-08-27 (evening)
+# Session handover — updated 2026-09-12
 
 Written so the next session starts from the written record rather than from recollection.
 **Deliberately short. It does not restate `TODO.md`, which is the canonical backlog and was
@@ -10,7 +10,8 @@ updated throughout.** Read `TODO.md` first; this only covers what that file can'
 > 2026-08-20: re-measured the expansion gate. Session 4 ran 2026-08-24: **executed the
 > pre-registered refit, closed the 2D expansion gate, and persisted the Model C rank.**
 > Session 5 ran 2026-08-27: **closed the benchmark adjudication (stay on SPY) and
-> retracted a premature 2W expansion read.**
+> retracted a premature 2W expansion read.** Session 6 ran 2026-09-12: **found that
+> `inference_results` is being silently pruned to ~40 days, and built the archive.**
 
 ---
 
@@ -30,11 +31,27 @@ updated throughout.** Read `TODO.md` first; this only covers what that file can'
 
 ## Start here
 
-**✅ NOTHING IS BLOCKED. The Model C rank migration was applied 2026-08-27 and the history
-backfilled** (5,085 rows, 0 failures, idempotent — `backfillModelCRank.ts`). Verified three
-ways: columns exist, every run_date reads 100% populated, and rows created after the
-migration carry ranks written by live inference itself. `model_c_version` is stored alongside,
-so a future reading can tell WHICH model a row came from — see AMENDMENT 2.
+**⚠ START WITH THE RETENTION PROBLEM — top section of `TODO.md`.** Supabase
+`inference_results` retains only **~40 days**: earliest run_date was 2026-08-03 on
+2026-09-12, while a backfill on 08-27 had seen rows from 07-19. **~15 run_dates were
+deleted in between.** Not our code (no repo `.delete()` touches it), not a global limit
+(`outcome_results` holds 12,959 rows back to June). Mechanism UNKNOWN — check the Supabase
+dashboard for a TTL or pg_cron job.
+
+**Parity landed 2026-08-09, so post-parity rows start aging out ~2026-09-18.** That is the
+data the October checkpoint, Part B and C2 all read.
+
+**Mitigated 2026-09-12, not fixed:** `archiveInferenceResults.ts` →
+`data/inference_results_archive.ndjson`, wired weekly into `pit-snapshot.yml`. First capture
+5,022 rows / 37 run_dates. It MERGES rather than dumps — a plain dump would let a later run
+overwrite the archive with a smaller snapshot and complete the loss it prevents. Rows already
+lost (07-19..08-02) are gone for good.
+
+**⚠ The lesson generalises past this table.** Nothing errored. `expansionReadout.ts` just
+returned fewer rows each run, and on 09-12 its pre-parity 2W arm printed **+0.2181 (t=4.93)**
+— a spectacular number computed on the 189-row remnant of a 580-row cohort. **A shrinking
+denominator manufactures significance.** Any longitudinal readout should assert its row count
+is non-decreasing.
 
 **The 08-21 refit is DONE (2026-08-24) and both halves changed the plan. Read AMENDMENT 1 at
 the top of `PREREG_2026-08-21_riskscore_refit.md` before touching riskScore or the tier
@@ -61,10 +78,19 @@ and on 2026-08-24 a 4-day expansion read of +0.0604 (t=0.86) was written up as "
 other way" and was −0.0037 three days later. Re-measure before quoting; say "undecided"
 until the count is met.
 
-Gate calendar (2026-08-27): 2D expansion **CLOSED — no signal** · benchmark adjudication
-**CLOSED — stay on SPY** · Model C rank **DONE — migrated + backfilled** · Part B + C2
-**~09-03** (5 of 10 days) · 2W expansion **mid-September** (5 of 10 days) · trend overlay
-~early Sept · **checkpoint October**.
+Gate calendar (2026-09-12): 2D expansion **CLOSED — no signal** · benchmark **CLOSED — stay
+on SPY** · Model C rank **DONE** · **Part B + C2 READY NOW** (18 post-parity 2W run_dates vs
+a ≥10 gate, 9 days overdue) · 2W expansion **gate OPEN, result MARGINAL** (17 days,
+day-IC +0.0420 t=1.17 vs a +0.107 anchor — same sign, below half the anchor, not
+significant; see below) · trend overlay ~now · **checkpoint October**.
+
+**⚠ THE 2W EXPANSION DECISION RULE CONTRADICTS ITSELF — resolve before deciding.**
+`TODO.md` says "positive day-IC over ≥10 days = open pots/notifications to the cohort",
+which +0.0420 passes. `expansionReadout.ts`'s own printed criterion says the cohort "earns
+trust when its post-parity day-IC is same-sign AND within ~2×" of the +0.107 anchor, which
++0.0420 fails (it is below half). Pick the rule on its merits, in writing, BEFORE looking at
+the number again — choosing the reading that suits the result is the whole failure mode this
+project keeps pre-registering against.
 
 **⚠ A finding can be CORRECT and still be wrong to cite — see AMENDMENT 2.** The "drawdown
 term pinned at 37-40" claim was a true measurement of v9.1, which stopped being the deployed

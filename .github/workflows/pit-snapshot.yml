@@ -60,6 +60,19 @@ jobs:
       # failed silently for 3+ straight weeks that way (fixed 03a0aaa). Every failure
       # is recorded and the JOB goes red at the end, after the successful sources have
       # still been committed.
+      # RESCUE, not enrichment — this one guards against loss rather than adding a source.
+      # Supabase `inference_results` retains only ~40 days: on 2026-09-12 its earliest
+      # run_date was 2026-08-03, while a backfill on 08-27 had seen rows from 07-19.
+      # ~15 run_dates vanished in between. Nothing in this repo deletes them and the other
+      # durable tables are intact back to June, so the pruning is a table-level policy or
+      # platform behaviour set outside the repo. Parity landed 2026-08-09, so on a rolling
+      # 40-day window the post-parity rows the October checkpoint depends on start aging
+      # out ~2026-09-18. Weekly capture is comfortably inside a 40-day window.
+      # The script MERGES (union on run_date|symbol, archive-only rows kept) rather than
+      # dumping, so a run that sees a shrunken source cannot destroy what earlier runs saved.
+      - name: Archive inference_results (retention rescue)
+        run: npx tsx src/scripts/archiveInferenceResults.ts --write || echo "InferenceArchive" >> pit_failures.txt
+
       - name: FCA short positions (UK)
         run: npx tsx src/scripts/buildFcaShortPositions.ts || echo "FCA" >> pit_failures.txt
 
@@ -149,7 +162,8 @@ jobs:
           # step -- the same bug wearing a different hat. This does not hide a broken
           # source: a failing builder is still recorded to pit_failures.txt and reported
           # by the final step.
-          for f in src/scripts/symbol_fca_short_positions.json \
+          for f in data/inference_results_archive.ndjson \
+                   src/scripts/symbol_fca_short_positions.json \
                    src/scripts/symbol_amf_short_positions.json \
                    src/scripts/symbol_short_interest.json \
                    src/scripts/symbol_clinical_trials.json \
