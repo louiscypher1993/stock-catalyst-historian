@@ -31,6 +31,29 @@ updated throughout.** Read `TODO.md` first; this only covers what that file can'
 
 ## Start here
 
+**⚠⚠ THE OCTOBER CHECKPOINT CANNOT ANSWER ITS OWN QUESTION. Read the top section of
+`TODO.md` before planning anything around it.** `checkpointReadout.ts` (2026-09-12):
+
+| horizon | IC | naive t | **effective windows** | honest t | 95% CI | verdict |
+|---|---|---|---|---|---|---|
+| 2D | −0.0760 | −2.19 (27d) | **~16.0** | −1.69 | [−0.164, +0.012] | **anchor REFUTED** |
+| **2W** | −0.0421 | −1.28 (16d) | **~1.4** | **−0.38** | **[−0.259, +0.174]** | **UNDERPOWERED** |
+
+**Count INDEPENDENT WINDOWS, not run_dates.** 2W run_dates span 20 calendar days against a
+14-day horizon — consecutive outcomes share nearly the whole window, giving **~1.4**
+independent observations, not 16. The 2W interval contains **both zero and the +0.1111
+anchor**, so "no edge" and "edge exactly as designed" are indistinguishable on this data.
+**That is not a negative result.** C2's REJECT stands as a pre-committed DECISION but is not
+evidence of absence — keep those separate.
+
+~10 non-overlapping 2W windows needs ~140 days from parity (08-09) → **late December**.
+October was never capable of this; it was arithmetic true on day one that nobody checked
+because we were all counting run_dates.
+
+**Proposed (not yet decided): October becomes a REPORT of what IS decidable — 2D anchor
+refuted, cost model, ledger at −0.971%/trade, C2's rejection, the retention hazard — and the
+2W capital decision re-gates to a COUNT of ≥10 non-overlapping windows.**
+
 **⚠ START WITH THE RETENTION PROBLEM — top section of `TODO.md`.** Supabase
 `inference_results` retains only **~40 days**: earliest run_date was 2026-08-03 on
 2026-09-12, while a backfill on 08-27 had seen rows from 07-19. **~15 run_dates were

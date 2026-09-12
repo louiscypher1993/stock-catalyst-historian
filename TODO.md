@@ -5,6 +5,50 @@ Items carry their gate (what must happen first) because most of this backlog is
 time-gated, not effort-gated. History/evidence lives in the memory files and
 `DEEP_DIVE_PROGRESS.md`; this file is only what is still OPEN.
 
+## ⚠ THE OCTOBER CHECKPOINT CANNOT ANSWER ITS OWN QUESTION (found 2026-09-12)
+
+**Re-gate it from a go/no-go to a report.** `checkpointReadout.ts` measured what the
+post-parity evidence can actually support, and for the recommendation basis the answer is
+**nothing yet**:
+
+| horizon | day-clustered IC | naive t | **effective windows** | honest t | 95% CI | verdict |
+|---|---|---|---|---|---|---|
+| 2D | −0.0760 | −2.19 (27d) | **~16.0** | −1.69 | [−0.164, +0.012] | **anchor REFUTED** |
+| **2W** | −0.0421 | −1.28 (16d) | **~1.4** | **−0.38** | **[−0.259, +0.174]** | **UNDERPOWERED** |
+| 1M | −0.0868 | −1.49 (4d) | ~1.0 | −0.75 | [−0.315, +0.141] | UNDERPOWERED |
+
+**⚠ COUNT INDEPENDENT WINDOWS, NOT RUN_DATES.** 2W run_dates span 20 calendar days against
+a 14-day horizon, so consecutive outcomes share almost their whole window: **~1.4 independent
+observations, not 16.** Day-clustering fixed correlation WITHIN a day and never touched this.
+The power-budget section already flagged it ("every days-for-t=3 above is an optimistic
+floor") and could not act; it is now the binding constraint on the entire capital decision.
+
+**The 2W interval [−0.259, +0.174] contains BOTH zero AND the +0.1111 anchor.** We cannot
+distinguish "no edge" from "the edge is exactly what training said". **That is not a negative
+result and must never be reported as one.** C2's REJECT stands as a pre-committed DECISION,
+but it is not evidence of absence — keep the two separate.
+
+**THE ARITHMETIC NOBODY CHECKED.** ~10 non-overlapping 2W windows needs **~140 days from
+parity**. Parity was 2026-08-09, so the earliest honest 2W verdict is **late December**, and
+that is a marginal read. **October was never capable of answering this** — true on 08-09, and
+missed because everyone (assistant included) counted run_dates instead of independent windows.
+
+**PROPOSED RE-GATING — decide this explicitly:**
+1. **October becomes a REPORT, not a go/no-go.** It states what IS decidable: the 2D anchor
+   is refuted; the cost model and its 10x India correction; the pot ledger at −0.971%/trade;
+   C2's rejection; the retention hazard.
+2. **The 2W capital decision re-gates to a COUNT: ≥10 non-overlapping 2W windows**
+   (~late December). Stated as a count, never a date — the standing lesson.
+3. **Adopt "effective windows = span ÷ horizon" as the reporting standard** for every
+   horizon-gated claim in this project. It is a deliberately crude lower bound; Newey-West
+   at lag = horizon is the principled fix but cannot be estimated when the lag approaches
+   the sample length. A transparent bound beats a sophisticated number resting on an
+   unestimable nuisance.
+4. **2D is decidable and closed.** ~16 effective windows, anchor excluded. It does not
+   establish a NEGATIVE edge — the CI still contains zero — but the training-time anchor
+   no longer describes live. Combined with 2D being uneconomic at the turnover it needs,
+   that route is shut.
+
 ## ⚠ TOP OF QUEUE — `inference_results` IS BEING PRUNED (found 2026-09-12)
 
 **Supabase `inference_results` retains only ~40 days and nobody knew.** On 2026-09-12 its
