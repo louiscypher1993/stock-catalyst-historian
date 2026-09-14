@@ -19,6 +19,7 @@
  */
 import 'dotenv/config';
 import { fetchYahooDailyHistory } from '../LiveInferenceService';
+import { checkRowCounts, effectiveWindowsLines } from './readoutGuards';
 
 const PARITY = '2026-08-09';
 const sinceIdx = process.argv.indexOf('--since');
@@ -69,6 +70,9 @@ async function main() {
   }
   console.log(`null_enrichment rows since ${SINCE}: ${rows.length} ` +
               `(${new Set(rows.map(r => r.symbol)).size} symbols)`);
+  // This readout reads inference_results, which is pruned to a rolling ~40 days — the
+  // exact failure that turned its pre-parity arm into a t=4.93 artefact on 2026-09-12.
+  for (const l of checkRowCounts('inference_results:null_enrichment', rows.map(r => r.run_date), { since: SINCE })) console.log(l);
 
   const barsBySymbol = new Map<string, Array<{ date: string; close: number }>>();
   const symbols = [...new Set(rows.map(r => r.symbol))];
@@ -108,8 +112,9 @@ async function main() {
         perDay.get(d0)!.push({ p: pred, y });
       }
       const ics: number[] = [];
-      for (const [, g] of perDay) {
-        if (g.length >= 5) ics.push(spearman(g.map(x => x.p), g.map(x => x.y)));
+      const scoredDates: string[] = [];
+      for (const [d, g] of perDay) {
+        if (g.length >= 5) { ics.push(spearman(g.map(x => x.p), g.map(x => x.y))); scoredDates.push(d); }
       }
       const mean = ics.length ? ics.reduce((s, v) => s + v, 0) / ics.length : NaN;
       const sd = ics.length > 1
@@ -118,6 +123,7 @@ async function main() {
       console.log(`  ${h.label}: matured rows ${matured}, days with >=5 rows ${ics.length}, ` +
                   `day-IC ${Number.isFinite(mean) ? mean.toFixed(4) : 'n/a'}` +
                   `${Number.isFinite(t) ? ` (t=${t.toFixed(2)})` : ''}`);
+      for (const l of effectiveWindowsLines(scoredDates, h.days, ics, '      ')) console.log(l);
     }
   }
   console.log('\nInterpretation: compare against the in-training-universe fold anchors ' +

@@ -35,6 +35,7 @@ import * as path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import Database from 'better-sqlite3';
 import { roundTripCost } from '../costModel';
+import { checkRowCounts, effectiveWindowsLines, HORIZON_CALENDAR_DAYS } from './readoutGuards';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..', '..');
@@ -313,6 +314,8 @@ async function main() {
   for (const h of HORIZON_ORDER) {
     const rows = allRows.filter(r => r.horizon === h);
     if (rows.length === 0) continue;
+    // Keyed by source: local sqlite and Supabase legitimately hold different rows.
+    const guard = checkRowCounts(`outcome_results[${source}]:${h}`, rows.map(r => r.run_date), { since, until });
 
     const pred = rows.map(r => r.predicted_return);
     const act = rows.map(r => r.actual_return);
@@ -333,6 +336,7 @@ async function main() {
     const anecdote = n < MIN_N ? '  ⚠ low-n (anecdote)' : '';
 
     console.log(`\n▸ ${h}  [${HORIZON_HEAD[h]}]   n=${n}${anecdote}`);
+    for (const l of guard) console.log(`   ${l}`);
     console.log(`    pooled IC   ${fixed(ic)}   vs v9.4 pooled test IC ${fixed(testIc)}   Δ ${Number.isFinite(dIc) ? (dIc >= 0 ? '+' : '') + dIc.toFixed(3) : 'n/a'}`);
     // The number to actually read. Pooled IC above is kept for continuity with
     // the earlier readouts, but it treats one scan date's rows as independent
@@ -343,6 +347,7 @@ async function main() {
       const crit = tCrit95(d.days - 1);
       const sig = Math.abs(d.t) >= crit ? '' : `  (not significant at 95%: |t| < ${crit.toFixed(2)} on ${d.days - 1} df)`;
       console.log(`    mean daily IC ${fixed(d.meanIC)} ± ${fixed(d.seIC)}  t=${d.t.toFixed(2)}  over ${d.days} run_date(s), median ${d.medianPerDay} names/day, ${(d.pctPos * 100).toFixed(0)}% days positive${sig}`);
+      for (const l of effectiveWindowsLines(d.perDay.map(p => p.date), HORIZON_CALENDAR_DAYS[h], d.perDay.map(p => p.ic), '      ')) console.log(l);
       console.log(`      vs v9.4 DAILY anchor ${fixed(anchorD.ic)}  ⇐ the like-for-like bar (pooled anchor ${fixed(testIc)} counts between-date moves as skill)`);
     } else {
       console.log(`    mean daily IC — only ${d.days} usable run_date(s) (need ≥2, and ≥8 names on a date to count it)`);

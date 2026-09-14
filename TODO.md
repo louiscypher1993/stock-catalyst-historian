@@ -90,8 +90,10 @@ public registers), so `SUPABASE_URL` / `SUPABASE_ANON_KEY` were never in scope. 
 committed the other 11 sources and silently omitted the archive (the step failed into
 `pit_failures.txt`, so that job should show red). "Wired weekly" was verified by YAML parse and
 staged-path check only — **never by the step actually authenticating.** Fixed by adding the
-env block. **Verify end to end** by dispatching `pit-snapshot` manually and confirming the bot's
-commit includes `data/inference_results_archive.ndjson`.
+env block. **✅ VERIFIED END TO END 2026-09-14** by a manual dispatch: bot commit `0bc3423`
+includes `data/inference_results_archive.ndjson` (+163 rows, 0 deletions) → 5,185 rows, 0
+duplicate keys, 08-03 → 09-14, and the 371 already-pruned rows from 08-03/08-04 intact. The
+merge held in CI. The 09-13 run is red in Actions, confirming the diagnosis.
 
 **No data was lost to the bug, and the archive has already rescued rows.** On 09-14 Supabase's
 floor was **2026-08-05** (was 08-03 on 09-12) — **a ROLLING ~40-day window advancing ~1 day
@@ -108,7 +110,18 @@ working weekly job has ample margin.
    simply reported fewer rows each run, and on 2026-09-12 its pre-parity 2W arm printed
    **+0.2181 (t=4.93)** — a spectacular-looking result computed on the biased 189-row
    remnant of what had been 580 rows. A shrinking denominator manufactures significance.
-   **Any longitudinal readout should assert its row count is non-decreasing.**
+   **✅ GUARDED 2026-09-14** — `src/scripts/readoutGuards.ts`, wired into `readoutHarness`,
+   `outcomeScoreboard` and `expansionReadout`. Each records a high-water row count per
+   run_date per series in `data/readout_rowcount_ledger.json` and prints a loud
+   `⚠⚠ ROW-COUNT GUARD` whenever a run_date in its window now holds fewer rows. The mark never
+   decreases, so the warning persists as long as the loss does. Proven to fire by a simulated
+   loss; the `inference_results:null_enrichment` series was seeded from the archive so the
+   real 08-03/08-04 loss registers rather than being silently absorbed into a baseline.
+   **Same commit, the second guard:** every day-clustered IC in those three readouts now prints
+   **effective independent windows** (span ÷ horizon) and an honest t, and `readoutHarness`'s
+   readiness matrix now requires ≥10 windows as well as ≥10 run_dates — 2W, previously
+   "✅ ready (15 run_dates)", now reads "◐ OVERLAPPING (~1.4/10 independent windows — NOT
+   ready)", and its verdict carries an overlap warning.
 
 ## ✅ RESOLVED 2026-08-16 — the pot ledger now reads NET. Honest figure: −0.971%/trade
 

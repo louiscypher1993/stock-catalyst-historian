@@ -55,6 +55,7 @@ import {
   mean, std, spearman, pearson, dailyIC, tCrit95, type Row, type DailyIC,
 } from './outcomeScoreboard';
 import { roundTripCost } from '../costModel';
+import { checkRowCounts, effectiveWindows, effectiveWindowsLines, MIN_EFFECTIVE_WINDOWS } from './readoutGuards';
 
 const V9_4_DEPLOY = '2026-07-22';
 // SECOND REGIME BOUNDARY. LIVE_FEATURE_PARITY=all went live 2026-08-09 12:07 UTC
@@ -206,18 +207,31 @@ async function main() {
               (merged
                 ? `   ⚠ INCLUDES pre-parity rows — NOT anchor-comparable`
                 : `   ← the only anchor-comparable cohort`));
+  for (const h of HORIZON_ORDER) {
+    const hr = all.filter(r => r.horizon === h);
+    if (hr.length) for (const l of checkRowCounts(`outcome_results[${source}]:${h}`, hr.map(r => r.run_date))) console.log(l);
+  }
   console.log(line);
 
   // ── readiness matrix ──
   // Readiness is governed by RUN_DATES, not rows: 600 rows from 3 scan dates
   // still cannot support a verdict, because the day is the unit of independence.
-  console.log(`\n READINESS   (unit of independence = run_date, not row)`);
+  // CORRECTED 2026-09-12: the day is the unit of independence only when the horizon is
+  // shorter than the gap between run_dates. For 2W it is not — consecutive outcomes share
+  // 13 of 14 days — so readiness needs BOTH enough run_dates AND enough independent windows.
+  // This matrix previously showed 2W "✅ ready (18 run_dates)" on ~1.4 independent windows.
+  console.log(`\n READINESS   (needs ≥${MIN_RUN_DATES} run_dates AND ≥${MIN_EFFECTIVE_WINDOWS} independent windows = span ÷ horizon)`);
   for (const h of HORIZON_ORDER) {
     const hp = post.filter(r => r.horizon === h);
     const pn = hp.length;
-    const days = dailyIC(hp).days;
+    const dd = dailyIC(hp);
+    const days = dd.days;
+    const w = effectiveWindows(dd.perDay.map(p => p.date), HORIZON_DAYS[h]);
     const matures = addDays(earliestPost, HORIZON_DAYS[h]);
-    const state = days >= MIN_RUN_DATES ? `✅ ready        (${days} run_dates, n=${pn})`
+    const state = days >= MIN_RUN_DATES && w.nEff >= MIN_EFFECTIVE_WINDOWS
+      ? `✅ ready        (${days} run_dates, ~${w.nEff.toFixed(1)} windows, n=${pn})`
+      : days >= MIN_RUN_DATES
+      ? `◐ OVERLAPPING   (${days} run_dates but only ~${w.nEff.toFixed(1)}/${MIN_EFFECTIVE_WINDOWS} independent windows, n=${pn} — NOT ready)`
       : pn > 0 ? `◐ thin          (${days}/${MIN_RUN_DATES} run_dates, n=${pn} — directional only)`
       : `⏳ pending       (n=0; first matures ~${matures})`;
     console.log(`   ${h.padEnd(3)} ${HORIZON_HEAD[h].padEnd(16)} ${state}`);
@@ -247,6 +261,7 @@ async function main() {
     const tf = (v: number) => (Number.isFinite(v) ? v.toFixed(2) : ' n/a');
     console.log(`   ${'  t-stat'.padEnd(20)} ${col(tf(preS.daily.t))} ${col(tf(postS.daily.t))} ${col('')}`);
     console.log(`   ${'  % days positive'.padEnd(20)} ${col(pct(preS.daily.pctPos, 0))} ${col(pct(postS.daily.pctPos, 0))} ${col('')}`);
+    for (const l of effectiveWindowsLines(postS.daily.perDay.map(p => p.date), HORIZON_DAYS[h], postS.daily.perDay.map(p => p.ic), '   post-parity: ')) console.log(l);
     console.log(`   ${'pooled IC (legacy)'.padEnd(20)} ${col(f3(preS.ic))} ${col(f3(postS.ic))} ${col(dIC(postS.ic, preS.ic))}`);
     console.log(`   ${'sign hit-rate'.padEnd(20)} ${col(pct(preS.signHit, 1))} ${col(pct(postS.signHit, 1))} ${col('')}`);
     console.log(`   ${'σ(pred)'.padEnd(20)} ${col(pct(preS.sigPred))} ${col(pct(postS.sigPred))} ${col('')}`);
@@ -256,7 +271,11 @@ async function main() {
     console.log(`   ${`buy-tier net @£${positionGBP}`.padEnd(20)} ${col(pct(preS.actNet))} ${col(pct(postS.actNet))} ${col('')}`);
     // icVerdict now gates on run_dates itself, so it is always called — the old
     // row-count gate could hide a "NO VERDICT" behind a vaguer "thin" message.
-    console.log(`   VERDICT: ${icVerdict(h, postS)}`);
+    const wv = effectiveWindows(postS.daily.perDay.map(p => p.date), HORIZON_DAYS[h]);
+    const overlap = postS.daily.days >= 2 && wv.nEff < MIN_EFFECTIVE_WINDOWS
+      ? `⚠ UNDERPOWERED BY OVERLAP (~${wv.nEff.toFixed(1)}/${MIN_EFFECTIVE_WINDOWS} independent windows) — read what follows as directional only: `
+      : '';
+    console.log(`   VERDICT: ${overlap}${icVerdict(h, postS)}`);
   }
 
   // ── Phenomenon-2 watch (D2 6M primary, D5 2W secondary) ──
