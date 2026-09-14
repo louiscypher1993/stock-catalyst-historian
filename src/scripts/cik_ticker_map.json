@@ -8107,7 +8107,7 @@
   "2151905": "LABI",
   "2152784": "CHXIY",
   "_note": "Accumulated CIK->ticker map. SEC prunes delisted companies from company_tickers.json, so this copy is merge-only and never pruned — that is what keeps a delisted name resolvable after the fact.",
-  "_built": "2026-09-13T11:35:36.122Z",
+  "_built": "2026-09-14T20:16:00.986Z",
   "_counts": {
     "retained": 8107,
     "inCurrentSecFile": 10426,

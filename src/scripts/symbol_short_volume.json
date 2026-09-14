@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-13",
+ "generated": "2026-09-14",
  "trading_days_used": 19,
  "note": "FINRA CNMS daily short-sale volume, compact current state. Raw history is archived by FINRA to 2009 and fully backfillable at retrain time. Not a feature yet.",
  "symbols": {
@@ -8234,6 +8234,13 @@
    "short_ratio_5d": 0.606,
    "short_ratio_20d": 0.5896,
    "adv_20d": 12874057
+  },
+  "SPYU": {
+   "latest": "20260911",
+   "short_ratio_1d": 0.5477,
+   "short_ratio_5d": 0.6049,
+   "short_ratio_20d": 0.541,
+   "adv_20d": 236190
   },
   "SQM": {
    "latest": "20260911",

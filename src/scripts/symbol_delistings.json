@@ -1,13 +1,13 @@
 {
   "_note": "SEC Form 25 / 25-NSE delisting notices. APPEND-ONLY: dated events, merged on accession number, so re-running adds rather than replaces. Captured forward to build a survivorship-free record — there is no free retroactive source.",
   "_source": "https://www.sec.gov/Archives/edgar/full-index/<year>/QTR<n>/master.idx",
-  "_built": "2026-09-13T11:35:43.733Z",
+  "_built": "2026-09-14T20:16:02.465Z",
   "_counts": {
     "total": 480,
     "equityDelistings": 137,
     "unclassified": 52,
     "inUniverse": 1,
-    "addedThisRun": 23
+    "addedThisRun": 0
   },
   "0000876661-26-000310": {
     "accession": "0000876661-26-000310",

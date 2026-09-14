@@ -1,6 +1,6 @@
 {
   "_note": "symbol -> FCA anonymised aggregate net short position (UK, .L universe only). Source: fca.org.uk current ANSP CSV, free/no-auth. Joined via ISIN->FIGI (OpenFIGI) against symbol_figi_map.json, not ticker/name guessing. Regime effective 2026-07-13 (aggregated, not individual positions). Rebuild via buildFcaShortPositions.ts.",
-  "_built": "2026-09-13",
+  "_built": "2026-09-14",
   "_sourceUrl": "https://www.fca.org.uk/publication/documents/aggregated-current-net-short-positions.csv",
   "_totalDisclosures": 418,
   "fcaShortPositions": {
@@ -29,8 +29,8 @@
       "companyName": "ASSOCIATED BRITISH FOODS PLC"
     },
     "AUTO.L": {
-      "anspPercent": 6.01,
-      "positionDate": "2026-09-09",
+      "anspPercent": 6,
+      "positionDate": "2026-09-10",
       "isin": "GB00BVYVFW23",
       "companyName": "AUTO TRADER GROUP PLC"
     },
@@ -41,8 +41,8 @@
       "companyName": "AVIVA PLC"
     },
     "BME.L": {
-      "anspPercent": 6.95,
-      "positionDate": "2026-09-09",
+      "anspPercent": 6.73,
+      "positionDate": "2026-09-10",
       "isin": "JE00BVSYJW51",
       "companyName": "B&M European Value Retail PLC"
     },
@@ -53,8 +53,8 @@
       "companyName": "BABCOCK INTERNATIONAL GROUP PLC"
     },
     "BBY.L": {
-      "anspPercent": 0.4,
-      "positionDate": "2026-08-26",
+      "anspPercent": 0.6,
+      "positionDate": "2026-09-10",
       "isin": "GB0000961622",
       "companyName": "BALFOUR BEATTY PLC"
     },
@@ -71,20 +71,20 @@
       "companyName": "BRITISH AMERICAN TOBACCO P.L.C."
     },
     "BLND.L": {
-      "anspPercent": 3.86,
-      "positionDate": "2026-09-07",
+      "anspPercent": 3.84,
+      "positionDate": "2026-09-10",
       "isin": "GB0001367019",
       "companyName": "BRITISH LAND COMPANY PUBLIC LIMITED COMPANY(THE)"
     },
     "BNZL.L": {
-      "anspPercent": 2.45,
-      "positionDate": "2026-09-04",
+      "anspPercent": 2.65,
+      "positionDate": "2026-09-10",
       "isin": "GB00B0744B38",
       "companyName": "BUNZL PUBLIC LIMITED COMPANY"
     },
     "BRBY.L": {
-      "anspPercent": 6.05,
-      "positionDate": "2026-09-09",
+      "anspPercent": 6.31,
+      "positionDate": "2026-09-10",
       "isin": "GB0031743007",
       "companyName": "BURBERRY GROUP PLC"
     },
@@ -101,8 +101,8 @@
       "companyName": "Close Brothers Group PLC"
     },
     "COA.L": {
-      "anspPercent": 4.93,
-      "positionDate": "2026-09-09",
+      "anspPercent": 5.04,
+      "positionDate": "2026-09-10",
       "isin": "GB00B4YZN328",
       "companyName": "COATS GROUP PLC"
     },
@@ -137,20 +137,20 @@
       "companyName": "DIPLOMA PLC"
     },
     "EZJ.L": {
-      "anspPercent": 2.63,
-      "positionDate": "2026-09-01",
+      "anspPercent": 2.54,
+      "positionDate": "2026-09-11",
       "isin": "GB00B7KR2P84",
       "companyName": "EASYJET PLC"
     },
     "ENT.L": {
-      "anspPercent": 3.54,
-      "positionDate": "2026-09-09",
+      "anspPercent": 3.57,
+      "positionDate": "2026-09-10",
       "isin": "IM00B5VQMV65",
       "companyName": "Entain PLC"
     },
     "EXPN.L": {
-      "anspPercent": 1,
-      "positionDate": "2026-09-04",
+      "anspPercent": 1.2,
+      "positionDate": "2026-09-10",
       "isin": "GB00B19NLV48",
       "companyName": "EXPERIAN PLC"
     },
@@ -173,8 +173,8 @@
       "companyName": "GREGGS PLC"
     },
     "GSK.L": {
-      "anspPercent": 1.18,
-      "positionDate": "2026-08-31",
+      "anspPercent": 1.19,
+      "positionDate": "2026-09-10",
       "isin": "GB00BN7SWP63",
       "companyName": "GSK Plc"
     },
@@ -197,8 +197,8 @@
       "companyName": "Harbour Energy PLC"
     },
     "HIK.L": {
-      "anspPercent": 0.99,
-      "positionDate": "2026-08-28",
+      "anspPercent": 1.26,
+      "positionDate": "2026-09-10",
       "isin": "GB00B0LCW083",
       "companyName": "HIKMA PHARMACEUTICALS PUBLIC LIMITED COMPANY"
     },
@@ -209,14 +209,14 @@
       "companyName": "HISCOX LTD"
     },
     "HWDN.L": {
-      "anspPercent": 5.34,
-      "positionDate": "2026-09-04",
+      "anspPercent": 5.39,
+      "positionDate": "2026-09-10",
       "isin": "GB0005576813",
       "companyName": "Howden Joinery Group Plc"
     },
     "IMI.L": {
-      "anspPercent": 1.36,
-      "positionDate": "2026-08-24",
+      "anspPercent": 1.56,
+      "positionDate": "2026-09-10",
       "isin": "GB00BGLP8L22",
       "companyName": "IMI PLC"
     },
@@ -251,8 +251,8 @@
       "companyName": "ITV PLC"
     },
     "SBRY.L": {
-      "anspPercent": 5.29,
-      "positionDate": "2026-09-08",
+      "anspPercent": 5.35,
+      "positionDate": "2026-09-10",
       "isin": "GB00B019KW72",
       "companyName": "J SAINSBURY PLC"
     },
@@ -269,14 +269,14 @@
       "companyName": "JOHNSON MATTHEY PLC"
     },
     "KGF.L": {
-      "anspPercent": 11.09,
-      "positionDate": "2026-09-09",
+      "anspPercent": 10.73,
+      "positionDate": "2026-09-10",
       "isin": "GB0033195214",
       "companyName": "KINGFISHER PLC"
     },
     "LAND.L": {
-      "anspPercent": 8.55,
-      "positionDate": "2026-09-09",
+      "anspPercent": 8.76,
+      "positionDate": "2026-09-10",
       "isin": "GB00BYW0PQ60",
       "companyName": "LAND SECURITIES GROUP PLC"
     },
@@ -311,8 +311,8 @@
       "companyName": "MELROSE INDUSTRIES PLC"
     },
     "MNDI.L": {
-      "anspPercent": 7.42,
-      "positionDate": "2026-09-09",
+      "anspPercent": 7.41,
+      "positionDate": "2026-09-10",
       "isin": "GB00BMWC6P49",
       "companyName": "MONDI PLC"
     },
@@ -341,8 +341,8 @@
       "companyName": "PEARSON PLC"
     },
     "PNN.L": {
-      "anspPercent": 9.17,
-      "positionDate": "2026-09-08",
+      "anspPercent": 9.32,
+      "positionDate": "2026-09-10",
       "isin": "GB00BNNTLN49",
       "companyName": "PENNON GROUP PLC"
     },
@@ -359,8 +359,8 @@
       "companyName": "QINETIQ GROUP PLC"
     },
     "RKT.L": {
-      "anspPercent": 1.39,
-      "positionDate": "2026-09-04",
+      "anspPercent": 1.59,
+      "positionDate": "2026-09-10",
       "isin": "GB00BSZBP530",
       "companyName": "RECKITT BENCKISER GROUP PLC"
     },
@@ -371,26 +371,26 @@
       "companyName": "RELX PLC"
     },
     "RTO.L": {
-      "anspPercent": 4.93,
+      "anspPercent": 4.64,
       "positionDate": "2026-09-08",
       "isin": "GB00B082RF11",
       "companyName": "RENTOKIL INITIAL PLC"
     },
     "RMV.L": {
-      "anspPercent": 9.76,
-      "positionDate": "2026-09-09",
+      "anspPercent": 9.98,
+      "positionDate": "2026-09-10",
       "isin": "GB00BGDT3G23",
       "companyName": "RIGHTMOVE PLC"
     },
     "RIO.L": {
-      "anspPercent": 0.49,
-      "positionDate": "2026-08-21",
+      "anspPercent": 0.51,
+      "positionDate": "2026-09-10",
       "isin": "GB0007188757",
       "companyName": "Rio Tinto Plc"
     },
     "RS1.L": {
-      "anspPercent": 1.81,
-      "positionDate": "2026-08-26",
+      "anspPercent": 2.01,
+      "positionDate": "2026-09-10",
       "isin": "GB0003096442",
       "companyName": "RS Group Plc"
     },
@@ -401,8 +401,8 @@
       "companyName": "SEGRO PUBLIC LIMITED COMPANY"
     },
     "SVT.L": {
-      "anspPercent": 2.86,
-      "positionDate": "2026-09-02",
+      "anspPercent": 2.91,
+      "positionDate": "2026-09-10",
       "isin": "GB00B1FH8J72",
       "companyName": "SEVERN TRENT PLC"
     },
@@ -419,8 +419,8 @@
       "companyName": "SMITH & NEPHEW PLC"
     },
     "SMIN.L": {
-      "anspPercent": 1.33,
-      "positionDate": "2026-09-08",
+      "anspPercent": 1.42,
+      "positionDate": "2026-09-10",
       "isin": "GB00B1WY2338",
       "companyName": "SMITHS GROUP PLC"
     },
@@ -437,8 +437,8 @@
       "companyName": "SSE PLC"
     },
     "STJ.L": {
-      "anspPercent": 2.86,
-      "positionDate": "2026-09-08",
+      "anspPercent": 3.28,
+      "positionDate": "2026-09-10",
       "isin": "GB0007669376",
       "companyName": "St. James's Place PLC"
     },
@@ -455,14 +455,14 @@
       "companyName": "TATE & LYLE PUBLIC LIMITED COMPANY"
     },
     "TW.L": {
-      "anspPercent": 10.02,
-      "positionDate": "2026-09-09",
+      "anspPercent": 10.24,
+      "positionDate": "2026-09-10",
       "isin": "GB0008782301",
       "companyName": "TAYLOR WIMPEY PLC"
     },
     "BKG.L": {
       "anspPercent": 4.69,
-      "positionDate": "2026-09-08",
+      "positionDate": "2026-09-10",
       "isin": "GB00BP0RGD03",
       "companyName": "THE BERKELEY GROUP HOLDINGS PLC"
     },
@@ -473,14 +473,14 @@
       "companyName": "THE SAGE GROUP PLC."
     },
     "UTG.L": {
-      "anspPercent": 6.03,
-      "positionDate": "2026-09-07",
+      "anspPercent": 6.02,
+      "positionDate": "2026-09-10",
       "isin": "GB0006928617",
       "companyName": "THE UNITE GROUP PLC"
     },
     "THG.L": {
-      "anspPercent": 4.71,
-      "positionDate": "2026-09-09",
+      "anspPercent": 5.09,
+      "positionDate": "2026-09-11",
       "isin": "GB00BMTV7393",
       "companyName": "THG PLC"
     },
@@ -491,14 +491,14 @@
       "companyName": "TRITAX BIG BOX REIT PLC"
     },
     "UU.L": {
-      "anspPercent": 2.86,
-      "positionDate": "2026-09-09",
+      "anspPercent": 2.85,
+      "positionDate": "2026-09-10",
       "isin": "GB00B39J2M42",
       "companyName": "UNITED UTILITIES GROUP PLC"
     },
     "VTY.L": {
-      "anspPercent": 18.97,
-      "positionDate": "2026-09-09",
+      "anspPercent": 18.93,
+      "positionDate": "2026-09-10",
       "isin": "GB0001859296",
       "companyName": "Vistry Group PLC"
     },
@@ -509,8 +509,8 @@
       "companyName": "VODAFONE GROUP PUBLIC LIMITED COMPANY"
     },
     "WEIR.L": {
-      "anspPercent": 6.8,
-      "positionDate": "2026-09-09",
+      "anspPercent": 6.58,
+      "positionDate": "2026-09-10",
       "isin": "GB0009465807",
       "companyName": "WEIR GROUP PLC(THE)"
     },
@@ -533,8 +533,8 @@
       "companyName": "Wizz Air Holdings PLC"
     },
     "WPP.L": {
-      "anspPercent": 5.57,
-      "positionDate": "2026-09-07",
+      "anspPercent": 5.66,
+      "positionDate": "2026-09-10",
       "isin": "JE00B8KF9B49",
       "companyName": "WPP PLC"
     }
