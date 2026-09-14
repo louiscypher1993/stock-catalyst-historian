@@ -84,6 +84,21 @@ and counted as "rescued" — because the source is shrinking, so a plain dump wo
 later run overwrite the archive with a smaller snapshot and complete the very loss it exists
 to prevent.
 
+**⚠ CORRECTION 2026-09-14 — the CI step NEVER RAN until this fix.** It shipped without an
+`env:` block, and nothing else in `pit-snapshot.yml` needs Supabase (every other step scrapes
+public registers), so `SUPABASE_URL` / `SUPABASE_ANON_KEY` were never in scope. The 09-13 run
+committed the other 11 sources and silently omitted the archive (the step failed into
+`pit_failures.txt`, so that job should show red). "Wired weekly" was verified by YAML parse and
+staged-path check only — **never by the step actually authenticating.** Fixed by adding the
+env block. **Verify end to end** by dispatching `pit-snapshot` manually and confirming the bot's
+commit includes `data/inference_results_archive.ndjson`.
+
+**No data was lost to the bug, and the archive has already rescued rows.** On 09-14 Supabase's
+floor was **2026-08-05** (was 08-03 on 09-12) — **a ROLLING ~40-day window advancing ~1 day
+per day, confirmed.** 08-03 and 08-04 — **371 rows** — are gone from Supabase and survive only
+in the 09-12 manual capture. Rows written after 09-12 do not begin aging out until ~10-22, so a
+working weekly job has ample margin.
+
 **Still open:**
 1. **Find the mechanism.** Until it is known, the 40-day figure is an observation, not a
    rule — it could tighten without warning.

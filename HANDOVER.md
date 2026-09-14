@@ -70,6 +70,12 @@ data the October checkpoint, Part B and C2 all read.
 overwrite the archive with a smaller snapshot and complete the loss it prevents. Rows already
 lost (07-19..08-02) are gone for good.
 
+**⚠ 2026-09-14: the weekly CI step had NEVER RUN** — it shipped without Supabase credentials in
+scope (no other step in that workflow needs them), and the 09-13 snapshot committed without the
+archive. Fixed. **Confirm it by manually dispatching `pit-snapshot`** and checking the bot's
+commit includes the archive. Retention is now **confirmed rolling**: floor 08-03 → 08-05 in two
+days. The 09-12 manual capture has already rescued **371 rows** that are gone from Supabase.
+
 **⚠ The lesson generalises past this table.** Nothing errored. `expansionReadout.ts` just
 returned fewer rows each run, and on 09-12 its pre-parity 2W arm printed **+0.2181 (t=4.93)**
 — a spectacular number computed on the 189-row remnant of a 580-row cohort. **A shrinking

@@ -70,7 +70,15 @@ jobs:
       # out ~2026-09-18. Weekly capture is comfortably inside a 40-day window.
       # The script MERGES (union on run_date|symbol, archive-only rows kept) rather than
       # dumping, so a run that sees a shrunken source cannot destroy what earlier runs saved.
+      # FIXED 2026-09-14: this step shipped on 09-12 WITHOUT the env block below. No other
+      # step in this workflow needs Supabase (they all scrape public registers), so the
+      # credentials were never in scope: supabaseClient read an undefined URL, the step
+      # failed into pit_failures.txt, and the 09-13 run committed the other 11 sources
+      # without the archive. It was reported as "wired weekly" and had never once run.
       - name: Archive inference_results (retention rescue)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: npx tsx src/scripts/archiveInferenceResults.ts --write || echo "InferenceArchive" >> pit_failures.txt
 
       - name: FCA short positions (UK)
