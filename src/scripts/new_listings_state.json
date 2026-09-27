@@ -10587,71 +10587,114 @@
     "HOST": "2026-09-20",
     "TYHOF": "2026-09-20",
     "MEAOF": "2026-09-20",
-    "UNJCF": "2026-09-20"
+    "UNJCF": "2026-09-20",
+    "DHRPY": "2026-09-27",
+    "ECLP": "2026-09-27",
+    "MEXGF": "2026-09-27",
+    "SNYRQ": "2026-09-27",
+    "RITRF": "2026-09-27",
+    "BRVUY": "2026-09-27",
+    "RIOYY": "2026-09-27",
+    "DRIL": "2026-09-27",
+    "AEIB": "2026-09-27",
+    "FIT": "2026-09-27",
+    "STNF": "2026-09-27",
+    "BDI": "2026-09-27",
+    "ITIA": "2026-09-27",
+    "GIGDY": "2026-09-27",
+    "LOVI": "2026-09-27",
+    "BEJRY": "2026-09-27",
+    "OMGCY": "2026-09-27",
+    "TTMSF": "2026-09-27",
+    "SRALY": "2026-09-27",
+    "NMRRY": "2026-09-27",
+    "ATZIY": "2026-09-27",
+    "ZHJIY": "2026-09-27",
+    "PGBCY": "2026-09-27",
+    "SZWOY": "2026-09-27",
+    "GMNHY": "2026-09-27",
+    "CNGMY": "2026-09-27",
+    "GTMAY": "2026-09-27",
+    "VRSSF": "2026-09-27",
+    "NXTN": "2026-09-27",
+    "SPQSD": "2026-09-27",
+    "LCGMD": "2026-09-27",
+    "DUNXF": "2026-09-27",
+    "DUSCF": "2026-09-27",
+    "GCAND": "2026-09-27",
+    "WCHD": "2026-09-27",
+    "DAZSD": "2026-09-27",
+    "MDXR": "2026-09-27",
+    "KNIH": "2026-09-27",
+    "NKTPD": "2026-09-27",
+    "HAMVF": "2026-09-27",
+    "SUNI": "2026-09-27",
+    "SMIO": "2026-09-27",
+    "MTTN": "2026-09-27",
+    "ELVX": "2026-09-27",
+    "PRNSY": "2026-09-27",
+    "OMGGF": "2026-09-27",
+    "SRAIF": "2026-09-27",
+    "NMEHF": "2026-09-27",
+    "ATZAF": "2026-09-27",
+    "ZHILF": "2026-09-27",
+    "PGBIF": "2026-09-27"
   },
   "rejected": {
     "FOIL": {
-      "date": "2026-08-23",
-      "reason": "bars=8 close=22.88 medDV=1.1M"
-    },
-    "LYNX": {
-      "date": "2026-08-23",
-      "reason": "bars=3 close=15.71 medDV=39.2M"
+      "date": "2026-09-27",
+      "reason": "bars=32 close=18.12 medDV=0.6M"
     },
     "PHOS": {
-      "date": "2026-08-23",
-      "reason": "bars=14 close=18.51 medDV=1.0M"
+      "date": "2026-09-27",
+      "reason": "bars=38 close=16.15 medDV=0.7M"
     },
     "TCGX": {
-      "date": "2026-08-23",
-      "reason": "bars=14 close=13.90 medDV=0.5M"
+      "date": "2026-09-27",
+      "reason": "bars=38 close=14.10 medDV=0.4M"
     },
     "NUR": {
-      "date": "2026-08-23",
-      "reason": "bars=10 close=2.51 medDV=0.1M"
+      "date": "2026-09-27",
+      "reason": "bars=34 close=1.07 medDV=0.1M"
     },
     "CNSY": {
-      "date": "2026-08-23",
-      "reason": "bars=63 close=3.07 medDV=0.5M"
+      "date": "2026-09-27",
+      "reason": "bars=64 close=1.99 medDV=0.2M"
     },
     "PARA": {
-      "date": "2026-08-23",
-      "reason": "bars=63 close=1.30 medDV=0.5M"
+      "date": "2026-09-27",
+      "reason": "bars=64 close=0.70 medDV=0.3M"
     },
     "BRNX": {
-      "date": "2026-08-23",
-      "reason": "bars=63 close=3.73 medDV=0.4M"
+      "date": "2026-09-27",
+      "reason": "bars=64 close=2.49 medDV=0.8M"
     },
     "BTLN": {
-      "date": "2026-08-23",
-      "reason": "bars=1 close=1.07 medDV=0.5M"
-    },
-    "QVCG": {
-      "date": "2026-08-23",
-      "reason": "bars=10 close=15.50 medDV=1.6M"
+      "date": "2026-09-27",
+      "reason": "bars=33 close=0.94 medDV=0.1M"
     },
     "SNUS-PH": {
-      "date": "2026-08-23",
-      "reason": "bars=2 close=21.00 medDV=1.2M"
+      "date": "2026-09-27",
+      "reason": "bars=20 close=21.07 medDV=0.6M"
     },
     "SNUS-PI": {
-      "date": "2026-08-23",
-      "reason": "bars=1 close=23.65 medDV=0.3M"
+      "date": "2026-09-27",
+      "reason": "bars=20 close=25.41 medDV=0.4M"
     },
     "CHTRP": {
-      "date": "2026-08-23",
-      "reason": "bars=63 close=22.45 medDV=0.2M"
+      "date": "2026-09-27",
+      "reason": "bars=64 close=22.41 medDV=0.2M"
     },
     "BBBYW": {
-      "date": "2026-08-23",
-      "reason": "bars=1 close=0.46 medDV=0.1M"
+      "date": "2026-09-27",
+      "reason": "bars=22 close=0.52 medDV=0.1M"
     },
     "STLNW": {
-      "date": "2026-08-23",
-      "reason": "bars=1 close=0.06 medDV=0.0M"
+      "date": "2026-09-27",
+      "reason": "bars=1 close=0.04 medDV=0.0M"
     },
     "PARAW": {
-      "date": "2026-08-23",
+      "date": "2026-09-27",
       "reason": "bars=1 close=0.01 medDV=0.0M"
     },
     "GFR-RW": {
@@ -10659,48 +10702,48 @@
       "reason": "bars=1 close=1.37 medDV=0.3M"
     },
     "THEOR": {
-      "date": "2026-08-23",
-      "reason": "bars=1 close=0.28 medDV=0.0M"
+      "date": "2026-09-27",
+      "reason": "bars=1 close=0.29 medDV=0.0M"
     },
     "GHXIW": {
-      "date": "2026-08-23",
-      "reason": "bars=1 close=0.55 medDV=0.0M"
+      "date": "2026-09-27",
+      "reason": "bars=16 close=0.58 medDV=0.0M"
     },
     "EWAVR": {
-      "date": "2026-08-23",
-      "reason": "bars=1 close=0.16 medDV=0.0M"
-    },
-    "WLCOW": {
-      "date": "2026-08-23",
-      "reason": "bars=1 close=0.40 medDV=0.0M"
-    },
-    "MRCOW": {
-      "date": "2026-08-23",
-      "reason": "bars=1 close=0.34 medDV=0.0M"
-    },
-    "OSPRW": {
-      "date": "2026-08-23",
-      "reason": "bars=1 close=0.45 medDV=0.0M"
-    },
-    "PLCIR": {
-      "date": "2026-08-23",
+      "date": "2026-09-27",
       "reason": "bars=1 close=0.15 medDV=0.0M"
     },
+    "WLCOW": {
+      "date": "2026-09-27",
+      "reason": "bars=17 close=0.28 medDV=0.0M"
+    },
+    "MRCOW": {
+      "date": "2026-09-27",
+      "reason": "bars=17 close=0.31 medDV=0.0M"
+    },
+    "OSPRW": {
+      "date": "2026-09-27",
+      "reason": "bars=17 close=0.35 medDV=0.0M"
+    },
+    "PLCIR": {
+      "date": "2026-09-27",
+      "reason": "bars=1 close=0.13 medDV=0.0M"
+    },
     "CGCFW": {
-      "date": "2026-08-23",
-      "reason": "bars=1 close=0.38 medDV=0.0M"
+      "date": "2026-09-27",
+      "reason": "bars=22 close=0.31 medDV=0.0M"
     },
     "NSAIU": {
-      "date": "2026-08-23",
-      "reason": "bars=4 close=9.99 medDV=3.2M"
+      "date": "2026-09-27",
+      "reason": "bars=28 close=10.02 medDV=0.0M"
     },
     "XTERU": {
-      "date": "2026-08-23",
-      "reason": "bars=4 close=9.94 medDV=10.8M"
+      "date": "2026-09-27",
+      "reason": "bars=28 close=9.90 medDV=0.0M"
     },
     "OCLTU": {
-      "date": "2026-08-23",
-      "reason": "bars=11 close=9.99 medDV=1.0M"
+      "date": "2026-09-27",
+      "reason": "bars=35 close=10.18 medDV=0.1M"
     },
     "KLXER": {
       "date": "2026-08-30",
@@ -10909,6 +10952,62 @@
     "RNAQW": {
       "date": "2026-09-20",
       "reason": "bars=4 close=0.50 medDV=0.0M"
+    },
+    "SVIA": {
+      "date": "2026-09-27",
+      "reason": "bars=64 close=3.92 medDV=1.9M"
+    },
+    "ADRX": {
+      "date": "2026-09-27",
+      "reason": "bars=1 close=19.35 medDV=81.5M"
+    },
+    "ONEN": {
+      "date": "2026-09-27",
+      "reason": "bars=64 close=2.50 medDV=0.2M"
+    },
+    "ESYN": {
+      "date": "2026-09-27",
+      "reason": "bars=64 close=2.56 medDV=0.0M"
+    },
+    "ASGI-RI": {
+      "date": "2026-09-27",
+      "reason": "bars=1 close=0.01 medDV=0.0M"
+    },
+    "BCAT-RW": {
+      "date": "2026-09-27",
+      "reason": "bars=1 close=0.02 medDV=0.0M"
+    },
+    "SVIAW": {
+      "date": "2026-09-27",
+      "reason": "bars=64 close=0.48 medDV=0.0M"
+    },
+    "FJDIR": {
+      "date": "2026-09-27",
+      "reason": "bars=2 close=0.17 medDV=0.5M"
+    },
+    "FJDIW": {
+      "date": "2026-09-27",
+      "reason": "bars=1 close=0.03 medDV=0.0M"
+    },
+    "BRRKU": {
+      "date": "2026-09-27",
+      "reason": "bars=1 close=10.01 medDV=35.8M"
+    },
+    "LOVIU": {
+      "date": "2026-09-27",
+      "reason": "bars=3 close=10.01 medDV=17.0M"
+    },
+    "PNAQ-RI": {
+      "date": "2026-09-27",
+      "reason": "bars=1 close=0.11 medDV=0.0M"
+    },
+    "NWCLW": {
+      "date": "2026-09-27",
+      "reason": "bars=1 close=0.86 medDV=0.0M"
+    },
+    "NIAAU": {
+      "date": "2026-09-27",
+      "reason": "bars=0 close=n/a medDV=0.0M"
     }
   },
   "added": {
@@ -10924,6 +11023,9 @@
     "HOS": "2026-09-06",
     "IPHXU": "2026-09-06",
     "SPYU": "2026-09-13",
-    "NFEGP": "2026-09-20"
+    "NFEGP": "2026-09-20",
+    "LYNX": "2026-09-27",
+    "HUCK": "2026-09-27",
+    "QVCG": "2026-09-27"
   }
 }

@@ -52,6 +52,18 @@
     {
       "symbol": "NFEGP",
       "companyName": "New Fortress Energy Inc."
+    },
+    {
+      "symbol": "LYNX",
+      "companyName": "Lyntris Inc."
+    },
+    {
+      "symbol": "HUCK",
+      "companyName": "Huckleberry.ai, Inc."
+    },
+    {
+      "symbol": "QVCG",
+      "companyName": "QVC Group, Inc."
     }
   ]
 }

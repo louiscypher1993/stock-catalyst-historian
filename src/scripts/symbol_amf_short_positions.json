@@ -1,13 +1,13 @@
 {
   "_note": "symbol -> AMF aggregate net short position (France, .PA only). Individual holder disclosures aggregated here (latest row per holder+ISIN among OPEN positions, summed) to match the FCA ANSP shape. Source: AMF open data via data.gouv.fr, free/no-auth, URL resolved dynamically (timestamped filename). Joined via ISIN->FIGI, not name matching. Rebuild via buildAmfShortPositions.ts.",
-  "_built": "2026-09-20",
-  "_sourceUrl": "https://object-api.infra.data.gouv.fr/amf/VAD/export_od_vad_20260918111500_20260918123001.csv",
-  "_frenchIssuersWithOpenPositions": 76,
+  "_built": "2026-09-27",
+  "_sourceUrl": "https://object-api.infra.data.gouv.fr/amf/VAD/export_od_vad_20260925111500_20260925123001.csv",
+  "_frenchIssuersWithOpenPositions": 83,
   "amfShortPositions": {
     "CAP.PA": {
-      "aggregateShortPercent": 1.6,
+      "aggregateShortPercent": 1.81,
       "holders": 3,
-      "latestPositionDate": "2026-09-16",
+      "latestPositionDate": "2026-09-23",
       "isin": "FR0000125338",
       "issuer": "CAPGEMINI"
     },
@@ -25,10 +25,17 @@
       "isin": "FR0014003TT8",
       "issuer": "DASSAULT SYSTEMES"
     },
+    "KER.PA": {
+      "aggregateShortPercent": 0.5,
+      "holders": 1,
+      "latestPositionDate": "2026-09-22",
+      "isin": "FR0000121485",
+      "issuer": "KERING"
+    },
     "TEP.PA": {
-      "aggregateShortPercent": 8.38,
-      "holders": 8,
-      "latestPositionDate": "2026-09-16",
+      "aggregateShortPercent": 6.31,
+      "holders": 7,
+      "latestPositionDate": "2026-09-23",
       "isin": "FR0000051807",
       "issuer": "TELEPERFORMANCE"
     },
@@ -40,9 +47,9 @@
       "issuer": "DASSAULT AVIATION"
     },
     "GFC.PA": {
-      "aggregateShortPercent": 1.88,
+      "aggregateShortPercent": 1.91,
       "holders": 3,
-      "latestPositionDate": "2026-09-16",
+      "latestPositionDate": "2026-09-18",
       "isin": "FR0010040865",
       "issuer": "GECINA"
     },
@@ -61,9 +68,9 @@
       "issuer": "KLEPIERRE"
     },
     "WLN.PA": {
-      "aggregateShortPercent": 3.24,
-      "holders": 4,
-      "latestPositionDate": "2026-09-16",
+      "aggregateShortPercent": 2.66,
+      "holders": 3,
+      "latestPositionDate": "2026-09-22",
       "isin": "FR00140182K6",
       "issuer": "WORLDLINE"
     },
