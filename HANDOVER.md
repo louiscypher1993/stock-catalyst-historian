@@ -54,12 +54,21 @@ because we were all counting run_dates.
 refuted, cost model, ledger at −0.971%/trade, C2's rejection, the retention hazard — and the
 2W capital decision re-gates to a COUNT of ≥10 non-overlapping windows.**
 
-**⚠ START WITH THE RETENTION PROBLEM — top section of `TODO.md`.** Supabase
-`inference_results` retains only **~40 days**: earliest run_date was 2026-08-03 on
-2026-09-12, while a backfill on 08-27 had seen rows from 07-19. **~15 run_dates were
-deleted in between.** Not our code (no repo `.delete()` touches it), not a global limit
-(`outcome_results` holds 12,959 rows back to June). Mechanism UNKNOWN — check the Supabase
-dashboard for a TTL or pg_cron job.
+**✅ THE RETENTION PROBLEM IS SOLVED AT SOURCE (2026-09-29).** It was a `pg_cron` job:
+`jobid 1 | 0 3 * * * | DELETE FROM inference_results WHERE run_date < CURRENT_DATE -
+INTERVAL '40 days'` — exactly the 40-day floor measured three times. **Unscheduled
+(`cron.unschedule(1)`), `cron.job` now empty.** Never a platform policy, and not our repo code.
+
+**It was aimed at the wrong table.** The size warning was genuine — 859 MB against a 500 MB
+free-tier limit — but `inference_results` is **3.7 MB** of that. 94% was the completed 40k
+sweep's raw per-trade output (`..._trades_contaminated` 536 MB, `..._trades` 260 MB). Dropping
+the contaminated pair (verified superset in local `contaminated_sweep.db`) took the DB to
+**321 MB**. So the job traded the 3M/6M horizons and 15 run_dates for ~0.5% of the problem.
+**No retention is needed here: ~45 MB/year.** 260 MB more is available by dropping
+`synthetic_pot_sweep_trades` — the one sweep table with no local copy, so export it first.
+
+**⚠ VERIFY TOMORROW:** the floor should STAY at **2026-08-20**, not advance. If it moves,
+something besides jobid 1 is deleting.
 
 **Parity landed 2026-08-09, so post-parity rows start aging out ~2026-09-18.** That is the
 data the October checkpoint, Part B and C2 all read.

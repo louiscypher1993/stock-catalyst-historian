@@ -68,9 +68,34 @@ every other durable table is intact back to June:
 | pot_positions | 321 | 2026-06-14 |
 
 `outcome_results` holds 2.5× the rows over three months, so this is a table-level policy or
-platform behaviour configured **outside the repo**. Mechanism UNKNOWN — not determined from
-the codebase, and worth checking the Supabase dashboard for a TTL/pg_cron job or a
-table-level retention setting.
+platform behaviour configured **outside the repo**.
+
+**✅ MECHANISM FOUND AND STOPPED 2026-09-29. It was a `pg_cron` job.**
+```
+jobid 1 | 0 3 * * * | DELETE FROM inference_results WHERE run_date < CURRENT_DATE - INTERVAL '40 days'
+```
+Nightly at 03:00 — which is exactly the 40-day rolling floor measured three times, and it
+explains the `last_autovacuum 03:00:42` on that table. Never a platform policy.
+**`SELECT cron.unschedule(1)` run 2026-09-29; `cron.job` is now empty.**
+
+**It was aimed at the wrong table.** The size warning was real — the database was **859 MB**
+against a 500 MB free-tier limit — but `inference_results` is **3.7 MB of it**. 94% was raw
+per-trade output from the completed 40k Boldness/Patience sweep:
+`synthetic_pot_sweep_trades_contaminated` 536 MB and `synthetic_pot_sweep_trades` 260 MB.
+Dropping the contaminated pair (local `contaminated_sweep.db` holds 10.9M trades vs
+Supabase's 3.8M, identical schema, per-pot counts verified equal) took the database to
+**321 MB**. So the job was deleting 1/200th of one dead experiment table, and the price was
+the 3M/6M horizons plus 15 run_dates of history. Deletes also *add* WAL and dead tuples,
+so it was mildly counterproductive on its own terms.
+
+**No retention is needed on this table.** 4,661 rows = 3.7 MB, ~0.8 KB/row, ~150 rows/day
+→ **~45 MB/year**.
+
+**⚠ VERIFY:** the floor should now STAY at **2026-08-20** instead of advancing daily. If it
+moves, something else is deleting and the job was not the only cause.
+**Still 260 MB free if wanted:** `synthetic_pot_sweep_trades` (1.9M rows) is the one sweep
+table with no local copy found — export before dropping. Nothing in the repo reads it; only
+`runSyntheticPotSweep.ts` writes it, and a future sweep would need the table recreated.
 
 **WHY IT IS URGENT.** Parity landed **2026-08-09**. On a rolling 40-day window the
 post-parity rows — the exact data the October checkpoint, Part B and C2 all read — begin
@@ -116,8 +141,8 @@ exist only in the archive.** Two fixes landed, both via the new `inferenceSource
   alone now silently truncates the start of the post-parity window.
 
 **Still open:**
-1. **Find the mechanism.** Until it is known, the 40-day figure is an observation, not a
-   rule — it could tighten without warning, and 1M has only ~11 days of margin.
+1. ~~**Find the mechanism.**~~ **✅ DONE 2026-09-29 — `pg_cron` jobid 1, unscheduled. See
+   above.** Only remaining task is to confirm tomorrow that the floor stays at 2026-08-20.
 2. **The rows already lost (07-19..08-02) are GONE.** Nothing in the archive covers them.
    Check whether `outcome_results` (which retains them) can reconstruct anything needed.
 3. **How this stayed invisible is the real lesson.** Nothing errored. `expansionReadout.ts`
