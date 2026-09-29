@@ -101,9 +101,23 @@ per day, confirmed.** 08-03 and 08-04 — **371 rows** — are gone from Supabas
 in the 09-12 manual capture. Rows written after 09-12 do not begin aging out until ~10-22, so a
 working weekly job has ample margin.
 
+**⚠ 2026-09-29 — THE PRUNING ALSO BROKE THE PIPELINE, not just the analyses.** Confirmed a
+third time as a rolling 40-day window (floor 08-20 on 09-29), and it has now eaten
+**post-parity** data: **2,329 rows over 15 run_dates (08-03..08-19), 11 of them post-parity,
+exist only in the archive.** Two fixes landed, both via the new `inferenceSource.ts`
+(`mergeWithArchive` — live wins on overlap, archive-only rows restored):
+- **`outcomeTracker` now reads archive ∪ live.** Without it 3M/6M outcomes could NEVER
+  mature — see the corrected note in the power-budget section below.
+- **`expansionReadout` now reads archive ∪ live**, restoring +4,536 rows (live floor 08-20 →
+  merged floor 08-03) and taking its null_enrichment cohort from 2,182 back to 3,294. The
+  row-count guard correctly went QUIET, because the rows are genuinely back rather than the
+  alarm being suppressed.
+- **Any future readout on `inference_results` should use `mergeWithArchive`.** Reading live
+  alone now silently truncates the start of the post-parity window.
+
 **Still open:**
 1. **Find the mechanism.** Until it is known, the 40-day figure is an observation, not a
-   rule — it could tighten without warning.
+   rule — it could tighten without warning, and 1M has only ~11 days of margin.
 2. **The rows already lost (07-19..08-02) are GONE.** Nothing in the archive covers them.
    Check whether `outcome_results` (which retains them) can reconstruct anything needed.
 3. **How this stayed invisible is the real lesson.** Nothing errored. `expansionReadout.ts`
@@ -900,8 +914,20 @@ Measurement caveat: matured live outcomes are **entirely pre-parity** (2W needs 
 parity landed 08-09, so nothing post-parity has matured — 0 days for 2W, 1 for 2D). The
 split above is therefore measured on the known-broken regime. The *sampling* term is
 purely combinatorial in n and robust to that; the *genuine* term may move. `outcome_results`
-holds only 2D/1M/2W — 3M and 6M simply have not matured yet (live inference starts ~July
-2026), which is expected, not a gap.
+holds only 2D/1M/2W — ~~3M and 6M simply have not matured yet (live inference starts ~July
+2026), which is expected, not a gap.~~
+**⚠ THAT WAS WRONG — CORRECTED 2026-09-29. They could never mature.** `outcomeTracker`
+resolves a prediction by reading its SOURCE ROW back, so the row must outlive the horizon.
+Supabase prunes `inference_results` at ~40 days, which kills 3M (91d) rows **50 days early**
+and 6M (182d) **141 days early**. Measured: `outcome_results` holds 2D/2W/1M and **ZERO 3M,
+6M or 12M rows** — not a wait, a structural impossibility. `readoutHarness` was printing
+"3M first matures ~2026-11-08" and "6M ~2027-02-07" for dates that would never have arrived.
+**1M survived on ~11 days of margin and would die too if the window tightened.**
+**FIXED same day:** `outcomeTracker` now reads **archive ∪ live** via
+`inferenceSource.ts`, so archived rows keep the long horizons resolvable. First 3M
+maturities become possible ~2026-11-02 (archive floor 08-03 + 91d). Verified the loop skips
+unmatured and already-recorded rows BEFORE any price fetch, so the extra ~2,300 rows add no
+Yahoo work now and no CI timeout risk.
 
 ## v15 ensemble — RUN 2026-08-13. The ensemble is weak; the SUBSAMPLING is the finding.
 

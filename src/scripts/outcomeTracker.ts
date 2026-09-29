@@ -67,6 +67,7 @@ import 'dotenv/config';
 import Database from 'better-sqlite3';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { mergeWithArchive } from './inferenceSource';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..', '..');
@@ -342,7 +343,15 @@ async function fetchAllInferenceResults(): Promise<InferenceRow[]> {
     if (data.length < pageSize) break;
     from += pageSize;
   }
-  return all;
+  // A prediction is resolved by reading its SOURCE ROW back, so the row must outlive the
+  // horizon. Supabase prunes inference_results at ~40 days, which kills 3M (91d) rows 50
+  // days early and 6M (182d) 141 days early — measured 2026-09-29, outcome_results held
+  // 2D/2W/1M and ZERO 3M/6M/12M rows, and could never have held any. Merging the archive
+  // back in is what makes the long horizons resolvable at all; 1M was also down to ~11
+  // days of margin. Live wins on overlap, so a row updated after archiving is unaffected.
+  const merged = mergeWithArchive(all as any[]);
+  console.log(`[outcomeTracker] ${merged.note}`);
+  return merged.rows as InferenceRow[];
 }
 
 async function main() {

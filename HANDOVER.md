@@ -76,6 +76,20 @@ archive. Fixed, and **✅ verified end to end** by a manual dispatch (bot commit
 +163 rows, 0 deletions, 5,185 rows, rescued rows intact). Retention is **confirmed rolling**: floor
 08-03 → 08-05 in two days. The archive has already rescued **371 rows** gone from Supabase.
 
+**⚠⚠ 2026-09-29 — THE PRUNING BROKE THE PIPELINE TOO, and the archive is now load-bearing.**
+Both weekly CI runs (09-20, 09-27) carried the archive unattended, and just in time: the live
+floor is **08-20**, so **2,329 rows over 15 run_dates — 11 of them POST-PARITY — now exist only
+in the archive.**
+- **`outcomeTracker` could never have matured 3M or 6M.** It resolves a prediction by reading
+  its source row back, and at a 40-day floor 3M (91d) rows die 50 days early, 6M (182d) 141
+  days early. `outcome_results` held 2D/2W/1M and **ZERO** 3M/6M/12M rows. `TODO.md` had this
+  recorded as "not matured yet, expected, not a gap" — it was structural. 1M had ~11 days of
+  margin.
+- **FIXED:** `inferenceSource.ts` / `mergeWithArchive` (live wins on overlap). Wired into
+  `outcomeTracker` (first 3M maturities possible ~2026-11-02) and `expansionReadout` (+4,536
+  rows restored; cohort 2,182 → 3,294). **Any new readout on `inference_results` must use it** —
+  reading live alone silently truncates the post-parity window.
+
 **⚠ The lesson generalises past this table.** Nothing errored. `expansionReadout.ts` just
 returned fewer rows each run, and on 09-12 its pre-parity 2W arm printed **+0.2181 (t=4.93)**
 — a spectacular number computed on the 189-row remnant of a 580-row cohort. **A shrinking

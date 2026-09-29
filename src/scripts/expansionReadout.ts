@@ -20,6 +20,7 @@
 import 'dotenv/config';
 import { fetchYahooDailyHistory } from '../LiveInferenceService';
 import { checkRowCounts, effectiveWindowsLines } from './readoutGuards';
+import { mergeWithArchive } from './inferenceSource';
 
 const PARITY = '2026-08-09';
 const sinceIdx = process.argv.indexOf('--since');
@@ -68,6 +69,12 @@ async function main() {
     rows.push(...(data ?? []));
     if ((data ?? []).length < 1000) break;
   }
+  // Supabase prunes inference_results to ~40 days, so live alone silently truncates the
+  // start of this readout's own window. Restore the pruned rows from the archive.
+  const merged = mergeWithArchive(rows as Array<{ run_date: any; symbol: string }>, { since: SINCE });
+  rows.length = 0;
+  rows.push(...(merged.rows as any[]).filter(r => r.unreliable_reason === 'null_enrichment'));
+  console.log(`  ${merged.note}`);
   console.log(`null_enrichment rows since ${SINCE}: ${rows.length} ` +
               `(${new Set(rows.map(r => r.symbol)).size} symbols)`);
   // This readout reads inference_results, which is pruned to a rolling ~40 days — the
