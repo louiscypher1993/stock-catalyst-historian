@@ -39,7 +39,12 @@
  * was actually made against at scan time) -- not a separate run_date price
  * lookup.
  *
- * unreliable_reason-flagged rows are excluded entirely (never checked).
+ * unreliable_reason: `raw_prediction_outlier` rows are excluded entirely (the model emitted a
+ * nonsense value — a bad row, not a new symbol). `null_enrichment` rows ARE tracked as of
+ * 2026-09-29 so the expansion cohort can be measured against its own predictions, and the
+ * reason is STORED on each outcome row. Every readout filters `unreliable_reason IS NULL` by
+ * default, so cohort rows cannot contaminate core-universe statistics — including the
+ * checkpoint readout. Opt in with --include-cohort.
  *
  * DURABLE-MIRROR SELF-HEALING (added 2026-07-29 after the mirror-gap audit).
  * Local sqlite is the idempotency ledger, but it cannot distinguish "already
@@ -305,7 +310,7 @@ async function upsertOutcomes(rows: Array<Record<string, any>>): Promise<number>
 // and lets main() restore the local db from the durable one, which also keeps
 // `outcomeScoreboard --source local` (the DEFAULT source) honest -- a keys-only
 // skip would suppress the re-fetch but leave local silently sparse forever.
-const DURABLE_COLUMNS = 'symbol,run_date,horizon,predicted_return,predicted_tier,actual_return,target_date,matched_price_date,actual_source,checked_at';
+const DURABLE_COLUMNS = 'symbol,run_date,horizon,predicted_return,predicted_tier,actual_return,target_date,matched_price_date,actual_source,checked_at,unreliable_reason';
 
 async function fetchOutcomeRows(): Promise<Array<Record<string, any>>> {
   const all: Array<Record<string, any>> = [];
@@ -369,9 +374,22 @@ async function main() {
       matched_price_date TEXT,
       actual_source TEXT,
       checked_at TEXT,
+      unreliable_reason TEXT,
       UNIQUE(symbol, run_date, horizon)
     );
   `);
+  // Additive column for DBs created before 2026-09-29. Marks which cohort a row came
+  // from, so the expansion cohort can be MEASURED without contaminating core-universe
+  // statistics — every readout excludes non-null by default. sqlite has no
+  // ADD COLUMN IF NOT EXISTS, so check pragma first.
+  {
+    const cols = (outDb.prepare(`PRAGMA table_info(outcome_tracker)`).all() as Array<{ name: string }>)
+      .map(c => c.name);
+    if (!cols.includes('unreliable_reason')) {
+      outDb.exec(`ALTER TABLE outcome_tracker ADD COLUMN unreliable_reason TEXT`);
+      console.log('[outcomeTracker] added outcome_tracker.unreliable_reason');
+    }
+  }
 
   // market_cache.db is gitignored -- not present on a fresh CI checkout, so
   // this degrades to Yahoo-only there. Local/manual runs (this backfill
@@ -392,14 +410,14 @@ async function main() {
 
   const existsStmt = outDb.prepare(`SELECT 1 FROM outcome_tracker WHERE symbol=? AND run_date=? AND horizon=?`);
   const insertStmt = outDb.prepare(`
-    INSERT INTO outcome_tracker (symbol, run_date, horizon, predicted_return, predicted_tier, actual_return, target_date, matched_price_date, actual_source, checked_at)
-    VALUES (@symbol, @run_date, @horizon, @predicted_return, @predicted_tier, @actual_return, @target_date, @matched_price_date, @actual_source, @checked_at)
+    INSERT INTO outcome_tracker (symbol, run_date, horizon, predicted_return, predicted_tier, actual_return, target_date, matched_price_date, actual_source, checked_at, unreliable_reason)
+    VALUES (@symbol, @run_date, @horizon, @predicted_return, @predicted_tier, @actual_return, @target_date, @matched_price_date, @actual_source, @checked_at, @unreliable_reason)
   `);
   // OR IGNORE: local always wins on conflict. Rehydration restores what the
   // cache lost; it must never overwrite a row this machine already holds.
   const hydrateStmt = outDb.prepare(`
-    INSERT OR IGNORE INTO outcome_tracker (symbol, run_date, horizon, predicted_return, predicted_tier, actual_return, target_date, matched_price_date, actual_source, checked_at)
-    VALUES (@symbol, @run_date, @horizon, @predicted_return, @predicted_tier, @actual_return, @target_date, @matched_price_date, @actual_source, @checked_at)
+    INSERT OR IGNORE INTO outcome_tracker (symbol, run_date, horizon, predicted_return, predicted_tier, actual_return, target_date, matched_price_date, actual_source, checked_at, unreliable_reason)
+    VALUES (@symbol, @run_date, @horizon, @predicted_return, @predicted_tier, @actual_return, @target_date, @matched_price_date, @actual_source, @checked_at, @unreliable_reason)
   `);
   const hydrateAll = outDb.transaction((rows: Array<Record<string, any>>) => {
     let inserted = 0;
@@ -409,7 +427,7 @@ async function main() {
         predicted_return: r.predicted_return ?? null, predicted_tier: r.predicted_tier ?? null,
         actual_return: r.actual_return ?? null, target_date: r.target_date ?? null,
         matched_price_date: r.matched_price_date ?? null, actual_source: r.actual_source ?? null,
-        checked_at: r.checked_at ?? null,
+        checked_at: r.checked_at ?? null, unreliable_reason: r.unreliable_reason ?? null,
       }).changes;
     }
     return inserted;
@@ -458,7 +476,13 @@ async function main() {
   let checkedCount = 0, freeCount = 0, cacheHitCount = 0, fetchedCount = 0, skippedUnmatured = 0, skippedNoPrice = 0, skippedExisting = 0, skippedNoPred = 0;
 
   for (const row of rows) {
-    if (row.unreliable_reason) continue;
+    // WAS: skip every flagged row. Now the expansion cohort (null_enrichment) IS tracked,
+    // so its predictions can be scored against outcomes — the whole point of monitoring it.
+    // raw_prediction_outlier stays excluded: that flag means the model emitted a nonsense
+    // value, which is a bad row rather than a new symbol (11 rows vs 2,360 as of 09-29).
+    // Every readout filters unreliable_reason IS NULL by default, so this cannot leak into
+    // core-universe statistics.
+    if (row.unreliable_reason && row.unreliable_reason !== 'null_enrichment') continue;
     if (row.current_price == null) { skippedNoPred++; continue; }
 
     for (const h of HORIZONS) {
@@ -519,6 +543,7 @@ async function main() {
         actual_return: actualReturn, target_date: targetDate,
         matched_price_date: matchedDate, actual_source: source,
         checked_at: new Date().toISOString(),
+        unreliable_reason: row.unreliable_reason ?? null,
       };
       insertStmt.run(outcome);
       pendingOutcomeWrites.push(outcome);

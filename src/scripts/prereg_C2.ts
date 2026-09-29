@@ -45,7 +45,7 @@ async function main() {
   for (let f = 0; ; f += 1000) {
     const { data, error } = await supabase.from('outcome_results')
       .select('symbol, run_date, predicted_return, actual_return, dividend_credit')
-      .eq('horizon', '2W').gte('run_date', PARITY).range(f, f + 999);
+      .eq('horizon', '2W').gte('run_date', PARITY).is('unreliable_reason', null).range(f, f + 999);
     if (error) throw error;
     rows.push(...(data ?? [])); if ((data ?? []).length < 1000) break;
   }

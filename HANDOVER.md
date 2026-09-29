@@ -50,9 +50,24 @@ evidence of absence — keep those separate.
 October was never capable of this; it was arithmetic true on day one that nobody checked
 because we were all counting run_dates.
 
-**Proposed (not yet decided): October becomes a REPORT of what IS decidable — 2D anchor
-refuted, cost model, ledger at −0.971%/trade, C2's rejection, the retention hazard — and the
-2W capital decision re-gates to a COUNT of ≥10 non-overlapping windows.**
+**✅ DECIDED 2026-09-29 (Lewis): October IS a REPORT of what is decidable — 2D anchor refuted,
+cost model, ledger at −0.971%/trade, C2's rejection, the retention hazard. No money in, and NOT
+declared dead. The 2W capital decision re-gates to a COUNT of ≥10 non-overlapping windows
+(~late December).**
+
+**✅ ALSO DECIDED: the expansion cohort is now MEASURED and TRADED, via a separate pot cohort.**
+The two conflicting release rules no longer need adjudicating — direct paper-trading evidence
+replaces the threshold argument.
+- `outcomeTracker` records `null_enrichment` rows and stores the reason; `raw_prediction_outlier`
+  stays excluded. **Every readout filters `unreliable_reason IS NULL` BY DEFAULT**
+  (`--include-cohort` opts in), so the cohort cannot contaminate core anchors or the December
+  verdict. Verified: `checkpointReadout` byte-identical before/after.
+- `pots.universe` ('core' | 'expanded'). **All 44 existing pots are `core` and unchanged** — a
+  clean control. Six new `EXP` pots mirror R2 pots trait-for-trait, so comparisons are paired
+  with universe the only variable. Blending universes inside one pot's history is the error the
+  parity boundary forced us to undo; six rather than 24 because pots trade overlapping signals.
+- **They start at zero closed trades and inform neither October nor December.** Groundwork.
+- Per-symbol buy ALERTS stay closed to cohort symbols (`LiveInferenceService.ts:1685`).
 
 **✅ THE RETENTION PROBLEM IS SOLVED AT SOURCE (2026-09-29).** It was a `pg_cron` job:
 `jobid 1 | 0 3 * * * | DELETE FROM inference_results WHERE run_date < CURRENT_DATE -

@@ -33,7 +33,11 @@ parity**. Parity was 2026-08-09, so the earliest honest 2W verdict is **late Dec
 that is a marginal read. **October was never capable of answering this** — true on 08-09, and
 missed because everyone (assistant included) counted run_dates instead of independent windows.
 
-**PROPOSED RE-GATING — decide this explicitly:**
+**✅ DECIDED 2026-09-29 (Lewis): October becomes a REPORT. No money in, and not declared
+dead either. The 2W capital decision re-gates to a COUNT of ≥10 non-overlapping windows
+(~late December).** The rest of this section is the reasoning behind that, kept.
+
+**DECIDED RE-GATING:**
 1. **October becomes a REPORT, not a go/no-go.** It states what IS decidable: the 2D anchor
    is refuted; the cost model and its 10x India correction; the pot ledger at −0.971%/trade;
    C2's rejection; the retention hazard.
@@ -371,6 +375,29 @@ Scripts: `potLedgerNet.ts` (the readout), `potLedgerCosts.ts` (the module),
      **2D quarantine stands, decided rather than pending.**
      Pre-parity cohort, for contrast: −0.1298, t=−2.11 over 13 days — still just short
      of the 95% bar (t-crit ≈2.18 on 12 df), and a poor prior, but a different regime.
+   - **✅ SUPERSEDED BY A BETTER DESIGN 2026-09-29 (Lewis's idea).** The two conflicting
+     release rules (`TODO`'s "positive day-IC" vs `expansionReadout`'s "same sign AND
+     within ~2×") no longer have to be adjudicated on a threshold, because we now get
+     DIRECT paper-trading evidence instead. Decided: **measure the cohort AND trade it,
+     but in a SEPARATE pot cohort.**
+     - **Measurement:** `outcomeTracker` now records `null_enrichment` rows and stores the
+       reason (`raw_prediction_outlier` still excluded — bad row, not new symbol). Every
+       readout filters `unreliable_reason IS NULL` **by default** (`--include-cohort` to opt
+       in), so cohort rows cannot contaminate the core anchors or the December verdict.
+       Verified: `checkpointReadout` output byte-identical before and after.
+     - **Trading:** `pots.universe` ('core' | 'expanded'). All 44 existing pots are `core`
+       and behave exactly as before, so their histories stay a clean control. Six new
+       `EXP` pots mirror R2 pots trait-for-trait (Core, Bold-5, Bold-9, Ratio-1.0,
+       Ratio-4.0, Fast-2D) — matched pairs where the ONLY difference is universe.
+     - **Why mirrors, not opening the existing pots:** blending two universes inside one
+       pot's record is the same error the parity boundary forced us to undo.
+     - **Why six, not 24:** pots trade heavily overlapping signals, so extra pots buy
+       resolution on settings, not independent observations.
+     - **Expect nothing soon:** they start at zero closed trades; a 2W pot needs a
+       fortnight per outcome, so this informs neither October nor December.
+     - Per-symbol buy ALERTS stay closed to cohort symbols
+       (`LiveInferenceService.ts:1685`); only the pots trade them.
+   - *(original framing below, kept — the numbers still track the cohort's IC)*
    - **2W is the remaining question. ⚠ CORRECTED 2026-08-27 — the encouraging first
      read was noise, and it did not survive one extra day.**
 

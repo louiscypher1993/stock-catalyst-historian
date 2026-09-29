@@ -176,7 +176,10 @@ async function main() {
   const positionGBP = Number(arg('--position', '50'));
   const minN = Number(arg('--min-n', '30'));
 
-  const all = await loadRows(source, null, null);
+  // Expansion cohort excluded by DEFAULT (tracked since 2026-09-29 but never blended into
+  // core-universe anchors). --include-cohort to study the cohort itself.
+  const includeCohort = process.argv.includes('--include-cohort');
+  const all = await loadRows(source, null, null, includeCohort);
   const pre = all.filter(r => r.run_date < deploy);
   // v9.4 running on pre-parity (wrong) inputs — excluded from every comparison below
   const mid = all.filter(r => r.run_date >= deploy && r.run_date < parity);

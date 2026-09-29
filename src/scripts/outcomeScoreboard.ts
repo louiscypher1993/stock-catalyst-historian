@@ -207,13 +207,20 @@ function pct(v: number, dp = 2): string {
 function fixed(v: number, dp = 3): string { return Number.isFinite(v) ? v.toFixed(dp) : ' n/a'; }
 
 // ── data loading (local sqlite | durable Supabase outcome_results) ──────────
-export async function loadRows(source: string, since: string | null, until: string | null): Promise<Row[]> {
-  if (source === 'supabase') return loadFromSupabase(since, until);
+/**
+ * @param includeCohort  the expansion cohort (`unreliable_reason = 'null_enrichment'`) has been
+ *   TRACKED since 2026-09-29 so it can be measured. It is EXCLUDED here by default, because
+ *   every anchor, verdict and checkpoint figure in this project describes the core universe —
+ *   silently folding 1,183 quarantined symbols into them would corrupt the one measurement
+ *   December depends on. Pass true only to study the cohort itself.
+ */
+export async function loadRows(source: string, since: string | null, until: string | null, includeCohort = false): Promise<Row[]> {
+  if (source === 'supabase') return loadFromSupabase(since, until, includeCohort);
   if (source !== 'local') { console.error(`[Scoreboard] unknown --source '${source}' (use local|supabase).`); process.exit(1); }
-  return loadFromSqlite(since, until);
+  return loadFromSqlite(since, until, includeCohort);
 }
 
-function loadFromSqlite(since: string | null, until: string | null): Row[] {
+function loadFromSqlite(since: string | null, until: string | null, includeCohort = false): Row[] {
   let db: Database.Database;
   try {
     db = new Database(OUTCOME_DB, { readonly: true, fileMustExist: true });
@@ -226,8 +233,11 @@ function loadFromSqlite(since: string | null, until: string | null): Row[] {
   // so the scoreboard never breaks on an un-enriched db.
   const hasDiv = (db.prepare(`PRAGMA table_info(outcome_tracker)`).all() as Array<{ name: string }>)
     .some(c => c.name === 'dividend_credit');
+  const hasReason = (db.prepare(`PRAGMA table_info(outcome_tracker)`).all() as Array<{ name: string }>)
+    .some(c => c.name === 'unreliable_reason');
   const where = ['actual_return IS NOT NULL', 'predicted_return IS NOT NULL'];
   const params: any[] = [];
+  if (hasReason && !includeCohort) where.push('unreliable_reason IS NULL');
   if (since) { where.push('run_date >= ?'); params.push(since); }
   if (until) { where.push('run_date <= ?'); params.push(until); }
   const rows = db.prepare(
@@ -238,11 +248,12 @@ function loadFromSqlite(since: string | null, until: string | null): Row[] {
   return hasDiv ? rows : rows.map(r => ({ ...r, dividend_credit: null }));
 }
 
-async function loadFromSupabase(since: string | null, until: string | null): Promise<Row[]> {
+async function loadFromSupabase(since: string | null, until: string | null, includeCohort = false): Promise<Row[]> {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
   if (!url || !key) { console.error('[Scoreboard] --source supabase needs SUPABASE_URL + SUPABASE_(SERVICE_ROLE|ANON)_KEY.'); process.exit(1); }
   const filters = ['actual_return=not.is.null', 'predicted_return=not.is.null'];
+  if (!includeCohort) filters.push('unreliable_reason=is.null');
   if (since) filters.push(`run_date=gte.${since}`);
   if (until) filters.push(`run_date=lte.${until}`);
   // Probe for dividend_credit (added by supabase_dividend_credit_migration.sql,
@@ -283,7 +294,10 @@ async function main() {
   const positionGBP = args.includes('--position') ? Number(args[args.indexOf('--position') + 1]) : DEFAULT_POSITION_GBP;
   const source = args.includes('--source') ? args[args.indexOf('--source') + 1] : 'local';
 
-  const allRows = await loadRows(source, since, until);
+  // Expansion cohort excluded by DEFAULT — see loadRows. Every anchor here describes the
+  // core universe; folding in 1,183 quarantined symbols would corrupt the comparison.
+  const includeCohort = args.includes('--include-cohort');
+  const allRows = await loadRows(source, since, until, includeCohort);
   const meanCostBps = allRows.length ? mean(allRows.map(r => roundTripCost(r.symbol, positionGBP).totalBps)) : NaN;
 
   const runDates = allRows.map(r => r.run_date).sort();

@@ -60,6 +60,9 @@ interface Pot {
   focus:            number;
   reactivity:       number;
   starting_balance: number;
+  /** 'core' (default, and every pre-2026-09-29 pot) or 'expanded'. See
+   *  rowAllowedForUniverse. Absent on rows written before the column existed. */
+  universe?:        string;
 }
 
 interface Position {
@@ -139,7 +142,28 @@ function stopLossPct(conviction: number, boldness: number, horizonLabel: string)
  * (gate passes), matching the conservative default used elsewhere in this file when
  * upstream data is missing (e.g. the `!cp` price-map check).
  */
-function meetsSignalQualityGate(boldness: number, result: PipelineResult): boolean {
+/**
+ * May a pot on `universe` trade a row carrying `reason`?
+ *
+ * Added 2026-09-29 for the expanded-universe pot cohort. Previously ANY
+ * `unreliable_reason` blocked every pot, which conflated two different things:
+ *   - `null_enrichment` (2,360 of 4,662 live rows) — the 2026-08-10 universe expansion
+ *     and older Phenomenon-1 symbols. Missing ENRICHMENT, not a bad prediction. This is
+ *     what `universe = 'expanded'` pots are for.
+ *   - `raw_prediction_outlier` (11 rows) — the model emitted a nonsense value. A bad ROW.
+ *     Never tradeable by anyone, on any universe.
+ *
+ * `core` pots keep the original behaviour exactly, so the existing 44 pots' histories stay
+ * a clean control: the comparison is same-traits/different-universe, never a blend of both
+ * inside one pot's record. That blending is the mistake the parity boundary already forced
+ * this project to undo.
+ */
+function rowAllowedForUniverse(reason: string | null | undefined, universe: string | undefined): boolean {
+  if (!reason) return true;
+  return reason === 'null_enrichment' && universe === 'expanded';
+}
+
+function meetsSignalQualityGate(boldness: number, result: PipelineResult, universe?: string): boolean {
   // Phenomenon 1 / raw-prediction sanity-gate exclusion (this session): a
   // flagged row's underlying prediction can't be trusted, so it's treated as
   // failing this gate exactly like a suppressed non-event -- blocks long
@@ -147,7 +171,7 @@ function meetsSignalQualityGate(boldness: number, result: PipelineResult): boole
   // route through meetsEntryConditions/meetsSignalQualityGate). Reactivity
   // exits (Phase 1) don't call this gate at all, so they're guarded
   // separately at their own call site.
-  if (result.unreliable_reason) return false;
+  if (!rowAllowedForUniverse(result.unreliable_reason, universe)) return false;
   const move = result.day_change_pct;
   const vol  = result.volume_ratio;
   if (move == null || vol == null) return true;
@@ -556,7 +580,7 @@ function meetsEntryConditions(
   if (!meetsMinRec(signal.tier, tier.minRec))                              return false;
   if (signal.riskScore > pot.boldness * 10)                                return false;
   if (expectedReturnForHorizon(result, pot.patience) < tier.minReturn)     return false;
-  if (!meetsSignalQualityGate(pot.boldness, result))                       return false;
+  if (!meetsSignalQualityGate(pot.boldness, result, pot.universe))                       return false;
   if (signal.riskReward < pot.ambition / 40)                               return false;
   if (openCount >= pot.focus)                                              return false;
   if (heldSyms.has(result.symbol))                                         return false;
@@ -762,7 +786,7 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
       const signalResult = results.find(r => r.symbol === pos.symbol);
       // Flagged rows don't go through meetsSignalQualityGate here (this path
       // doesn't call it), so guard explicitly -- same exclusion as entries.
-      if (signalResult && !signalResult.unreliable_reason) {
+      if (signalResult && rowAllowedForUniverse(signalResult.unreliable_reason, pot.universe)) {
         const sig = resolveHorizonSignal(signalResult, P);
         if (sig.tier === 'SELL') {
           const logMessage = `[PotService] ${pot.name}: REACTIVITY_EXIT ${pos.symbol} (new ${sig.tier})`;
@@ -927,7 +951,7 @@ export function decidePot(input: PotDecisionInput): PotAction[] {
     if (!canShort) continue;
 
     // For shorts, check signal quality and risk score (recommendation tier check skipped)
-    if (!meetsSignalQualityGate(B, result)) continue;
+    if (!meetsSignalQualityGate(B, result, pot.universe)) continue;
     if (shortSignal.riskScore > B * 10) continue;
     // Ensure model predicts meaningful downside. F5 fix: use the SIGNED
     // prediction, not Math.abs -- the SELL tier's cutoff (HORIZON_TIER_
