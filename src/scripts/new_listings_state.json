@@ -10638,7 +10638,44 @@
     "NMEHF": "2026-09-27",
     "ATZAF": "2026-09-27",
     "ZHILF": "2026-09-27",
-    "PGBIF": "2026-09-27"
+    "PGBIF": "2026-09-27",
+    "INBT": "2026-10-04",
+    "SBXDF": "2026-10-04",
+    "ROSS": "2026-10-04",
+    "PORT": "2026-10-04",
+    "PUROF": "2026-10-04",
+    "BSRT": "2026-10-04",
+    "CGL": "2026-10-04",
+    "SRAV": "2026-10-04",
+    "KUBE": "2026-10-04",
+    "CTVHY": "2026-10-04",
+    "PAXG": "2026-10-04",
+    "RGNA": "2026-10-04",
+    "TZIC": "2026-10-04",
+    "MNBS": "2026-10-04",
+    "TFP": "2026-10-04",
+    "YHTE": "2026-10-04",
+    "BHAI": "2026-10-04",
+    "CTY": "2026-10-04",
+    "SCIP": "2026-10-04",
+    "TCXB": "2026-10-04",
+    "FLSC": "2026-10-04",
+    "CSEA": "2026-10-04",
+    "JSTYY": "2026-10-04",
+    "OSAC": "2026-10-04",
+    "AKOM": "2026-10-04",
+    "DXPRV": "2026-10-04",
+    "BRRND": "2026-10-04",
+    "CSANY": "2026-10-04",
+    "XTKGF": "2026-10-04",
+    "BSRTF": "2026-10-04",
+    "VSEED": "2026-10-04",
+    "ADIS": "2026-10-04",
+    "NSTR": "2026-10-04",
+    "NSTR-WT": "2026-10-04",
+    "MOTLY": "2026-10-04",
+    "MMTGF": "2026-10-04",
+    "JSTWF": "2026-10-04"
   },
   "rejected": {
     "FOIL": {
@@ -10746,16 +10783,16 @@
       "reason": "bars=35 close=10.18 medDV=0.1M"
     },
     "KLXER": {
-      "date": "2026-08-30",
-      "reason": "bars=1 close=0.11 medDV=0.0M"
+      "date": "2026-10-04",
+      "reason": "bars=1 close=0.00 medDV=0.0M"
     },
     "GFR-RI": {
       "date": "2026-08-30",
       "reason": "bars=1 close=1.06 medDV=0.1M"
     },
     "MIACW": {
-      "date": "2026-08-30",
-      "reason": "bars=1 close=1.02 medDV=0.0M"
+      "date": "2026-10-04",
+      "reason": "bars=21 close=0.34 medDV=0.0M"
     },
     "IPXG": {
       "date": "2026-09-06",
@@ -11008,6 +11045,54 @@
     "NIAAU": {
       "date": "2026-09-27",
       "reason": "bars=0 close=n/a medDV=0.0M"
+    },
+    "RZAI": {
+      "date": "2026-10-04",
+      "reason": "bars=3 close=19.74 medDV=6.5M"
+    },
+    "IVAI": {
+      "date": "2026-10-04",
+      "reason": "bars=3 close=10.17 medDV=6.5M"
+    },
+    "FGC": {
+      "date": "2026-10-04",
+      "reason": "bars=64 close=6.94 medDV=0.7M"
+    },
+    "FFR": {
+      "date": "2026-10-04",
+      "reason": "bars=10 close=1.23 medDV=1.6M"
+    },
+    "OPNW": {
+      "date": "2026-10-04",
+      "reason": "bars=64 close=5.40 medDV=0.0M"
+    },
+    "DX-PD": {
+      "date": "2026-10-04",
+      "reason": "bars=1 close=24.96 medDV=10.6M"
+    },
+    "THRMV": {
+      "date": "2026-10-04",
+      "reason": "bars=0 close=n/a medDV=0.0M"
+    },
+    "FGCPP": {
+      "date": "2026-10-04",
+      "reason": "bars=64 close=24.23 medDV=0.0M"
+    },
+    "UWMC-RW": {
+      "date": "2026-10-04",
+      "reason": "bars=1 close=0.03 medDV=0.0M"
+    },
+    "PORT-UN": {
+      "date": "2026-10-04",
+      "reason": "bars=1 close=9.96 medDV=7.3M"
+    },
+    "MMEDV": {
+      "date": "2026-10-04",
+      "reason": "bars=1 close=18.70 medDV=0.0M"
+    },
+    "PORT.U": {
+      "date": "2026-10-04",
+      "reason": "Yahoo Finance request failed for PORT.U: HTTP 404"
     }
   },
   "added": {
