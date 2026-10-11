@@ -64,6 +64,14 @@
     {
       "symbol": "QVCG",
       "companyName": "QVC Group, Inc."
+    },
+    {
+      "symbol": "SKYD",
+      "companyName": "Skydance Corp"
+    },
+    {
+      "symbol": "XRPC",
+      "companyName": "Canary XRP ETF"
     }
   ]
 }

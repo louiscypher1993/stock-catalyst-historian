@@ -1,20 +1,20 @@
 {
   "_note": "symbol -> AMF aggregate net short position (France, .PA only). Individual holder disclosures aggregated here (latest row per holder+ISIN among OPEN positions, summed) to match the FCA ANSP shape. Source: AMF open data via data.gouv.fr, free/no-auth, URL resolved dynamically (timestamped filename). Joined via ISIN->FIGI, not name matching. Rebuild via buildAmfShortPositions.ts.",
-  "_built": "2026-10-04",
-  "_sourceUrl": "https://object-api.infra.data.gouv.fr/amf/VAD/export_od_vad_20261002111500_20261002123001.csv",
-  "_frenchIssuersWithOpenPositions": 83,
+  "_built": "2026-10-11",
+  "_sourceUrl": "https://object-api.infra.data.gouv.fr/amf/VAD/export_od_vad_20261009111500_20261009123001.csv",
+  "_frenchIssuersWithOpenPositions": 86,
   "amfShortPositions": {
     "CAP.PA": {
-      "aggregateShortPercent": 1.81,
-      "holders": 3,
-      "latestPositionDate": "2026-09-23",
+      "aggregateShortPercent": 2.66,
+      "holders": 4,
+      "latestPositionDate": "2026-10-06",
       "isin": "FR0000125338",
       "issuer": "CAPGEMINI"
     },
     "SGO.PA": {
-      "aggregateShortPercent": 0.5,
+      "aggregateShortPercent": 0.6,
       "holders": 1,
-      "latestPositionDate": "2026-09-08",
+      "latestPositionDate": "2026-10-02",
       "isin": "FR0000125007",
       "issuer": "COMPAGNIE DE SAINT-GOBAIN"
     },
@@ -25,6 +25,13 @@
       "isin": "FR0014003TT8",
       "issuer": "DASSAULT SYSTEMES"
     },
+    "ENGI.PA": {
+      "aggregateShortPercent": 0.52,
+      "holders": 1,
+      "latestPositionDate": "2026-10-07",
+      "isin": "FR0010208488",
+      "issuer": "ENGIE"
+    },
     "KER.PA": {
       "aggregateShortPercent": 0.5,
       "holders": 1,
@@ -33,51 +40,51 @@
       "issuer": "KERING"
     },
     "TEP.PA": {
-      "aggregateShortPercent": 6.11,
-      "holders": 7,
-      "latestPositionDate": "2026-09-30",
+      "aggregateShortPercent": 6.54,
+      "holders": 8,
+      "latestPositionDate": "2026-10-06",
       "isin": "FR0000051807",
       "issuer": "TELEPERFORMANCE"
     },
     "AM.PA": {
-      "aggregateShortPercent": 0.5,
+      "aggregateShortPercent": 0.58,
       "holders": 1,
-      "latestPositionDate": "2026-07-23",
+      "latestPositionDate": "2026-10-06",
       "isin": "FR0014004L86",
       "issuer": "DASSAULT AVIATION"
     },
-    "GFC.PA": {
-      "aggregateShortPercent": 1.91,
-      "holders": 3,
-      "latestPositionDate": "2026-09-18",
-      "isin": "FR0010040865",
-      "issuer": "GECINA"
-    },
     "CA.PA": {
-      "aggregateShortPercent": 1.61,
+      "aggregateShortPercent": 1.83,
       "holders": 2,
-      "latestPositionDate": "2026-09-25",
+      "latestPositionDate": "2026-10-06",
       "isin": "FR0000120172",
       "issuer": "CARREFOUR"
     },
     "LI.PA": {
-      "aggregateShortPercent": 0.81,
+      "aggregateShortPercent": 0.73,
       "holders": 1,
-      "latestPositionDate": "2026-06-18",
+      "latestPositionDate": "2026-10-07",
       "isin": "FR0000121964",
       "issuer": "KLEPIERRE"
     },
-    "WLN.PA": {
-      "aggregateShortPercent": 2.66,
+    "GFC.PA": {
+      "aggregateShortPercent": 1.97,
       "holders": 3,
-      "latestPositionDate": "2026-09-22",
+      "latestPositionDate": "2026-10-06",
+      "isin": "FR0010040865",
+      "issuer": "GECINA"
+    },
+    "WLN.PA": {
+      "aggregateShortPercent": 2.56,
+      "holders": 3,
+      "latestPositionDate": "2026-10-05",
       "isin": "FR00140182K6",
       "issuer": "WORLDLINE"
     },
     "ETL.PA": {
-      "aggregateShortPercent": 1.68,
+      "aggregateShortPercent": 1.67,
       "holders": 2,
-      "latestPositionDate": "2026-09-03",
+      "latestPositionDate": "2026-10-05",
       "isin": "FR0010221234",
       "issuer": "EUTELSAT COMMUNICATIONS"
     },
@@ -89,9 +96,9 @@
       "issuer": "VIVENDI SE"
     },
     "TTE.PA": {
-      "aggregateShortPercent": 0.77,
+      "aggregateShortPercent": 0.69,
       "holders": 1,
-      "latestPositionDate": "2026-08-25",
+      "latestPositionDate": "2026-10-07",
       "isin": "FR0000120271",
       "issuer": "TOTALENERGIES SE"
     }
