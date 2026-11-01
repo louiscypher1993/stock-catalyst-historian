@@ -72,6 +72,14 @@
     {
       "symbol": "XRPC",
       "companyName": "Canary XRP ETF"
+    },
+    {
+      "symbol": "MSGK",
+      "companyName": "MSG Knickerbockers Corp."
+    },
+    {
+      "symbol": "ADRX",
+      "companyName": "ADARx Pharmaceuticals, Inc."
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "_note": "symbol -> ClinicalTrials.gov v2 active-trial snapshot (lead-sponsor search, 4 active statuses). Free/no-auth. POINT-IN-TIME SNAPSHOT ONLY -- API has no history endpoint; diff successive snapshots to detect real status changes. Rebuild via buildClinicalTrials.ts.",
-  "_built": "2026-10-25",
+  "_built": "2026-11-01",
   "_activeStatusesQueried": [
     "RECRUITING",
     "ACTIVE_NOT_RECRUITING",
@@ -24,42 +24,42 @@
     "ABBV": {
       "companyName": "AbbVie Inc.",
       "queryUsed": "AbbVie",
-      "activeTrialsCount": 234,
+      "activeTrialsCount": 240,
       "recentTrials": [
+        {
+          "nctId": "NCT07856706",
+          "status": "RECRUITING",
+          "date": "2026-10-29",
+          "title": "A Single Ascending Dose, and Food Effect Study of ABBV-7828 in Healthy Adults",
+          "phase": "PHASE1"
+        },
         {
           "nctId": "NCT07007065",
           "status": "RECRUITING",
-          "date": "2026-10-23",
+          "date": "2026-10-29",
           "title": "Study to Assess the Injection Burden, Adverse Events, Change in Disease Activity, and Long-Term Preservation of Visual Acuity of Surabgene Lomparvovec in Adult Participants With Neovascular Age-Related Macular Degeneration (nAMD)",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT07772492",
+          "nctId": "NCT04928846",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Evaluate the Safety and Effectiveness of Upadacitinib in Pediatric Participants With Alopecia Areata",
+          "date": "2026-10-29",
+          "title": "A Study to Assess Disease Activity and Adverse Events of Intravenous (IV) Telisotuzumab Vedotin Compared to IV Docetaxel in Adult Participants With Previously Treated Non-Squamous Non-Small Cell Lung Cancer (NSCLC)",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT06764706",
-          "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "Study to Assess Change in Disease Activity of Risankizumab Treatment in Adult Participants With Moderate to Severe Ulcerative Colitis",
-          "phase": ""
-        },
-        {
-          "nctId": "NCT07581002",
-          "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study to Assess Adverse Events and Change in Disease Activity When Intravenous (IV) Pivekimab Sunirine is Given in Combination With Oral Venetoclax and IV or Subcutaneous Azacitidine in Adult Participants With Acute Myeloid Leukemia (AML)",
-          "phase": "PHASE2/PHASE3"
-        },
-        {
-          "nctId": "NCT07673107",
-          "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "Study of AGN-151607-DP to Assess Adverse Events and Change in Disease Activity in Adult Participants With Upper Limb Essential Tremor",
+          "nctId": "NCT07904754",
+          "status": "NOT_YET_RECRUITING",
+          "date": "2026-10-29",
+          "title": "Platform Study of Targeted Therapies for Adults With Moderately to Severely Active Rheumatoid Arthritis",
           "phase": "PHASE2"
+        },
+        {
+          "nctId": "NCT07592273",
+          "status": "RECRUITING",
+          "date": "2026-10-29",
+          "title": "Surabgene Lomparvovec Administered in the Suprachoroidal Space in Adult Participants With Diabetic Retinopathy Without Center-Involved Diabetic Macular Edema",
+          "phase": "PHASE2/PHASE3"
         }
       ]
     },
@@ -69,47 +69,61 @@
       "activeTrialsCount": 213,
       "recentTrials": [
         {
-          "nctId": "NCT07293351",
+          "nctId": "NCT07686263",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Evaluate the Safety, Tolerability, and Efficacy of Pumitamig Alone or in Combination With Other Agents in Participants With Advanced Renal Cell Carcinoma (RCC) (ROSETTA RCC-208)",
-          "phase": "PHASE1/PHASE2"
-        },
-        {
-          "nctId": "NCT06561386",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Compare the Efficacy of Nivolumab and Relatlimab Plus Chemotherapy vs Pembrolizumab Plus Chemotherapy for Stage IV/Recurrent Non-squamous Non-small Cell Lung Cancer With PD-L1 Expression ≥ 1%",
+          "date": "2026-10-30",
+          "title": "Relapse Prevention Trial Evaluating KarXT Treatment in Schizophrenia",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT07063745",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Compare the Combination of Navlimetostat (BMS-986504) With Pembrolizumab and Chemotherapy Versus Placebo Plus Pembrolizumab and Chemotherapy in First-line Metastatic Non-small Cell Lung Cancer Participants With Homozygous MTAP Deletion",
-          "phase": "PHASE2/PHASE3"
-        },
-        {
-          "nctId": "NCT06951698",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Evaluate the Efficacy and Safety of KarXT for the Treatment of Manic Episodes in Bipolar-I Disorder",
+          "nctId": "NCT07441408",
+          "status": "NOT_YET_RECRUITING",
+          "date": "2026-10-30",
+          "title": "Long-term Extension Study to Evaluate Safety and Tolerability of Admilparant in Participants With Pulmonary Fibrosis",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT07680764",
+          "nctId": "NCT03899155",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study To Assess the Safety, Tolerability, and Efficacy of Imzokitug in Combination With Pumitamig and Platinum-Doublet Chemotherapy (PDCT) Versus Pumitamig and PDCT as First-line Treatment for Participants With Locally Advanced or Metastatic Non-Small Cell Lung Cancer (NSCLC)",
+          "date": "2026-10-30",
+          "title": "Pan Tumor Rollover Study",
           "phase": "PHASE2"
+        },
+        {
+          "nctId": "NCT06615479",
+          "status": "RECRUITING",
+          "date": "2026-10-29",
+          "title": "A Study to Compare the Efficacy and Safety of BMS-986393 Versus Standard Regimens in Adult Participants With Relapsed or Refractory and Lenalidomide-exposed Multiple Myeloma (QUINTESSENTIAL-2)",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT07116967",
+          "status": "RECRUITING",
+          "date": "2026-10-28",
+          "title": "Long-Term Safety Study of Deucravacitinib Versus Ustekinumab in Participants With Psoriasis (PRAGMATYK)",
+          "phase": "PHASE3"
         }
       ]
     },
     "GSK": {
       "companyName": "GSK plc",
       "queryUsed": "GSK",
-      "activeTrialsCount": 3,
+      "activeTrialsCount": 5,
       "recentTrials": [
+        {
+          "nctId": "NCT07123779",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "HS235 Study in Overweight and Obese Participants With Combined Pre and Post-Capillary Pulmonary Hypertension Due to Heart Failure With Preserved Ejection Fraction",
+          "phase": "PHASE1/PHASE2"
+        },
+        {
+          "nctId": "NCT07143448",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "A Study of HS235 for Treatment of Pulmonary Arterial Hypertension (PAH) in Adults",
+          "phase": "PHASE1/PHASE2"
+        },
         {
           "nctId": "NCT05489237",
           "status": "ACTIVE_NOT_RECRUITING",
@@ -146,17 +160,17 @@
           "phase": ""
         },
         {
-          "nctId": "NCT02596802",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-20",
-          "title": "Fetoscopic Endoluminal Tracheal Occlusion (FETO) for Congenital Diaphragm Hernia",
-          "phase": "NA"
-        },
-        {
           "nctId": "NCT07513506",
           "status": "RECRUITING",
           "date": "2026-10-20",
           "title": "Extensively Hydrolyzed Formula Growth Monitioring Study (GMS)",
+          "phase": "NA"
+        },
+        {
+          "nctId": "NCT02596802",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-20",
+          "title": "Fetoscopic Endoluminal Tracheal Occlusion (FETO) for Congenital Diaphragm Hernia",
           "phase": "NA"
         },
         {
@@ -178,125 +192,125 @@
     "LLY": {
       "companyName": "Eli Lilly and Company",
       "queryUsed": "Eli Lilly",
-      "activeTrialsCount": 232,
+      "activeTrialsCount": 233,
       "recentTrials": [
         {
-          "nctId": "NCT07483073",
+          "nctId": "NCT06297590",
           "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Master Protocol (IIBD): A Study of Multiple Drugs in Adults With Ulcerative Colitis or Crohn's Disease",
-          "phase": "PHASE2"
-        },
-        {
-          "nctId": "NCT06465069",
-          "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study of LY4052031 in Participants With Advanced or Metastatic Urothelial Cancer or Other Solid Tumors",
+          "date": "2026-10-29",
+          "title": "A First-In-Human Study of LY3954068 in Participants With Early Symptomatic Alzheimer's Disease",
           "phase": "PHASE1"
         },
         {
-          "nctId": "NCT07890376",
+          "nctId": "NCT07900633",
           "status": "NOT_YET_RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study to Investigate the Effect of LY4086940 Versus Placebo in Participants With Obesity or Overweight and Without Type 2 Diabetes",
+          "date": "2026-10-28",
+          "title": "A Study of Eloralintide (LY3841136) in Participants With Obesity or Overweight, Type 2 Diabetes, and Increased Cardiovascular Risk",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT07602582",
+          "status": "RECRUITING",
+          "date": "2026-10-28",
+          "title": "A Study of Donanemab (LY3002813) in Participants Who Completed Study AACM (TRAILBLAZER-ALZ 3-EXT).",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT07533006",
+          "status": "RECRUITING",
+          "date": "2026-10-28",
+          "title": "A Study of LY4005130 in Adult Participants With Severe Alopecia Areata (Hair Loss)",
           "phase": "PHASE2"
         },
         {
-          "nctId": "NCT07787182",
+          "nctId": "NCT07213791",
           "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study of LY4405094 in Healthy Participants and Participants With Alzheimer's Disease",
+          "date": "2026-10-27",
+          "title": "A Study of LY4337713 in Participants With FAP-Positive Solid Tumors",
           "phase": "PHASE1"
-        },
-        {
-          "nctId": "NCT07219173",
-          "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study to Evaluate Brenipatide Compared With Placebo in Adult Participants With Uncontrolled Moderate to Severe Asthma",
-          "phase": "PHASE2"
         }
       ]
     },
     "MRK": {
       "companyName": "Merck & Co., Inc.",
       "queryUsed": "Merck",
-      "activeTrialsCount": 254,
+      "activeTrialsCount": 256,
       "recentTrials": [
         {
-          "nctId": "NCT07133633",
+          "nctId": "NCT05714085",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Clinical Study of Tulisokibart (MK-7240) to Treat Radiographic Axial Spondyloarthritis (MK-7240-013)",
-          "phase": "PHASE2"
+          "date": "2026-10-30",
+          "title": "Efficacy, Safety, and Pharmacokinetics of Vericiguat in Pediatric Participants With Heart Failure Due to Left Ventricular Systolic Dysfunction (MK-1242-036)",
+          "phase": "PHASE2/PHASE3"
         },
         {
-          "nctId": "NCT06430801",
+          "nctId": "NCT07570173",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Evaluate the Efficacy and Safety of Tulisokibart (MK-7240) in Participants With Moderate to Severe Crohn's Disease (MK-7240-008)",
+          "date": "2026-10-30",
+          "title": "A Clinical Trial of MK-1045 in People With B-cell Acute Lymphoblastic Leukemia (MK-1045-005)",
+          "phase": "PHASE2/PHASE3"
+        },
+        {
+          "nctId": "NCT07513376",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "A Clinical Trial of Adjuvant Intismeran (V940) With or Without Pembrolizumab Coformulated With Berahyaluronidase Alfa (MK-3475A) in High-Risk Stage I Non-Small Cell Lung Cancer (V940-014)",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT07060807",
+          "nctId": "NCT07199465",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Clinical Study of Patritumab Deruxtecan to Treat Breast Cancer (MK-1022-016)",
-          "phase": "PHASE3"
-        },
-        {
-          "nctId": "NCT07168915",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study of V118E in Healthy Participants (V118E-003)",
+          "date": "2026-10-30",
+          "title": "A Clinical Study of Letermovir (MK-8228) in Children and Adolescents Who Receive a Kidney Transplant (KT) (MK-8228-077)",
           "phase": "PHASE1"
         },
         {
-          "nctId": "NCT07839585",
-          "status": "NOT_YET_RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Clinical Study of Sotatercept (MK-7962) in People With Combined Postcapillary and Precapillary Pulmonary Hypertension and Heart Failure With Preserved Ejection Fraction (MK-7962-041)",
-          "phase": "PHASE3"
+          "nctId": "NCT06251310",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "SW-682 in Advanced Solid Tumors",
+          "phase": "PHASE1"
         }
       ]
     },
     "NVO": {
       "companyName": "Novo Nordisk A/S",
       "queryUsed": "Novo Nordisk",
-      "activeTrialsCount": 139,
+      "activeTrialsCount": 141,
       "recentTrials": [
         {
-          "nctId": "NCT07207811",
+          "nctId": "NCT07900438",
           "status": "RECRUITING",
-          "date": "2026-10-21",
-          "title": "CLEOPATTRA: A Research Study to Look at the Effects of Treatment With a Medicine Called Coramitug (NNC6019-0001) in People With Heart Failure Due to Transthyretin Amyloid (ATTR) Amyloidosis",
+          "date": "2026-10-28",
+          "title": "A Research Study Looking at Kidney and Heart Health in Adults With Type 2 Diabetes and Chronic Kidney Disease Treated With Semaglutide in China",
+          "phase": "PHASE4"
+        },
+        {
+          "nctId": "NCT07830732",
+          "status": "RECRUITING",
+          "date": "2026-10-28",
+          "title": "A Research Study Investigating Denecimig (Mim8) in Adults With Acquired Haemophilia A",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT07607587",
-          "status": "RECRUITING",
-          "date": "2026-10-19",
-          "title": "Evaluation of the Tolerability of Cagrilintide in Participants Not Tolerating GLP-1-RA Therapies Due to Gastrointestinal Adverse Events",
+          "nctId": "NCT06859073",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-26",
+          "title": "A Research Study to Evaluate the Safety of NNC4004-0002 When Given to Participants With Asymptomatic Hyperuricemia",
           "phase": "PHASE1"
         },
         {
-          "nctId": "NCT07881770",
+          "nctId": "NCT07896109",
           "status": "NOT_YET_RECRUITING",
-          "date": "2026-10-19",
-          "title": "Semaglutide Health Outcomes and Patient Adherence in Australia",
-          "phase": ""
+          "date": "2026-10-26",
+          "title": "A Research Study to Check the Safety of NNC9836-0001 When Given to Healthy Participants and Participants With Type 2 Diabetes",
+          "phase": "PHASE1"
         },
         {
-          "nctId": "NCT07282613",
+          "nctId": "NCT07829406",
           "status": "RECRUITING",
-          "date": "2026-10-19",
-          "title": "A Research Study to See How Much CagriSema Lowers Blood Sugar and Body Weight Compared to Placebo in Children and Adolescents With Type 2 Diabetes",
-          "phase": "PHASE3"
-        },
-        {
-          "nctId": "NCT07855133",
-          "status": "RECRUITING",
-          "date": "2026-10-16",
-          "title": "A Research Study Investigating How Adults With Overweight or Obesity, With or Without Type 2 Diabetes, Tolerate Switching to a New Treatment (Zenagamtide) From Their Current Semaglutide Medication",
+          "date": "2026-10-26",
+          "title": "A Study to See How Safe a New Medicine (NNC0642-1895) is in Healthy People",
           "phase": "PHASE1"
         }
       ]
@@ -304,41 +318,41 @@
     "NVS": {
       "companyName": "Novartis AG",
       "queryUsed": "Novartis",
-      "activeTrialsCount": 367,
+      "activeTrialsCount": 366,
       "recentTrials": [
         {
-          "nctId": "NCT07570979",
+          "nctId": "NCT07484269",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Investigate the Safety and Tolerability of Oral INR731 Single Agent or in Combination With Androgen Receptor Pathway Inhibitor (ARPI) in Patients With Metastatic Prostate Cancer",
-          "phase": "PHASE1"
+          "date": "2026-10-30",
+          "title": "PULSE Registry: for Patients Receiving Lutetium (177Lu) Vipivotide Tetraxetan",
+          "phase": ""
         },
         {
-          "nctId": "NCT07357727",
+          "nctId": "NCT07697989",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Phase 3 Study of Pelabresib (DAK539) and Ruxolitinib in Myelofibrosis (MF)",
-          "phase": "PHASE3"
+          "date": "2026-10-30",
+          "title": "Pluvicto Real-world Investigation in Survival in Metastatic CRPC",
+          "phase": ""
         },
         {
-          "nctId": "NCT06857955",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Identify an Optimal Dose of QCZ484 in Mild to Moderate Hypertensive Patients",
-          "phase": "PHASE2"
+          "nctId": "NCT07684469",
+          "status": "NOT_YET_RECRUITING",
+          "date": "2026-10-30",
+          "title": "Comparative Assessment of Inclisiran on Top of Standard of Care Versus Standard of Care Alone for LDL-C Evaluation in Acute Coronary Syndrome Patients in Saudi Arabia",
+          "phase": "PHASE4"
         },
         {
-          "nctId": "NCT05827081",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "Phase IIIb Study of Ribociclib + ET in Early Breast Cancer",
-          "phase": "PHASE3"
+          "nctId": "NCT07288359",
+          "status": "RECRUITING",
+          "date": "2026-10-29",
+          "title": "Study of GVV858 as a Single Agent or in Combination With Endocrine Therapy in Patients With HR+/HER2- Breast Cancer and Other Advanced Solid Tumors",
+          "phase": "PHASE1/PHASE2"
         },
         {
-          "nctId": "NCT07468071",
+          "nctId": "NCT03960840",
           "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "Rollover Study for Participants Who Have Been Treated With and Are Continuing to Benefit From Opnurasib as a Single Agent or in Combination With Other Study Treatments",
+          "date": "2026-10-29",
+          "title": "Phase I/II Study of Rapcabtagene Autoleucel in CLL, 3L+ DLBCL, r/r ALL and 1L HR LBCL",
           "phase": "PHASE1/PHASE2"
         }
       ]
@@ -346,41 +360,41 @@
     "PFE": {
       "companyName": "Pfizer Inc.",
       "queryUsed": "Pfizer",
-      "activeTrialsCount": 255,
+      "activeTrialsCount": 259,
       "recentTrials": [
         {
-          "nctId": "NCT07023081",
+          "nctId": "NCT06294925",
           "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Understand the Safety of the 20vPnC Vaccine in Healthy Chinese Adults, Children, and Infant",
-          "phase": "PHASE1"
+          "date": "2026-10-30",
+          "title": "A Study to Learn About the Effectiveness of Etrasimod in People With Ulcerative Colitis",
+          "phase": ""
         },
         {
-          "nctId": "NCT06487078",
+          "nctId": "NCT07772921",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "Analysis of the Effectiveness and Safety of Lorlatinib in Untreated ALK-Positive NSCLC Patients in a French Real-World Context",
-          "phase": "NA"
-        },
-        {
-          "nctId": "NCT03950232",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "An Extension Study for Treatment of Moderately to Severely Active Ulcerative Colitis",
+          "date": "2026-10-30",
+          "title": "A Study to Learn About the Study Medicine Called Tilrekimig in People With Severe Asthma",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT06991257",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Learn About the Study Medicine Called PF-07328948 in Adults With Heart Failure (BRANCH-HF)",
-          "phase": "PHASE2"
+          "nctId": "NCT06994897",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-30",
+          "title": "A Study to Learn How Different Amounts of the Study Medicine Called PF-07985631 Are Tolerated and Act in the Body of Healthy Adults",
+          "phase": "PHASE1"
         },
         {
-          "nctId": "NCT06616194",
+          "nctId": "NCT07282665",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "A Study to Learn About a Clostridioides Difficile Vaccine in People 65 Years of Age and Older",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT06551324",
           "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Learn About the Study Medicine Called Rimegepant in Adolescents With Frequent Migraine",
+          "date": "2026-10-30",
+          "title": "A Study to Learn About the Investigational Medicine Called PF-06821497 (Mevrometostat) in Men With mCRPC Who Were Previously Treated With Abiraterone Acetate for Prostate Cancer (MEVPRO-1).",
           "phase": "PHASE3"
         }
       ]
@@ -388,84 +402,84 @@
     "REGN": {
       "companyName": "Regeneron Pharmaceuticals, Inc.",
       "queryUsed": "Regeneron Pharmaceuticals",
-      "activeTrialsCount": 123,
+      "activeTrialsCount": 125,
       "recentTrials": [
         {
-          "nctId": "NCT07220785",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "Efficacy and Safety of Mibavademab in Adult and Pediatric Patients With Generalized Lipodystrophy",
-          "phase": "PHASE3"
+          "nctId": "NCT05363319",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-30",
+          "title": "An Observational Study to Assess the Effectiveness and Safety of a Cemiplimab in Adult Patients With Advanced Non-Small Cell Lung Cancer (NSCLC) in Routine Clinical Practice Settings in Europe",
+          "phase": ""
         },
         {
-          "nctId": "NCT07220772",
-          "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study Evaluating Mibavademab Treatment of Obesity Due to Leptin (LEP) Gene Mutations in Children, Adolescents and Adults",
-          "phase": "PHASE3"
-        },
-        {
-          "nctId": "NCT06769698",
-          "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study to See if Giving Fianlimab and Cemiplimab Together is Better Than Cemiplimab Alone at Treating Recurrent or Metastatic Head and Neck Squamous Cell Carcinoma",
+          "nctId": "NCT07808515",
+          "status": "NOT_YET_RECRUITING",
+          "date": "2026-10-30",
+          "title": "A Study Comparing Cemiplimab-based Treatments for Adult Participants With Locally Advanced Basal Cell Skin Cancer (laBCC)",
           "phase": "PHASE2"
         },
         {
-          "nctId": "NCT07154290",
-          "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study to Investigate Ubamatamab With and Without Marlotamig (REGN7075) in Adult Participants With Advanced/Metastatic Non-Small Cell Lung Cancer (NSCLC)",
-          "phase": "PHASE2"
+          "nctId": "NCT07901725",
+          "status": "NOT_YET_RECRUITING",
+          "date": "2026-10-28",
+          "title": "Linvoseltamab Versus Daratumumab, Bortezomib, Cyclophosphamide, and Dexamethasone (Dara-Vcd) in Adult Participants With Newly Diagnosed Systemic Light Chain Amyloidosis",
+          "phase": "PHASE3"
         },
         {
-          "nctId": "NCT07318610",
-          "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "Reducing Adverse Vascular Outcomes With Factor XI Inhibition in Adult Participants With Peripheral Artery Disease",
+          "nctId": "NCT05070858",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-28",
+          "title": "A Study to Test How Safe Pozelimab and Cemdisiran Combination Therapy and Cemdisiran Alone Are and How Well They Work in Adult Patients With Generalized Myasthenia Gravis",
           "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT07753148",
+          "status": "RECRUITING",
+          "date": "2026-10-27",
+          "title": "Safety and Tolerability of REGN17235 in Adult Participants With Clonal Cytopenia of Undetermined Significance and Low-Risk Myelodysplastic Syndrome With SF3B1 Mutation",
+          "phase": "PHASE1"
         }
       ]
     },
     "SNY": {
       "companyName": "Sanofi",
       "queryUsed": "Sanofi",
-      "activeTrialsCount": 173,
+      "activeTrialsCount": 176,
       "recentTrials": [
         {
-          "nctId": "NCT07688213",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Investigate the Safety and Effectiveness of SAR448851 in Participants With Early Alzheimer's Disease",
-          "phase": "PHASE2"
+          "nctId": "NCT07905534",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-29",
+          "title": "A Retrospective Cohort Study Evaluating Major Adverse Cardiovascular Events and Cardiovascular Outcomes in Adults With Atherosclerotic Cardiovascular Disease Without Prior Ischemic Events (OPTIMUS RISK - Spain)",
+          "phase": ""
         },
         {
-          "nctId": "NCT07190222",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "Efficacy, Safety, and Tolerability Study of Lunsekimig Compared With Placebo in Adult Participants With Inadequately Controlled Chronic Obstructive Pulmonary Disease (COPD), Characterized by an Eosinophilic Phenotype",
-          "phase": "PHASE3"
-        },
-        {
-          "nctId": "NCT07038473",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "Early Detection of Type 1 Diabetes in First Degree Relatives of Type 1 Diabetes Patients (DETECT T1D GULF)",
-          "phase": "NA"
-        },
-        {
-          "nctId": "NCT07135973",
+          "nctId": "NCT07905547",
           "status": "NOT_YET_RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Investigate Safety of Belumosudil in Participants Aged 12 Years and Above, With Chronic Graft-versus-host Disease (cGVHD)",
+          "date": "2026-10-29",
+          "title": "A Study to Investigate Dupixent/ Dupilumab in Adult Indian Participants With Moderate-to-severe Atopic Dermatitis",
           "phase": "PHASE4"
         },
         {
-          "nctId": "NCT07184996",
+          "nctId": "NCT06984627",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "An Induction Study to Investigate the Efficacy and Safety of Duvakitug in Participants With Moderately to Severely Active Ulcerative Colitis",
-          "phase": "PHASE3"
+          "date": "2026-10-28",
+          "title": "A Study to Investigate the Efficacy and Safety of Rilzabrutinib in Adult Participants With Graves' Disease",
+          "phase": "PHASE2"
+        },
+        {
+          "nctId": "NCT00231400",
+          "status": "RECRUITING",
+          "date": "2026-10-28",
+          "title": "Pompe Disease Registry Protocol",
+          "phase": ""
+        },
+        {
+          "nctId": "NCT06914908",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-28",
+          "title": "Long-term Safety and Efficacy Evaluation of Lunsekimig in Adult Participants With Chronic Rhinosinusitis With Nasal Polyps (CRSwNP) Who Completed a Previous Lunsekimig CRSwNP Clinical Study",
+          "phase": "PHASE2"
         }
       ]
     },
@@ -481,39 +495,39 @@
       "activeTrialsCount": 101,
       "recentTrials": [
         {
-          "nctId": "NCT05920356",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study Evaluating Sotorasib Platinum Doublet Combination Versus Pembrolizumab Platinum Doublet Combination as a Front-Line Therapy in Participants With Stage IV or Advanced Stage IIIB/C Nonsquamous Non-Small Cell Lung Cancers (CodeBreaK 202)",
-          "phase": "PHASE3"
-        },
-        {
-          "nctId": "NCT07575399",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "Efficacy, Safety and Tolerability of Switching From Glucagon-like Peptide-1 Receptor Agonists (GLP-1RA) to Maridebart Cafraglutide in Adults With Obesity or Overweight (MARITIME-SWITCH)",
-          "phase": "PHASE3"
-        },
-        {
-          "nctId": "NCT06987539",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Evaluate the Pharmacokinetics, Pharmacodynamics, Safety and Tolerability of Inebilizumab in Children With Generalized Myasthenia Gravis (gMG)",
-          "phase": "PHASE2"
-        },
-        {
-          "nctId": "NCT06502977",
+          "nctId": "NCT06637371",
           "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-21",
-          "title": "Study Evaluating Tarlatamab in Chinese Participants With Advanced Small Cell Lung Cancer After Two or More Prior Lines of Treatment",
-          "phase": "PHASE2"
+          "date": "2026-10-30",
+          "title": "A Phase 1, Randomized, Double-blind, Placebo-controlled Study Evaluating AMG 691 in Healthy Participants and Participants With Mild-to-Moderate Asthma",
+          "phase": "PHASE1"
         },
         {
-          "nctId": "NCT04804553",
-          "status": "RECRUITING",
-          "date": "2026-10-20",
-          "title": "Apremilast Pediatric Study in Children With Active Juvenile Psoriatic Arthritis",
+          "nctId": "NCT07037433",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-29",
+          "title": "Evaluating the Impact of Maridebart Cafraglutide on Cardiovascular Outcomes in Participants With Atherosclerotic Cardiovascular Disease and Overweight or Obesity",
           "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT07037459",
+          "status": "RECRUITING",
+          "date": "2026-10-29",
+          "title": "Maridebart Cafraglutide in Heart Failure With Preserved or Mildly Reduced Ejection Fraction and Obesity",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT05909761",
+          "status": "RECRUITING",
+          "date": "2026-10-29",
+          "title": "Observational Safety Study in Women With Neuromyelitis Optica Spectrum Disorder (NMOSD) Exposed to UPLIZNA® During Pregnancy",
+          "phase": ""
+        },
+        {
+          "nctId": "NCT07297979",
+          "status": "RECRUITING",
+          "date": "2026-10-29",
+          "title": "Evaluation of Xaluritamig in Adults, Adolescents and Children With Relapsed or Refractory Ewing Sarcoma (EWS)",
+          "phase": "PHASE1"
         }
       ]
     },
@@ -523,39 +537,39 @@
       "activeTrialsCount": 497,
       "recentTrials": [
         {
-          "nctId": "NCT06151964",
+          "nctId": "NCT05583227",
           "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Trial to Learn How Safe AZD9550 Monotherapy and Combined With AZD6234 is in People With or Without Type 2 Diabetes Who Are Living With Obesity and Overweight",
-          "phase": "PHASE1/PHASE2"
-        },
-        {
-          "nctId": "NCT07167433",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "Observational, Bi-directional (Prospective and Retrospective) Study for Patients With Newly Diagnosed Ovarian Cancer Stages IA to IVB, or Persistent or Recurrent Disease From January 2021; Irrespective of Histology",
-          "phase": ""
-        },
-        {
-          "nctId": "NCT06097728",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "MEDI5752 in Combination With Carboplatin Plus Pemetrexed in Unresectable Pleural Mesothelioma",
+          "date": "2026-10-30",
+          "title": "Efficacy and Safety of Tezepelumab in Patients With Eosinophilic Esophagitis",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT07155226",
+          "nctId": "NCT06106945",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "Study of AZD3632 Monotherapy or in Combination With Anticancer Agents in Participants With Advanced Haematologic Malignancies With KMT2Ar, NPM1m, or Other Genotypes Associated With HOX Overexpression",
+          "date": "2026-10-30",
+          "title": "AZD0305 as Monotherapy or in Combination With Anticancer Agents in Participants With Multiple Myeloma",
           "phase": "PHASE1/PHASE2"
         },
         {
-          "nctId": "NCT07617636",
-          "status": "NOT_YET_RECRUITING",
-          "date": "2026-10-23",
-          "title": "Observational Study That Will Analyse the Spread and Stratification of Lung Cancer Risk Using Artificial Intelligence",
-          "phase": ""
+          "nctId": "NCT06380751",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "Saruparib (AZD5305) Plus Camizestrant or Plus Endocrine Therapy, Compared With CDK4/6 Inhibitor Plus Endocrine Therapy or Plus Camizestrant in HR-Positive, HER2-Negative (IHC 0, 1+, 2+/ ISH Non-amplified), BRCA1, BRCA2, or PALB2m Advanced Breast Cancer",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT06932263",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "Dose Range Finding Study to Assess Efficacy and Safety of Tozorakimab in Adults With Uncontrolled Asthma on Medium-to-High Dose Inhaled Corticosteroids",
+          "phase": "PHASE2"
+        },
+        {
+          "nctId": "NCT07784725",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "A Study to Evaluate Effect of AZD6234 in Adult Participants With Obesity or Overweight With Weight-related Comorbidity Without Type 2 Diabetes Mellitus",
+          "phase": "PHASE3"
         }
       ]
     },
@@ -564,6 +578,27 @@
       "queryUsed": "BioNTech",
       "activeTrialsCount": 33,
       "recentTrials": [
+        {
+          "nctId": "NCT07173751",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "ROSETTA Breast-01: The Effects and Safety of Pumitamig in Patients With Triple-Negative Breast Cancer",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT07297212",
+          "status": "RECRUITING",
+          "date": "2026-10-28",
+          "title": "A Clinical Trial Testing the Safety of the Investigational Drug Pumitamig (BNT327) and How Well it Works in Patients With Recurrent Glioblastoma",
+          "phase": "PHASE2"
+        },
+        {
+          "nctId": "NCT04534205",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-28",
+          "title": "A Clinical Trial Investigating the Safety, Tolerability, and Therapeutic Effects of BNT113 in Combination With Pembrolizumab Versus Pembrolizumab Alone for Patients With a Form of Head and Neck Cancer Positive for Human Papilloma Virus 16 and Expressing the Protein PD-L1",
+          "phase": "PHASE2/PHASE3"
+        },
         {
           "nctId": "NCT07893054",
           "status": "NOT_YET_RECRUITING",
@@ -577,27 +612,6 @@
           "date": "2026-10-22",
           "title": "A Clinical Trial to Test if an Investigational Combination Therapy With BNT326 and BNT327 is Safe and Potentially Beneficial for People With Advanced Non-small Cell Lung Cancer (NSCLC)",
           "phase": "PHASE1/PHASE2"
-        },
-        {
-          "nctId": "NCT05432583",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Clinical Trial in Healthy Volunteers and Volunteers With Recurrent Genital Herpes to Study the Safety, Tolerability, and Immune Responses After Vaccination With an Investigational Vaccine Designed to Prevent Genital Herpes Lesions",
-          "phase": "PHASE1"
-        },
-        {
-          "nctId": "NCT07886684",
-          "status": "NOT_YET_RECRUITING",
-          "date": "2026-10-21",
-          "title": "A Clinical Trial to Test if the Investigational Drug BNT3210 is Safe and Potentially Beneficial for People With Advanced Solid Tumors Known to Express the Tumor Marker Sialyl-Tn",
-          "phase": "PHASE1/PHASE2"
-        },
-        {
-          "nctId": "NCT07173751",
-          "status": "RECRUITING",
-          "date": "2026-10-20",
-          "title": "ROSETTA Breast-01: The Effects and Safety of Pumitamig in Patients With Triple-Negative Breast Cancer",
-          "phase": "PHASE3"
         }
       ]
     },
@@ -613,11 +627,11 @@
       "activeTrialsCount": 72,
       "recentTrials": [
         {
-          "nctId": "NCT07128303",
+          "nctId": "NCT07841977",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "Study of GS-5319 Given Alone or in Combination in Adults With Solid Tumors",
-          "phase": "PHASE1"
+          "date": "2026-10-27",
+          "title": "Study of Seladelpar and Cilofexor in Participants With Primary Biliary Cholangitis",
+          "phase": "PHASE2"
         },
         {
           "nctId": "NCT07841990",
@@ -627,18 +641,18 @@
           "phase": "PHASE2"
         },
         {
+          "nctId": "NCT07128303",
+          "status": "RECRUITING",
+          "date": "2026-10-23",
+          "title": "Study of GS-5319 Given Alone or in Combination in Adults With Solid Tumors",
+          "phase": "PHASE1"
+        },
+        {
           "nctId": "NCT06486441",
           "status": "ACTIVE_NOT_RECRUITING",
           "date": "2026-10-22",
           "title": "Study of Sacituzumab Govitecan Versus Treatment of Physician's Choice in Participants With Endometrial Cancer After Platinum-Based Chemotherapy and Immunotherapy (ASCENT-GYN-01/GOG-3104/ENGOT-en26)",
           "phase": "PHASE3"
-        },
-        {
-          "nctId": "NCT07473778",
-          "status": "RECRUITING",
-          "date": "2026-10-21",
-          "title": "Implementation Study of Lenacapavir Pre-exposure Prophylaxis for HIV Prevention",
-          "phase": ""
         },
         {
           "nctId": "NCT05502341",
@@ -655,6 +669,27 @@
       "activeTrialsCount": 30,
       "recentTrials": [
         {
+          "nctId": "NCT07808697",
+          "status": "RECRUITING",
+          "date": "2026-10-29",
+          "title": "A Study to Evaluate the Safety, Reactogenicity, and Immunogenicity of mRNA-1283 in Participants ≥6 Months to <12 Years of Age",
+          "phase": "PHASE2"
+        },
+        {
+          "nctId": "NCT07870330",
+          "status": "RECRUITING",
+          "date": "2026-10-28",
+          "title": "A Study to Evaluate the Safety, Reactogenicity, and Immunogenicity of mRNA-1010 in Healthy Children",
+          "phase": "PHASE1"
+        },
+        {
+          "nctId": "NCT07863635",
+          "status": "RECRUITING",
+          "date": "2026-10-27",
+          "title": "A Study to Investigate the Immunogenicity and Safety of mRNA COVID-19 Variant-containing Formulations",
+          "phase": "PHASE4"
+        },
+        {
           "nctId": "NCT07884175",
           "status": "NOT_YET_RECRUITING",
           "date": "2026-10-20",
@@ -662,32 +697,11 @@
           "phase": "PHASE4"
         },
         {
-          "nctId": "NCT07870330",
-          "status": "NOT_YET_RECRUITING",
-          "date": "2026-10-13",
-          "title": "A Study to Evaluate the Safety, Reactogenicity, and Immunogenicity of mRNA-1010 in Healthy Children",
-          "phase": "PHASE1"
-        },
-        {
           "nctId": "NCT06880549",
           "status": "RECRUITING",
           "date": "2026-10-13",
           "title": "A Study of mRNA-4106 or mRNA-4200 Administered Alone or in Combination With Anti-Cancer Agents in Participants With Solid Tumors",
           "phase": "PHASE1"
-        },
-        {
-          "nctId": "NCT07863635",
-          "status": "NOT_YET_RECRUITING",
-          "date": "2026-10-07",
-          "title": "A Study to Investigate the Immunogenicity and Safety of mRNA COVID-19 Variant-containing Formulations",
-          "phase": "PHASE4"
-        },
-        {
-          "nctId": "NCT07266558",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-09-28",
-          "title": "A Study to Evaluate the Efficacy and Safety of mRNA-1283 and mRNA-1273 in Participants 50 to 64 Years of Age Without High-Risk Conditions for Severe Coronavirus Disease 2019 (COVID-19)",
-          "phase": "PHASE4"
         }
       ]
     },
@@ -697,39 +711,39 @@
       "activeTrialsCount": 208,
       "recentTrials": [
         {
-          "nctId": "NCT02286089",
+          "nctId": "NCT04861259",
           "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "Safety and Efficacy Study of OpRegen for Treatment of Advanced Dry-Form Age-Related Macular Degeneration",
-          "phase": "PHASE1/PHASE2"
-        },
-        {
-          "nctId": "NCT06094010",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Surveillance Study of Susceptibility to Baloxavir Marboxil in Pediatric Participants With Influenza and Transmission of Influenza to Household Contacts",
+          "date": "2026-10-30",
+          "title": "A Study Evaluating the Efficacy, Safety, Pharmacokinetics and Pharmacodynamics of Crovalimab in Adult and Adolescent Participants With Atypical Hemolytic Uremic Syndrome (aHUS)",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT05181618",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Evaluate Overall Health, Physical Activity, and Joint Outcomes in Participants With Severe or Moderate Hemophilia A Without Factor VIII Inhibitors on Emicizumab Prophylaxis",
+          "nctId": "NCT07827586",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "Non-interventional Study of Subcutaneous Ocrelizumab in Persons With Relapsing-Remitting Multiple Sclerosis",
+          "phase": ""
+        },
+        {
+          "nctId": "NCT05861986",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "A Study Evaluating the Effectiveness and Safety of Risdiplam Administered as an Early Intervention in Pediatric Participants With Spinal Muscular Atrophy After Gene Therapy",
           "phase": "PHASE4"
         },
         {
-          "nctId": "NCT06318169",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study Evaluating the Efficacy and Safety of Pegozafermin in Participants With MASH and Fibrosis (ENLIGHTEN-Fibrosis)",
-          "phase": "PHASE3"
+          "nctId": "NCT07905924",
+          "status": "NOT_YET_RECRUITING",
+          "date": "2026-10-30",
+          "title": "A Study to Evaluate the Safety and Effectiveness of Different Doses of RO7836748 Alone or in Combination With Other Cancer Therapies in People With Solid Tumors With a Rat Sarcoma Viral Oncogene Homolog Glycine 12 Valine (RAS G12V) Mutation",
+          "phase": "PHASE1"
         },
         {
-          "nctId": "NCT06419374",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Evaluate the Efficacy and Safety of Pegozafermin in Participants With Compensated Cirrhosis Due to MASH",
-          "phase": "PHASE3"
+          "nctId": "NCT05954910",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-30",
+          "title": "A Study to Evaluate the Effectiveness and Safety of Polatuzumab in Real World Clinical Practice Among Adult Chinese Participants With Diffuse Large B-Cell Lymphoma",
+          "phase": ""
         }
       ]
     },
@@ -751,80 +765,80 @@
       "activeTrialsCount": 32,
       "recentTrials": [
         {
-          "nctId": "NCT07890909",
-          "status": "NOT_YET_RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Phase 3b Study of Participant Experience on Povetacicept Administered Via Autoinjector as Compared to Sibeprenlimab Administered Via Prefilled Syringe",
-          "phase": "PHASE3"
-        },
-        {
-          "nctId": "NCT07813039",
+          "nctId": "NCT07204275",
           "status": "RECRUITING",
-          "date": "2026-10-19",
-          "title": "A Phase 1 Relative Bioavailability Study of a VX-581 Tablet Formulation",
-          "phase": "PHASE1"
-        },
-        {
-          "nctId": "NCT07807995",
-          "status": "ENROLLING_BY_INVITATION",
-          "date": "2026-10-19",
-          "title": "A Phase 3 Open-Label Study of Long-term Treatment With Povetacicept in Adults With Immunoglobulin A Nephropathy",
-          "phase": "PHASE3"
+          "date": "2026-10-30",
+          "title": "Evaluation of Efficacy, Safety, and Tolerability of Povetacicept in Participants With Primary Membranous Nephropathy (pMN)",
+          "phase": "PHASE2/PHASE3"
         },
         {
           "nctId": "NCT06696443",
           "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-19",
+          "date": "2026-10-30",
           "title": "Evaluation of the Long-term Safety and Effectiveness of Suzetrigine (SUZ) in Participants With Painful Diabetic Peripheral Neuropathy (DPN)",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT07283770",
+          "nctId": "NCT07868926",
           "status": "RECRUITING",
-          "date": "2026-10-19",
-          "title": "Evaluation of VX-581 in Healthy Participants and in Participants With Cystic Fibrosis",
+          "date": "2026-10-30",
+          "title": "Absorption, Distribution, Metabolism, and Excretion of 14C-VX-407 After a Single Oral Dose",
           "phase": "PHASE1"
+        },
+        {
+          "nctId": "NCT07501702",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-29",
+          "title": "A Phase 2 Study to Evaluate Povetacicept in Adults With Generalized Myasthenia Gravis",
+          "phase": "PHASE2"
+        },
+        {
+          "nctId": "NCT07538570",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-28",
+          "title": "Evaluation of Pain Treatment After Total Knee Arthroplasty",
+          "phase": "PHASE4"
         }
       ]
     },
     "600276.SS": {
       "companyName": "Jiangsu Hengrui Medicine Co., Ltd.",
       "queryUsed": "Jiangsu Hengrui Medicine",
-      "activeTrialsCount": 90,
+      "activeTrialsCount": 91,
       "recentTrials": [
+        {
+          "nctId": "NCT07790380",
+          "status": "RECRUITING",
+          "date": "2026-10-27",
+          "title": "FH-006 Versus Investigator's Choice of Chemotherapy in Patients With Locally Advanced, Recurrent, or Metastatic Esophageal Squamous Cell Carcinoma Who Have Failed Prior PD-1/PD-L1 Inhibitor Combined With Platinum-Based Chemotherapy.",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT07232875",
+          "status": "RECRUITING",
+          "date": "2026-10-26",
+          "title": "HRS 4642 Injection Combined With AG Versus Placebo Combined With AG Therapy in First-Line Advanced or Metastatic Pancreatic Cancer",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT07894328",
+          "status": "NOT_YET_RECRUITING",
+          "date": "2026-10-26",
+          "title": "A Phase III Clinical Study of HRS-6209 Plus Letrozole as First-line Therapy in Patients With Advanced or Metastatic Breast Cancer",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT07806058",
+          "status": "RECRUITING",
+          "date": "2026-10-26",
+          "title": "An Open-Label, Multicenter, Phase IB/II Clinical Study of HRS-7172 in Combination With Antitumor Therapy in Participants With Solid Tumors",
+          "phase": "PHASE1/PHASE2"
+        },
         {
           "nctId": "NCT06555068",
           "status": "RECRUITING",
           "date": "2026-10-22",
           "title": "A Trial of HRS-6209 in Combination With Other Antitumor Therapies in Breast Cancer Patients or HRS-9813 as Monotherapy in Patients With Advanced Solid Tumors",
-          "phase": "PHASE1/PHASE2"
-        },
-        {
-          "nctId": "NCT07286032",
-          "status": "RECRUITING",
-          "date": "2026-10-01",
-          "title": "A Study to Evaluate the Efficacy and Safety of Hetrombopag Olamine Tablets Vs Placebo in Patients With Chemotherapy-Induced Thrombocytopenia (ExCIT)",
-          "phase": "PHASE3"
-        },
-        {
-          "nctId": "NCT06344091",
-          "status": "RECRUITING",
-          "date": "2026-09-28",
-          "title": "A Study of Bupivacaine Liposome Injection in Local Analgesia of Pediatric Patients",
-          "phase": "PHASE4"
-        },
-        {
-          "nctId": "NCT07711184",
-          "status": "RECRUITING",
-          "date": "2026-09-24",
-          "title": "A Clinical Study of HRS-7525 Tablets in Patients With Advanced Prostate Cancer",
-          "phase": "PHASE1"
-        },
-        {
-          "nctId": "NCT07136142",
-          "status": "RECRUITING",
-          "date": "2026-09-23",
-          "title": "A Phase I/II Clinical Study of FH-006 for Injection in Patients With Malignant Solid Tumors",
           "phase": "PHASE1/PHASE2"
         }
       ]
@@ -841,39 +855,39 @@
       "activeTrialsCount": 48,
       "recentTrials": [
         {
-          "nctId": "NCT07140016",
+          "nctId": "NCT06970665",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-30",
+          "title": "A Study About the Safety of ASP3021 Eye Injections and if They Help People in Japan With Vision Loss From Age-related Macular Degeneration",
+          "phase": "PHASE4"
+        },
+        {
+          "nctId": "NCT07094204",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study of Gilteritinib in Adults With Advanced ALK-positive Non-small Cell Lung Cancer (NSCLC)",
+          "date": "2026-10-29",
+          "title": "A Study to Find a Suitable Dose of ASP5834 in Adults With Solid Tumors",
           "phase": "PHASE1"
         },
         {
-          "nctId": "NCT07287995",
-          "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study of ASP2998 Given by Itself and Given With Standard Therapies in People With Solid Tumors",
-          "phase": "PHASE1/PHASE2"
-        },
-        {
-          "nctId": "NCT07673887",
-          "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study of ASP2138 Together With Chemotherapy and Pembrolizumab in Adults With Gastric Cancer",
-          "phase": "PHASE3"
-        },
-        {
-          "nctId": "NCT06902545",
-          "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study to Observe the Safety of VYLOY (Zolbetuximab) in People in South Korea With Gastric or Gastroesophageal Junction Cancer.",
+          "nctId": "NCT07858500",
+          "status": "NOT_YET_RECRUITING",
+          "date": "2026-10-28",
+          "title": "Zolbetuximab and Other Cancer Treatments in People With Advanced Gastric or GEJ Cancer in Clinical Practice (RADIANCE)",
           "phase": ""
         },
         {
-          "nctId": "NCT07770685",
+          "nctId": "NCT07566156",
           "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study About the Safety of ASP2767 and Whether it Helps People With Glaucoma-Related Optic Nerve Damage",
-          "phase": "PHASE1/PHASE2"
+          "date": "2026-10-28",
+          "title": "Enfortumab Vedotin in Combination With Pembrolizumab vs. Concurrent Chemoradiotherapy (cCRT) in People With Muscle Invasive Bladder Cancer (EV-309)",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT06779773",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-27",
+          "title": "A Study to Learn How Avacincaptad Pegol (Izervay™) is Used in Clinical Practice in People Who Have Geographic Atrophy",
+          "phase": ""
         }
       ]
     },
@@ -925,122 +939,122 @@
       "activeTrialsCount": 68,
       "recentTrials": [
         {
-          "nctId": "NCT06899126",
+          "nctId": "NCT07739966",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "Study of Trastuzumab Deruxtecan, Pembrolizumab, and Platinum-based Chemotherapy in First-line HER2 Overexpressing Non-small Cell Lung Cancer",
-          "phase": "PHASE3"
-        },
-        {
-          "nctId": "NCT07681882",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "First-in-Human Trial of DS1025a in Participants With Advanced Solid Tumors",
-          "phase": "PHASE1"
-        },
-        {
-          "nctId": "NCT07890714",
-          "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study of Dato-DXd in Participants With Solid Tumors [TROPION-PanTumor04 (TP04)]",
+          "date": "2026-10-28",
+          "title": "A Study of DS-3939a in Participants With Solid Tumors",
           "phase": "PHASE1/PHASE2"
         },
         {
-          "nctId": "NCT05765851",
+          "nctId": "NCT06819007",
           "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "A Study of DS-1103a Combination Therapy in Participants With Advanced Solid Tumors",
+          "date": "2026-10-28",
+          "title": "Study of Trastuzumab Deruxtecan With Bevacizumab Versus Bevacizumab Monotherapy for First-line Maintenance in HER2-Expressing Ovarian Cancer (DESTINY-Ovarian01)",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT07022483",
+          "status": "RECRUITING",
+          "date": "2026-10-27",
+          "title": "A Study of Trastuzumab Deruxtecan Versus Standard of Care Chemotherapy for HER2-Expressing (IHC 3+/2+) Endometrial Cancer in Adjuvant Setting",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT03260491",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-26",
+          "title": "U3-1402 in Metastatic or Unresectable Non-Small Cell Lung Cancer",
           "phase": "PHASE1"
         },
         {
-          "nctId": "NCT07206472",
+          "nctId": "NCT06330064",
           "status": "RECRUITING",
-          "date": "2026-10-19",
-          "title": "A Study of Bempedoic Acid or Its Single-pill Combination Therapy With Ezetimibe in Patients With Primary Hypercholesterolaemia or Mixed Dyslipidaemia",
-          "phase": ""
+          "date": "2026-10-26",
+          "title": "A Study to Evaluate the Efficacy and Safety of Ifinatamab Deruxtecan (I-DXd) in Subjects With Recurrent or Metastatic Solid Tumors (IDeate-PanTumor02)",
+          "phase": "PHASE1/PHASE2"
         }
       ]
     },
     "BAYN.DE": {
       "companyName": "Bayer AG",
       "queryUsed": "Bayer",
-      "activeTrialsCount": 86,
+      "activeTrialsCount": 84,
       "recentTrials": [
         {
-          "nctId": "NCT07023341",
+          "nctId": "NCT07211685",
           "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Learn More About How Well Aficamten Works in Japanese Participants With Symptomatic Obstructive Hypertrophic Cardiomyopathy",
+          "date": "2026-10-29",
+          "title": "A Study to Learn About How Well BAY 3401016 Works in Adults With Alport Syndrome",
+          "phase": "PHASE2"
+        },
+        {
+          "nctId": "NCT06914128",
+          "status": "RECRUITING",
+          "date": "2026-10-28",
+          "title": "A Study of PRMT5 Inhibitor BAY 3713372 in Participants With MTAP-deleted Solid Tumors",
+          "phase": "PHASE1/PHASE2"
+        },
+        {
+          "nctId": "NCT04464226",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-28",
+          "title": "Study to Continue Treatment With Darolutamide in Patients Who Have Been Participating in Previous Darolutamide Studies Supported by Bayer",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT04142437",
+          "nctId": "NCT04597125",
           "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-22",
-          "title": "Study to Learn More About the Safety and Effectiveness of the Drug VITRAKVI During Routine Use in Patients With TRK Fusion Cancer Which is Locally Advanced or Spread From the Place Where it Started to Other Places in the Body",
-          "phase": ""
+          "date": "2026-10-27",
+          "title": "RADIANT: A Study of Radium-223 Dichloride (Xofigo) vs Enzalutamide or Abiraterone (ARPIs, Androgen Receptor Pathway Inhibitors) in Patients With Prostate Cancer That Has Spread to the Bones (mCRPC, Metastatic Castration-Resistant Prostate Cancer)",
+          "phase": "PHASE4"
         },
         {
-          "nctId": "NCT07753252",
+          "nctId": "NCT06772025",
           "status": "RECRUITING",
-          "date": "2026-10-22",
-          "title": "Phase 1 Study in Healthy Adults to See How Sevabertinib Changes Metformin Levels in the Body",
-          "phase": "PHASE1"
-        },
-        {
-          "nctId": "NCT07841015",
-          "status": "NOT_YET_RECRUITING",
-          "date": "2026-10-21",
-          "title": "A Study to Learn More About How Well Finerenone Works in Real-world in People With Type 2 Diabetes and Chronic Kidney Disease in Primary Care (IMSS= Instituto Mexicano Del Seguro Social)",
-          "phase": ""
-        },
-        {
-          "nctId": "NCT06764316",
-          "status": "RECRUITING",
-          "date": "2026-10-21",
-          "title": "A First-in-human Study to Learn About the Safety of BAY 3547926 and How Well it Works in Participants With Advanced Liver Cancer",
-          "phase": "PHASE1"
+          "date": "2026-10-27",
+          "title": "A Study to Understand How Cardiac Surgery-associated Acute Kidney Injury Develops in Participants Who Undergo Heart Surgery With the Use of Heart-lung Machine",
+          "phase": "NA"
         }
       ]
     },
     "NOVN.SW": {
       "companyName": "Novartis AG",
       "queryUsed": "Novartis",
-      "activeTrialsCount": 367,
+      "activeTrialsCount": 366,
       "recentTrials": [
         {
-          "nctId": "NCT07570979",
+          "nctId": "NCT07484269",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Investigate the Safety and Tolerability of Oral INR731 Single Agent or in Combination With Androgen Receptor Pathway Inhibitor (ARPI) in Patients With Metastatic Prostate Cancer",
-          "phase": "PHASE1"
+          "date": "2026-10-30",
+          "title": "PULSE Registry: for Patients Receiving Lutetium (177Lu) Vipivotide Tetraxetan",
+          "phase": ""
         },
         {
-          "nctId": "NCT07357727",
+          "nctId": "NCT07697989",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Phase 3 Study of Pelabresib (DAK539) and Ruxolitinib in Myelofibrosis (MF)",
-          "phase": "PHASE3"
+          "date": "2026-10-30",
+          "title": "Pluvicto Real-world Investigation in Survival in Metastatic CRPC",
+          "phase": ""
         },
         {
-          "nctId": "NCT06857955",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Identify an Optimal Dose of QCZ484 in Mild to Moderate Hypertensive Patients",
-          "phase": "PHASE2"
+          "nctId": "NCT07684469",
+          "status": "NOT_YET_RECRUITING",
+          "date": "2026-10-30",
+          "title": "Comparative Assessment of Inclisiran on Top of Standard of Care Versus Standard of Care Alone for LDL-C Evaluation in Acute Coronary Syndrome Patients in Saudi Arabia",
+          "phase": "PHASE4"
         },
         {
-          "nctId": "NCT05827081",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "Phase IIIb Study of Ribociclib + ET in Early Breast Cancer",
-          "phase": "PHASE3"
+          "nctId": "NCT07288359",
+          "status": "RECRUITING",
+          "date": "2026-10-29",
+          "title": "Study of GVV858 as a Single Agent or in Combination With Endocrine Therapy in Patients With HR+/HER2- Breast Cancer and Other Advanced Solid Tumors",
+          "phase": "PHASE1/PHASE2"
         },
         {
-          "nctId": "NCT07468071",
+          "nctId": "NCT03960840",
           "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "Rollover Study for Participants Who Have Been Treated With and Are Continuing to Benefit From Opnurasib as a Single Agent or in Combination With Other Study Treatments",
+          "date": "2026-10-29",
+          "title": "Phase I/II Study of Rapcabtagene Autoleucel in CLL, 3L+ DLBCL, r/r ALL and 1L HR LBCL",
           "phase": "PHASE1/PHASE2"
         }
       ]
@@ -1048,42 +1062,42 @@
     "SAN.PA": {
       "companyName": "Sanofi",
       "queryUsed": "Sanofi",
-      "activeTrialsCount": 173,
+      "activeTrialsCount": 176,
       "recentTrials": [
         {
-          "nctId": "NCT07688213",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Investigate the Safety and Effectiveness of SAR448851 in Participants With Early Alzheimer's Disease",
-          "phase": "PHASE2"
+          "nctId": "NCT07905534",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-29",
+          "title": "A Retrospective Cohort Study Evaluating Major Adverse Cardiovascular Events and Cardiovascular Outcomes in Adults With Atherosclerotic Cardiovascular Disease Without Prior Ischemic Events (OPTIMUS RISK - Spain)",
+          "phase": ""
         },
         {
-          "nctId": "NCT07190222",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "Efficacy, Safety, and Tolerability Study of Lunsekimig Compared With Placebo in Adult Participants With Inadequately Controlled Chronic Obstructive Pulmonary Disease (COPD), Characterized by an Eosinophilic Phenotype",
-          "phase": "PHASE3"
-        },
-        {
-          "nctId": "NCT07038473",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "Early Detection of Type 1 Diabetes in First Degree Relatives of Type 1 Diabetes Patients (DETECT T1D GULF)",
-          "phase": "NA"
-        },
-        {
-          "nctId": "NCT07135973",
+          "nctId": "NCT07905547",
           "status": "NOT_YET_RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Study to Investigate Safety of Belumosudil in Participants Aged 12 Years and Above, With Chronic Graft-versus-host Disease (cGVHD)",
+          "date": "2026-10-29",
+          "title": "A Study to Investigate Dupixent/ Dupilumab in Adult Indian Participants With Moderate-to-severe Atopic Dermatitis",
           "phase": "PHASE4"
         },
         {
-          "nctId": "NCT07184996",
+          "nctId": "NCT06984627",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "An Induction Study to Investigate the Efficacy and Safety of Duvakitug in Participants With Moderately to Severely Active Ulcerative Colitis",
-          "phase": "PHASE3"
+          "date": "2026-10-28",
+          "title": "A Study to Investigate the Efficacy and Safety of Rilzabrutinib in Adult Participants With Graves' Disease",
+          "phase": "PHASE2"
+        },
+        {
+          "nctId": "NCT00231400",
+          "status": "RECRUITING",
+          "date": "2026-10-28",
+          "title": "Pompe Disease Registry Protocol",
+          "phase": ""
+        },
+        {
+          "nctId": "NCT06914908",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-28",
+          "title": "Long-term Safety and Efficacy Evaluation of Lunsekimig in Adult Participants With Chronic Rhinosinusitis With Nasal Polyps (CRSwNP) Who Completed a Previous Lunsekimig CRSwNP Clinical Study",
+          "phase": "PHASE2"
         }
       ]
     },
@@ -1093,39 +1107,39 @@
       "activeTrialsCount": 28,
       "recentTrials": [
         {
-          "nctId": "NCT06668181",
-          "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "An Open-label Study to Evaluate the Pharmacokinetics and Safety of Bimekizumab in Pediatric Study Participants With Active Juvenile Idiopathic Arthritis Subtypes Enthesitis-related Arthritis (Including Juvenile-onset Ankylosing Spondylitis) and Juvenile Psoriatic Arthritis",
-          "phase": "PHASE3"
+          "nctId": "NCT07246564",
+          "status": "ACTIVE_NOT_RECRUITING",
+          "date": "2026-10-29",
+          "title": "Phase 4 Study Evaluating Efficacy and Safety of Rozanolixizumab in Adult Chinese Participants With Generalized Myasthenia Gravis",
+          "phase": "PHASE4"
         },
         {
           "nctId": "NCT06540144",
           "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-16",
+          "date": "2026-10-27",
           "title": "An Extension Study Evaluating 6-week Treatment Cycles of Rozanolixizumab in Pediatric Study Participants With Generalized Myasthenia Gravis",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT04976322",
-          "status": "ENROLLING_BY_INVITATION",
-          "date": "2026-10-15",
-          "title": "A Study to Evaluate the Safety and Tolerability of Dapirolizumab Pegol in Study Participants With Systemic Lupus Erythematosus",
+          "nctId": "NCT07465289",
+          "status": "RECRUITING",
+          "date": "2026-10-27",
+          "title": "A Study to Evaluate The Long-Term Safety And Efficacy of Rozanolixizumab in Adult Participants With Ocular Myasthenia Gravis",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT07503444",
+          "nctId": "NCT07463521",
           "status": "RECRUITING",
-          "date": "2026-10-15",
-          "title": "A Phase 3 Study of Fenfluramine Hydrochloride in Rett Syndrome",
+          "date": "2026-10-27",
+          "title": "A Study to Evaluate the Efficacy and Safety of Rozanolixizumab in Adult Participants With Ocular Myasthenia Gravis",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT06617325",
+          "nctId": "NCT07720375",
           "status": "RECRUITING",
-          "date": "2026-10-15",
-          "title": "A Study to Evaluate the Efficacy and Safety of Dapirolizumab Pegol in Study Participants With Moderately to Severely Active Systemic Lupus Erythematosus",
-          "phase": "PHASE3"
+          "date": "2026-10-27",
+          "title": "A Study of 24 to 52 Weeks Treatment to Evaluate The Efficacy And Safety of Galvokimig in Adult Study Participants With Non-Cystic Fibrosis Bronchiectasis",
+          "phase": "PHASE2"
         }
       ]
     },
@@ -1158,7 +1172,7 @@
     "1093.HK": {
       "companyName": "CSPC Pharmaceutical Group Limited",
       "queryUsed": "CSPC Pharmaceutical",
-      "activeTrialsCount": 67,
+      "activeTrialsCount": 66,
       "recentTrials": [
         {
           "nctId": "NCT07532655",
@@ -1189,10 +1203,10 @@
           "phase": "PHASE2"
         },
         {
-          "nctId": "NCT07796477",
+          "nctId": "NCT07798193",
           "status": "NOT_YET_RECRUITING",
           "date": "2026-09-01",
-          "title": "A Study of SYH2069 Injection in Participants With T2DM Not Controlled With Diet/Exercise Alone or Metformin",
+          "title": "A Study of SYH2085 Tablets Compared With Placebo in Chinese Adult Patients With Uncomplicated Influenza.",
           "phase": "PHASE2"
         }
       ]
@@ -1277,47 +1291,61 @@
       "activeTrialsCount": 497,
       "recentTrials": [
         {
-          "nctId": "NCT06151964",
+          "nctId": "NCT05583227",
           "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "A Trial to Learn How Safe AZD9550 Monotherapy and Combined With AZD6234 is in People With or Without Type 2 Diabetes Who Are Living With Obesity and Overweight",
-          "phase": "PHASE1/PHASE2"
-        },
-        {
-          "nctId": "NCT07167433",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "Observational, Bi-directional (Prospective and Retrospective) Study for Patients With Newly Diagnosed Ovarian Cancer Stages IA to IVB, or Persistent or Recurrent Disease From January 2021; Irrespective of Histology",
-          "phase": ""
-        },
-        {
-          "nctId": "NCT06097728",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-23",
-          "title": "MEDI5752 in Combination With Carboplatin Plus Pemetrexed in Unresectable Pleural Mesothelioma",
+          "date": "2026-10-30",
+          "title": "Efficacy and Safety of Tezepelumab in Patients With Eosinophilic Esophagitis",
           "phase": "PHASE3"
         },
         {
-          "nctId": "NCT07155226",
+          "nctId": "NCT06106945",
           "status": "RECRUITING",
-          "date": "2026-10-23",
-          "title": "Study of AZD3632 Monotherapy or in Combination With Anticancer Agents in Participants With Advanced Haematologic Malignancies With KMT2Ar, NPM1m, or Other Genotypes Associated With HOX Overexpression",
+          "date": "2026-10-30",
+          "title": "AZD0305 as Monotherapy or in Combination With Anticancer Agents in Participants With Multiple Myeloma",
           "phase": "PHASE1/PHASE2"
         },
         {
-          "nctId": "NCT07617636",
-          "status": "NOT_YET_RECRUITING",
-          "date": "2026-10-23",
-          "title": "Observational Study That Will Analyse the Spread and Stratification of Lung Cancer Risk Using Artificial Intelligence",
-          "phase": ""
+          "nctId": "NCT06380751",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "Saruparib (AZD5305) Plus Camizestrant or Plus Endocrine Therapy, Compared With CDK4/6 Inhibitor Plus Endocrine Therapy or Plus Camizestrant in HR-Positive, HER2-Negative (IHC 0, 1+, 2+/ ISH Non-amplified), BRCA1, BRCA2, or PALB2m Advanced Breast Cancer",
+          "phase": "PHASE3"
+        },
+        {
+          "nctId": "NCT06932263",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "Dose Range Finding Study to Assess Efficacy and Safety of Tozorakimab in Adults With Uncontrolled Asthma on Medium-to-High Dose Inhaled Corticosteroids",
+          "phase": "PHASE2"
+        },
+        {
+          "nctId": "NCT07784725",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "A Study to Evaluate Effect of AZD6234 in Adult Participants With Obesity or Overweight With Weight-related Comorbidity Without Type 2 Diabetes Mellitus",
+          "phase": "PHASE3"
         }
       ]
     },
     "GSK.L": {
       "companyName": "GSK plc",
       "queryUsed": "GSK",
-      "activeTrialsCount": 3,
+      "activeTrialsCount": 5,
       "recentTrials": [
+        {
+          "nctId": "NCT07123779",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "HS235 Study in Overweight and Obese Participants With Combined Pre and Post-Capillary Pulmonary Hypertension Due to Heart Failure With Preserved Ejection Fraction",
+          "phase": "PHASE1/PHASE2"
+        },
+        {
+          "nctId": "NCT07143448",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "A Study of HS235 for Treatment of Pulmonary Arterial Hypertension (PAH) in Adults",
+          "phase": "PHASE1/PHASE2"
+        },
         {
           "nctId": "NCT05489237",
           "status": "ACTIVE_NOT_RECRUITING",
@@ -1372,8 +1400,15 @@
     "HLN.L": {
       "companyName": "Haleon plc",
       "queryUsed": "Haleon",
-      "activeTrialsCount": 8,
+      "activeTrialsCount": 9,
       "recentTrials": [
+        {
+          "nctId": "NCT07894796",
+          "status": "RECRUITING",
+          "date": "2026-10-30",
+          "title": "A Study to Assess the Efficacy of a Calcium Sodium Phosphosilicate Toothpaste for the Relief of Dentine Hypersensitivity",
+          "phase": "NA"
+        },
         {
           "nctId": "NCT07816406",
           "status": "RECRUITING",
@@ -1401,13 +1436,6 @@
           "date": "2026-09-14",
           "title": "A Study to Visualize Multi-Symptom Allergy in Adults With Seasonal Allergic Rhinitis",
           "phase": "PHASE4"
-        },
-        {
-          "nctId": "NCT07802886",
-          "status": "NOT_YET_RECRUITING",
-          "date": "2026-09-03",
-          "title": "A Clinical Study to Assess the Efficacy of a Calcium Sodium Phosphosilicate Toothpaste for the Relief of Dentine Hypersensitivity",
-          "phase": "NA"
         }
       ]
     },
@@ -1461,7 +1489,7 @@
         {
           "nctId": "NCT06952478",
           "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-21",
+          "date": "2026-10-27",
           "title": "A Study to Compare Pharmacokinetics, Efficacy and Safety of Subcutaneous CT-P44 and Darzalex Faspro in Combination With Lenalidomide and Dexamethasone in Patients With Refractory or Relapsed Multiple Myeloma",
           "phase": "PHASE3"
         },
@@ -1507,6 +1535,13 @@
       "activeTrialsCount": 32,
       "recentTrials": [
         {
+          "nctId": "NCT07384715",
+          "status": "RECRUITING",
+          "date": "2026-10-27",
+          "title": "First-in-human (FIH) Trial of GEN3018 in Relapsed or Refractory (R/R) Acute Myeloid Leukemia (AML) or Higher-risk Myelodysplastic Syndrome (HR-MDS)",
+          "phase": "PHASE1"
+        },
+        {
           "nctId": "NCT07775287",
           "status": "RECRUITING",
           "date": "2026-10-09",
@@ -1528,18 +1563,11 @@
           "phase": "PHASE1/PHASE2"
         },
         {
-          "nctId": "NCT04663347",
-          "status": "ACTIVE_NOT_RECRUITING",
-          "date": "2026-10-06",
-          "title": "Safety and Efficacy Trial of Epcoritamab Combinations in Subjects With B-cell Non-Hodgkin Lymphoma (B-NHL)",
-          "phase": "PHASE1/PHASE2"
-        },
-        {
-          "nctId": "NCT07695831",
+          "nctId": "NCT07702032",
           "status": "RECRUITING",
           "date": "2026-10-06",
-          "title": "A Phase 1 Trial of GEN1119 in Participants With Solid Tumors",
-          "phase": "PHASE1"
+          "title": "Study of Petosemtamab Plus Chemotherapy Versus Cetuximab Plus Chemotherapy in RAS and BRAF Wild-type, Unresectable or Metastatic, Left-sided Colorectal Cancer (LiGeR-CRC1)",
+          "phase": "PHASE3"
         }
       ]
     },
