@@ -1,13 +1,13 @@
 {
   "_note": "symbol -> AMF aggregate net short position (France, .PA only). Individual holder disclosures aggregated here (latest row per holder+ISIN among OPEN positions, summed) to match the FCA ANSP shape. Source: AMF open data via data.gouv.fr, free/no-auth, URL resolved dynamically (timestamped filename). Joined via ISIN->FIGI, not name matching. Rebuild via buildAmfShortPositions.ts.",
-  "_built": "2026-11-01",
-  "_sourceUrl": "https://object-api.infra.data.gouv.fr/amf/VAD/export_od_vad_20261030111500_20261030123001.csv",
-  "_frenchIssuersWithOpenPositions": 85,
+  "_built": "2026-11-08",
+  "_sourceUrl": "https://object-api.infra.data.gouv.fr/amf/VAD/export_od_vad_20261106111500_20261106123001.csv",
+  "_frenchIssuersWithOpenPositions": 84,
   "amfShortPositions": {
     "CAP.PA": {
-      "aggregateShortPercent": 2.04,
+      "aggregateShortPercent": 1.92,
       "holders": 3,
-      "latestPositionDate": "2026-10-22",
+      "latestPositionDate": "2026-11-04",
       "isin": "FR0000125338",
       "issuer": "CAPGEMINI"
     },
@@ -33,9 +33,9 @@
       "issuer": "KERING"
     },
     "TEP.PA": {
-      "aggregateShortPercent": 5.29,
+      "aggregateShortPercent": 5.45,
       "holders": 6,
-      "latestPositionDate": "2026-10-28",
+      "latestPositionDate": "2026-11-04",
       "isin": "FR0000051807",
       "issuer": "TELEPERFORMANCE"
     },
@@ -47,9 +47,9 @@
       "issuer": "DASSAULT AVIATION"
     },
     "CA.PA": {
-      "aggregateShortPercent": 2.13,
+      "aggregateShortPercent": 2.22,
       "holders": 3,
-      "latestPositionDate": "2026-10-27",
+      "latestPositionDate": "2026-11-02",
       "isin": "FR0000120172",
       "issuer": "CARREFOUR"
     },
@@ -68,9 +68,9 @@
       "issuer": "GECINA"
     },
     "WLN.PA": {
-      "aggregateShortPercent": 2.35,
-      "holders": 3,
-      "latestPositionDate": "2026-10-21",
+      "aggregateShortPercent": 2.86,
+      "holders": 4,
+      "latestPositionDate": "2026-11-04",
       "isin": "FR00140182K6",
       "issuer": "WORLDLINE"
     },

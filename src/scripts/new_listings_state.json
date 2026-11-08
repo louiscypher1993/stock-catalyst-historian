@@ -10794,7 +10794,39 @@
     "NBNTS": "2026-11-01",
     "STTPF": "2026-11-01",
     "ADSLF": "2026-11-01",
-    "CRMNF": "2026-11-01"
+    "CRMNF": "2026-11-01",
+    "DIMC": "2026-11-08",
+    "CLRC": "2026-11-08",
+    "YHNAF": "2026-11-08",
+    "QBAK": "2026-11-08",
+    "GCDTF": "2026-11-08",
+    "SPGJ": "2026-11-08",
+    "CNOPA": "2026-11-08",
+    "RLJ-A": "2026-11-08",
+    "AMH-H": "2026-11-08",
+    "SRRIX": "2026-11-08",
+    "MXRX": "2026-11-08",
+    "MDRN": "2026-11-08",
+    "AARTX": "2026-11-08",
+    "LFCBY": "2026-11-08",
+    "FGO": "2026-11-08",
+    "BCRP": "2026-11-08",
+    "CXIV": "2026-11-08",
+    "NYO": "2026-11-08",
+    "GGDFF": "2026-11-08",
+    "WWB": "2026-11-08",
+    "QSPC": "2026-11-08",
+    "UCSB": "2026-11-08",
+    "BDFNV": "2026-11-08",
+    "CJNHF": "2026-11-08",
+    "CTRCY": "2026-11-08",
+    "RNSHF": "2026-11-08",
+    "LFABF": "2026-11-08",
+    "NPWCS": "2026-11-08",
+    "YHNRF": "2026-11-08",
+    "YHNUF": "2026-11-08",
+    "BEMTF": "2026-11-08",
+    "BKKXF": "2026-11-08"
   },
   "rejected": {
     "FOIL": {
@@ -10910,8 +10942,8 @@
       "reason": "bars=1 close=1.06 medDV=0.1M"
     },
     "MIACW": {
-      "date": "2026-10-04",
-      "reason": "bars=21 close=0.34 medDV=0.0M"
+      "date": "2026-11-08",
+      "reason": "bars=46 close=0.30 medDV=0.0M"
     },
     "IPXG": {
       "date": "2026-10-11",
@@ -11162,44 +11194,44 @@
       "reason": "bars=0 close=n/a medDV=0.0M"
     },
     "RZAI": {
-      "date": "2026-10-04",
-      "reason": "bars=3 close=19.74 medDV=6.5M"
+      "date": "2026-11-08",
+      "reason": "bars=28 close=2.80 medDV=1.6M"
     },
     "IVAI": {
-      "date": "2026-10-04",
-      "reason": "bars=3 close=10.17 medDV=6.5M"
+      "date": "2026-11-08",
+      "reason": "bars=28 close=10.09 medDV=1.0M"
     },
     "FGC": {
-      "date": "2026-10-04",
-      "reason": "bars=64 close=6.94 medDV=0.7M"
+      "date": "2026-11-08",
+      "reason": "bars=65 close=4.97 medDV=0.4M"
     },
     "FFR": {
-      "date": "2026-10-04",
-      "reason": "bars=10 close=1.23 medDV=1.6M"
+      "date": "2026-11-08",
+      "reason": "bars=65 close=0.89 medDV=0.4M"
     },
     "OPNW": {
-      "date": "2026-10-04",
-      "reason": "bars=64 close=5.40 medDV=0.0M"
+      "date": "2026-11-08",
+      "reason": "bars=65 close=0.62 medDV=0.1M"
     },
     "DX-PD": {
-      "date": "2026-10-04",
-      "reason": "bars=1 close=24.96 medDV=10.6M"
+      "date": "2026-11-08",
+      "reason": "bars=31 close=25.17 medDV=1.8M"
     },
     "THRMV": {
       "date": "2026-10-04",
       "reason": "bars=0 close=n/a medDV=0.0M"
     },
     "FGCPP": {
-      "date": "2026-10-04",
-      "reason": "bars=64 close=24.23 medDV=0.0M"
+      "date": "2026-11-08",
+      "reason": "bars=65 close=25.00 medDV=0.0M"
     },
     "UWMC-RW": {
       "date": "2026-10-04",
       "reason": "bars=1 close=0.03 medDV=0.0M"
     },
     "PORT-UN": {
-      "date": "2026-10-04",
-      "reason": "bars=1 close=9.96 medDV=7.3M"
+      "date": "2026-11-08",
+      "reason": "bars=1 close=9.92 medDV=0.0M"
     },
     "MMEDV": {
       "date": "2026-10-04",
@@ -11372,6 +11404,30 @@
     "BHAIU": {
       "date": "2026-11-01",
       "reason": "bars=2 close=9.98 medDV=46.6M"
+    },
+    "SAEN": {
+      "date": "2026-11-08",
+      "reason": "bars=65 close=0.67 medDV=0.0M"
+    },
+    "INJC": {
+      "date": "2026-11-08",
+      "reason": "bars=2 close=26.90 medDV=0.3M"
+    },
+    "BFH-PC": {
+      "date": "2026-11-08",
+      "reason": "bars=1 close=23.32 medDV=3.6M"
+    },
+    "NMZ-RI": {
+      "date": "2026-11-08",
+      "reason": "bars=1 close=0.01 medDV=0.1M"
+    },
+    "AGLTW": {
+      "date": "2026-11-08",
+      "reason": "bars=1 close=4.12 medDV=0.3M"
+    },
+    "LEDRW": {
+      "date": "2026-11-08",
+      "reason": "bars=1 close=0.22 medDV=0.0M"
     }
   },
   "added": {
@@ -11394,6 +11450,9 @@
     "SKYD": "2026-10-11",
     "XRPC": "2026-10-11",
     "MSGK": "2026-11-01",
-    "ADRX": "2026-11-01"
+    "ADRX": "2026-11-01",
+    "CASK": "2026-11-08",
+    "AGLT": "2026-11-08",
+    "METAM": "2026-11-08"
   }
 }
