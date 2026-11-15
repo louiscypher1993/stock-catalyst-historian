@@ -92,6 +92,18 @@
     {
       "symbol": "METAM",
       "companyName": "Meta Platforms, Inc."
+    },
+    {
+      "symbol": "QUIT",
+      "companyName": "ACHIEVE LIFE SCIENCES, INC."
+    },
+    {
+      "symbol": "GLLD",
+      "companyName": "BANK OF MONTREAL /CAN/"
+    },
+    {
+      "symbol": "LOB-PB",
+      "companyName": "Live Oak Bancshares, Inc."
     }
   ]
 }

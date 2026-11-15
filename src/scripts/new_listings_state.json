@@ -10826,7 +10826,29 @@
     "YHNRF": "2026-11-08",
     "YHNUF": "2026-11-08",
     "BEMTF": "2026-11-08",
-    "BKKXF": "2026-11-08"
+    "BKKXF": "2026-11-08",
+    "TXCP": "2026-11-15",
+    "BENE": "2026-11-15",
+    "ALDFF": "2026-11-15",
+    "XTPT": "2026-11-15",
+    "UKSK": "2026-11-15",
+    "TDSPRV": "2026-11-15",
+    "SHO.PRI": "2026-11-15",
+    "KPTIQ": "2026-11-15",
+    "TXR": "2026-11-15",
+    "KNRXF": "2026-11-15",
+    "EUEV": "2026-11-15",
+    "APCD": "2026-11-15",
+    "KACQ": "2026-11-15",
+    "ABGC": "2026-11-15",
+    "TORXF": "2026-11-15",
+    "WBBA": "2026-11-15",
+    "HTOWU": "2026-11-15",
+    "TXCP-PB": "2026-11-15",
+    "LOBKV": "2026-11-15",
+    "ALDUF": "2026-11-15",
+    "ALDWF": "2026-11-15",
+    "LXPIF": "2026-11-15"
   },
   "rejected": {
     "FOIL": {
@@ -10946,32 +10968,32 @@
       "reason": "bars=46 close=0.30 medDV=0.0M"
     },
     "IPXG": {
-      "date": "2026-10-11",
-      "reason": "bars=65 close=10.07 medDV=0.3M"
+      "date": "2026-11-15",
+      "reason": "bars=65 close=10.22 medDV=0.3M"
     },
     "ATLQ": {
-      "date": "2026-10-11",
-      "reason": "bars=44 close=9.98 medDV=0.1M"
+      "date": "2026-11-15",
+      "reason": "bars=65 close=10.05 medDV=0.0M"
     },
     "SGLD": {
-      "date": "2026-10-11",
-      "reason": "bars=28 close=3.56 medDV=0.4M"
+      "date": "2026-11-15",
+      "reason": "bars=53 close=3.13 medDV=0.2M"
     },
     "JTTT": {
-      "date": "2026-10-11",
-      "reason": "bars=32 close=10.61 medDV=0.1M"
+      "date": "2026-11-15",
+      "reason": "bars=57 close=10.23 medDV=0.1M"
     },
     "PAAI": {
-      "date": "2026-10-11",
-      "reason": "bars=65 close=1.08 medDV=0.1M"
+      "date": "2026-11-15",
+      "reason": "bars=65 close=0.62 medDV=0.1M"
     },
     "VAI": {
-      "date": "2026-10-11",
-      "reason": "bars=65 close=2.74 medDV=0.1M"
+      "date": "2026-11-15",
+      "reason": "bars=65 close=2.15 medDV=0.1M"
     },
     "YFOR": {
-      "date": "2026-10-11",
-      "reason": "bars=65 close=1.00 medDV=0.5M"
+      "date": "2026-11-15",
+      "reason": "bars=65 close=0.04 medDV=0.7M"
     },
     "ISRL": {
       "date": "2026-09-06",
@@ -10982,8 +11004,8 @@
       "reason": "bars=7 close=20.09 medDV=0.0M"
     },
     "SAX": {
-      "date": "2026-10-11",
-      "reason": "bars=31 close=25.25 medDV=0.4M"
+      "date": "2026-11-15",
+      "reason": "bars=56 close=24.87 medDV=0.3M"
     },
     "RIV-RI": {
       "date": "2026-09-06",
@@ -10994,68 +11016,68 @@
       "reason": "bars=1 close=0.01 medDV=0.0M"
     },
     "IPXGU": {
-      "date": "2026-10-11",
-      "reason": "Yahoo Finance request failed for IPXGU: HTTP 404"
+      "date": "2026-11-15",
+      "reason": "bars=65 close=10.31 medDV=0.0M"
     },
     "IPXGW": {
-      "date": "2026-10-11",
-      "reason": "bars=1 close=0.60 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=1 close=0.39 medDV=0.0M"
     },
     "XLABW": {
-      "date": "2026-10-11",
-      "reason": "bars=1 close=0.08 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=1 close=0.14 medDV=0.0M"
     },
     "PSQLW": {
-      "date": "2026-10-11",
-      "reason": "bars=65 close=1.10 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=65 close=0.78 medDV=0.0M"
     },
     "SAMO-WT": {
-      "date": "2026-10-11",
-      "reason": "bars=1 close=0.26 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=1 close=0.24 medDV=0.0M"
     },
     "AAC-WT": {
-      "date": "2026-10-11",
-      "reason": "bars=1 close=0.50 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=1 close=0.45 medDV=0.0M"
     },
     "TLACU": {
-      "date": "2026-10-11",
-      "reason": "bars=28 close=9.93 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=53 close=9.99 medDV=0.0M"
     },
     "ATLQR": {
-      "date": "2026-10-11",
-      "reason": "bars=1 close=0.15 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=1 close=0.10 medDV=0.0M"
     },
     "ATLQU": {
-      "date": "2026-10-11",
-      "reason": "bars=62 close=10.11 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=65 close=10.20 medDV=0.0M"
     },
     "ATLQW": {
-      "date": "2026-10-11",
+      "date": "2026-11-15",
       "reason": "bars=1 close=0.03 medDV=0.0M"
     },
     "JONER": {
-      "date": "2026-10-11",
-      "reason": "bars=26 close=0.14 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=51 close=0.14 medDV=0.0M"
     },
     "SCATU": {
-      "date": "2026-10-11",
-      "reason": "bars=32 close=10.04 medDV=0.1M"
+      "date": "2026-11-15",
+      "reason": "bars=57 close=10.05 medDV=0.1M"
     },
     "NSAIR": {
-      "date": "2026-10-11",
-      "reason": "bars=27 close=0.15 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=52 close=0.13 medDV=0.0M"
     },
     "NSAIW": {
-      "date": "2026-10-11",
-      "reason": "bars=27 close=0.05 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=52 close=0.05 medDV=0.0M"
     },
     "XTERW": {
-      "date": "2026-10-11",
-      "reason": "bars=31 close=0.22 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=56 close=0.13 medDV=0.0M"
     },
     "RNAQU": {
-      "date": "2026-10-11",
-      "reason": "bars=31 close=10.16 medDV=0.1M"
+      "date": "2026-11-15",
+      "reason": "bars=56 close=10.08 medDV=0.0M"
     },
     "NXAT": {
       "date": "2026-10-18",
@@ -11242,52 +11264,52 @@
       "reason": "Yahoo Finance request failed for PORT.U: HTTP 404"
     },
     "VJET": {
-      "date": "2026-10-11",
-      "reason": "bars=65 close=1.14 medDV=0.3M"
+      "date": "2026-11-15",
+      "reason": "bars=65 close=0.49 medDV=0.2M"
     },
     "BBCI": {
-      "date": "2026-10-11",
-      "reason": "bars=3 close=6.91 medDV=1.0M"
+      "date": "2026-11-15",
+      "reason": "bars=28 close=1.19 medDV=0.2M"
     },
     "RTSN": {
-      "date": "2026-10-11",
-      "reason": "bars=1 close=10.53 medDV=8.3M"
+      "date": "2026-11-15",
+      "reason": "bars=26 close=12.27 medDV=1.5M"
     },
     "TRXB": {
-      "date": "2026-10-11",
-      "reason": "bars=1 close=14.00 medDV=17.6M"
+      "date": "2026-11-15",
+      "reason": "bars=26 close=13.67 medDV=1.3M"
     },
     "RWAYM": {
-      "date": "2026-10-11",
-      "reason": "bars=5 close=24.85 medDV=0.2M"
+      "date": "2026-11-15",
+      "reason": "bars=30 close=24.56 medDV=0.1M"
     },
     "BCAT-RI": {
       "date": "2026-10-11",
       "reason": "bars=1 close=0.01 medDV=0.0M"
     },
     "BBCIW": {
-      "date": "2026-10-11",
-      "reason": "bars=1 close=0.07 medDV=0.0M"
-    },
-    "PAXGU": {
-      "date": "2026-10-11",
-      "reason": "bars=4 close=9.99 medDV=3.0M"
-    },
-    "SCATR": {
-      "date": "2026-10-11",
-      "reason": "bars=2 close=0.15 medDV=0.1M"
-    },
-    "SCATW": {
-      "date": "2026-10-11",
+      "date": "2026-11-15",
       "reason": "bars=1 close=0.03 medDV=0.0M"
     },
+    "PAXGU": {
+      "date": "2026-11-15",
+      "reason": "bars=29 close=10.05 medDV=0.1M"
+    },
+    "SCATR": {
+      "date": "2026-11-15",
+      "reason": "bars=27 close=0.12 medDV=0.0M"
+    },
+    "SCATW": {
+      "date": "2026-11-15",
+      "reason": "bars=1 close=0.05 medDV=0.0M"
+    },
     "TBCVW": {
-      "date": "2026-10-11",
-      "reason": "bars=1 close=0.34 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=14 close=0.26 medDV=0.0M"
     },
     "IPHXW": {
-      "date": "2026-10-11",
-      "reason": "bars=5 close=0.40 medDV=0.0M"
+      "date": "2026-11-15",
+      "reason": "bars=30 close=0.41 medDV=0.0M"
     },
     "IRLA": {
       "date": "2026-10-18",
@@ -11428,6 +11450,46 @@
     "LEDRW": {
       "date": "2026-11-08",
       "reason": "bars=1 close=0.22 medDV=0.0M"
+    },
+    "MTRI": {
+      "date": "2026-11-15",
+      "reason": "bars=65 close=18.60 medDV=0.1M"
+    },
+    "XGPU": {
+      "date": "2026-11-15",
+      "reason": "bars=10 close=1.85 medDV=0.1M"
+    },
+    "OPHI": {
+      "date": "2026-11-15",
+      "reason": "bars=65 close=3.65 medDV=0.2M"
+    },
+    "VVVV": {
+      "date": "2026-11-15",
+      "reason": "bars=1 close=16.50 medDV=62.4M"
+    },
+    "ZYN": {
+      "date": "2026-11-15",
+      "reason": "bars=65 close=9.13 medDV=0.2M"
+    },
+    "CRMN": {
+      "date": "2026-11-15",
+      "reason": "bars=65 close=0.74 medDV=0.3M"
+    },
+    "HYAC-WT": {
+      "date": "2026-11-15",
+      "reason": "bars=1 close=0.35 medDV=0.3M"
+    },
+    "LOVIW": {
+      "date": "2026-11-15",
+      "reason": "bars=1 close=0.30 medDV=0.0M"
+    },
+    "SCQCR": {
+      "date": "2026-11-15",
+      "reason": "bars=4 close=0.13 medDV=0.0M"
+    },
+    "SCQCW": {
+      "date": "2026-11-15",
+      "reason": "bars=1 close=0.03 medDV=0.0M"
     }
   },
   "added": {
@@ -11453,6 +11515,9 @@
     "ADRX": "2026-11-01",
     "CASK": "2026-11-08",
     "AGLT": "2026-11-08",
-    "METAM": "2026-11-08"
+    "METAM": "2026-11-08",
+    "QUIT": "2026-11-15",
+    "GLLD": "2026-11-15",
+    "LOB-PB": "2026-11-15"
   }
 }
